@@ -12,6 +12,8 @@
   const LS_MY_NAME = "eat-ai-my-name";
   const LS_USER = "eat-ai-user";
   const LS_FIRST = "eat-ai-first-seen";
+  /* 版本号：每次功能更新后请同步递增（关于页会自动渲染） */
+  const APP_VERSION = "v4.0.0";
 
   /* 调试开关：URL 带 ?reset=1 或 ?fresh=1 → 清空本地数据，模拟全新用户首次进入 */
   (function debugReset() {
@@ -1921,6 +1923,8 @@
   function init() {
     applyTheme(localStorage.getItem(LS_THEME) || "tomato");
     applyUserShell();
+    const av = $("#appVersion");
+    if (av) av.textContent = APP_VERSION;
     if (!localStorage.getItem(LS_FIRST)) {
       // 首次进入：先到品牌欢迎页
       localStorage.setItem(LS_FIRST, "1");
