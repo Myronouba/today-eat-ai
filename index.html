@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#FAF6F0">
+<title>今天吃啥 AI 版</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ======== 顶部品牌栏 ======== -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3l1.5-6a1 1 0 0 1 1.96.18L8.6 11H15l1.5-6a1 1 0 0 1 1.96.18L18.6 11H21"/><path d="M4 11h16v2a7 7 0 0 1-7 7h-2a7 7 0 0 1-7-7v-2z"/></svg>
+      </span>
+      <span class="brand-name">今天吃啥</span>
+      <span class="brand-ai">AI</span>
+    </div>
+    <div class="topbar-right">
+      <button class="reset-prefs-btn me-btn" id="btnMe" title="我的" aria-label="我的">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        我的
+      </button>
+      <button class="reset-prefs-btn" id="btnSettings" title="设置" aria-label="设置">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        设置
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ======== 主题导航 ======== -->
+<nav class="tabs" id="tabs">
+  <button class="tab active" data-view="home">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-6h4v6"/></svg>
+    <span>在家吃</span>
+  </button>
+  <button class="tab" data-view="couple">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.5-9.2-8.6C1.4 8.7 3 6 5.8 6c1.8 0 3 .9 3.7 2.2C10.2 6.9 11.4 6 13.2 6 16 6 18.6 8.7 17.2 11.4 15 15.5 12 20 12 20z"/><path d="M18 8l1.2 2.4L21 12l-1.8 1.2L18 16l-1.2-2.8L15 12l1.8-1.6z"/></svg>
+    <span>情侣一起做</span>
+  </button>
+  <button class="tab" data-view="out">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.3-6-10a6 6 0 0 1 12 0c0 4.7-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg>
+    <span>出去吃</span>
+  </button>
+  <button class="tab" data-view="history">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>
+    <span>历史</span>
+  </button>
+</nav>
+
+<main class="stage" id="stage">
+
+  <!-- ======== 视图：欢迎页（首次进入） ======== -->
+  <section class="view active" id="view-welcome">
+    <div class="welcome-wrap">
+      <div class="welcome-hero">
+        <div class="welcome-logo">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3l1.5-6a1 1 0 0 1 1.96.18L8.6 11H15l1.5-6a1 1 0 0 1 1.96.18L18.6 11H21"/><path d="M4 11h16v2a7 7 0 0 1-7 7h-2a7 7 0 0 1-7-7v-2z"/></svg>
+        </div>
+        <div class="welcome-brand"><span class="serif">今天吃啥</span><span class="welcome-ai">AI</span></div>
+        <p class="welcome-slogan serif">认真吃饭的日子<br>也值得记录</p>
+        <p class="welcome-sub">在家吃 · 情侣一起做 · 出去吃</p>
+      </div>
+      <div class="welcome-foot">
+        <div class="welcome-user hidden" id="welcomeUser"></div>
+        <button class="btn-primary btn-block welcome-btn" id="btnGuestStart">不登录，直接开始使用</button>
+        <button class="btn-sub btn-block welcome-btn2" id="btnGoLogin">登录 / 注册</button>
+        <button class="welcome-link" id="btnReOnboard">重新设置口味 · 30 秒问答</button>
+        <p class="welcome-tip">不登录也能用 · 登录后数据归到你的账号</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== 视图：登录 / 注册 ======== -->
+  <section class="view" id="view-login">
+    <div class="login-wrap">
+      <div class="view-head">
+        <button class="back-btn" data-back="welcome">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg>
+          返回
+        </button>
+        <p class="eyebrow">账号</p>
+        <h2 class="serif view-title">登录 / 注册</h2>
+      </div>
+
+      <div class="panel">
+        <div class="field">
+          <label>手机号</label>
+          <input type="tel" class="text-input" id="loginPhone" maxlength="11" placeholder="输入 11 位手机号" autocomplete="off">
+        </div>
+        <div class="field">
+          <label>验证码</label>
+          <div class="code-row">
+            <input type="text" class="text-input" id="loginCode" maxlength="6" placeholder="6 位验证码" autocomplete="off">
+            <button class="ghost-btn code-btn" id="btnSendCode">获取验证码</button>
+          </div>
+        </div>
+        <button class="btn-primary btn-block" id="btnDoLogin">登 录</button>
+        <p class="login-note">演示版：验证码任意 6 位即可 · 数据保存在本机浏览器</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== 视图：设置中心 ======== -->
+  <section class="view" id="view-settings">
+    <div class="view-head">
+      <button class="back-btn" data-back="home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg>
+        返回
+      </button>
+      <p class="eyebrow">设置</p>
+      <h2 class="serif view-title">设置</h2>
+    </div>
+    <div class="settings-list">
+      <div class="set-group">
+        <div class="set-title">账号</div>
+        <button class="set-item" id="setItemMe">我的信息 · 主题更换 <span class="set-arrow">›</span></button>
+      </div>
+      <div class="set-group">
+        <div class="set-title">口味</div>
+        <button class="set-item" id="setItemOnboard">重新设置口味（30 秒问答）<span class="set-arrow">›</span></button>
+      </div>
+      <div class="set-group">
+        <div class="set-title">数据</div>
+        <button class="set-item has-sub" id="setItemClearHis">
+          <span class="set-main">清空历史菜单记录<span class="set-sub">只删除「历史」里的记录，保留账号和口味</span></span>
+          <span class="set-arrow">›</span>
+        </button>
+        <button class="set-item has-sub danger" id="setItemClearAll">
+          <span class="set-main">清空全部数据<span class="set-sub">账号、口味、历史、纪念日全部删除，不可恢复</span></span>
+          <span class="set-arrow">›</span>
+        </button>
+      </div>
+      <div class="set-group">
+        <div class="set-title">关于</div>
+        <div class="set-item static">版本 v1.0.0</div>
+        <div class="set-item static">演示版 · 数据保存在本机浏览器</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== 视图：我的 ======== -->
+  <section class="view" id="view-me">
+    <div class="view-head">
+      <button class="back-btn" data-back="settings">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg>
+        返回
+      </button>
+      <p class="eyebrow">我的</p>
+      <h2 class="serif view-title">我的</h2>
+    </div>
+
+    <div class="me-card">
+      <div class="me-avatar" id="meAvatar">🍅</div>
+      <div class="me-body">
+        <div class="me-name" id="meName">未登录</div>
+        <div class="me-phone" id="mePhone"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="field">
+        <label>昵称</label>
+        <input type="text" class="text-input" id="meNickname" maxlength="10" placeholder="给自己起个名字" autocomplete="off">
+      </div>
+      <button class="btn-primary btn-block" id="btnSaveMe">保存</button>
+    </div>
+
+    <div class="panel">
+      <div class="field">
+        <label>主题</label>
+        <div class="theme-row" id="themeRow">
+          <button class="theme-dot active" data-theme="tomato" style="--dot:#E14D2A" title="番茄红"></button>
+          <button class="theme-dot" data-theme="orange" style="--dot:#E8731B" title="暖橙"></button>
+          <button class="theme-dot" data-theme="gold" style="--dot:#A97B2F" title="茶金"></button>
+          <button class="theme-dot" data-theme="green" style="--dot:#3E7A56" title="青绿"></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="me-login-box" id="meLoginBox">
+      <button class="btn-primary btn-block" id="btnMeLogin">登录 / 注册</button>
+    </div>
+    <button class="ghost-btn btn-block logout-btn hidden" id="btnLogoutMe">退出登录</button>
+  </section>
+
+  <!-- ======== 视图：30 秒问答（首次进入） ======== -->
+  <section class="view" id="view-onboard">
+    <div class="onboard-wrap">
+      <div class="q-top">
+        <span class="q-track"><span class="q-fill" id="qFill"></span></span>
+        <span class="q-count" id="qCount">1 / 6</span>
+      </div>
+      <div class="q-card" id="qCard"></div>
+      <div class="q-nav">
+        <button class="ghost-btn" id="btnQPrev" disabled>上一步</button>
+        <button class="btn-primary" id="btnQNext">下一步</button>
+      </div>
+      <p class="skip-hint">不想填？<button class="link" id="btnSkipOnboard">直接用大众口味</button></p>
+    </div>
+  </section>
+
+  <!-- ======== 视图：在家吃 ======== -->
+  <section class="view" id="view-home">
+    <div class="view-head">
+      <p class="eyebrow">在家吃</p>
+      <h2 class="serif view-title">今天，吃什么？</h2>
+    </div>
+
+    <!-- 条件面板 -->
+    <div class="panel" id="homePanel">
+      <div class="field">
+        <label>几个人吃？</label>
+        <div class="chips" id="hmPeople">
+          <button class="chip" data-val="1">1 人</button>
+          <button class="chip active" data-val="2">2 人</button>
+          <button class="chip" data-val="3">3 人</button>
+          <button class="chip" data-val="4">4 人+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>谁来做？</label>
+        <div class="chips" id="hmCooker">
+          <button class="chip active" data-val="lazy">懒人</button>
+          <button class="chip" data-val="newbie">新手</button>
+          <button class="chip" data-val="pro">老手</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>今天的口味倾向</label>
+        <div class="chips" id="hmMood">
+          <button class="chip active" data-val="balance">均衡</button>
+          <button class="chip" data-val="spicy">想吃辣</button>
+          <button class="chip" data-val="light">清淡</button>
+          <button class="chip" data-val="comfort">家常暖胃</button>
+        </div>
+      </div>
+      <button class="btn-primary btn-block" id="btnGenHome">AI 为你推算菜单</button>
+    </div>
+
+    <!-- 结果区 -->
+    <div class="result hidden" id="homeResult">
+      <div class="result-head">
+        <p class="reason" id="homeReason"></p>
+        <button class="ghost-btn" id="btnShuffleHome">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+          换一批
+        </button>
+      </div>
+      <div class="menu-list" id="homeMenuList"></div>
+      <button class="btn-primary btn-block" id="btnGoList">
+        生成买菜清单
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+      </button>
+      <button class="btn-sub btn-block" id="btnShareHome">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5l6 6-6 6v-4c-5 0-8 1-10 4 0-6 3-9 10-9z"/></svg>
+        做完晒一晒 · 发朋友圈
+      </button>
+    </div>
+  </section>
+
+  <!-- ======== 视图：买菜清单 ======== -->
+  <section class="view" id="view-list">
+    <div class="view-head">
+      <button class="back-btn" data-back="home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg>
+        返回
+      </button>
+      <p class="eyebrow">买菜清单</p>
+      <h2 class="serif view-title">今天要买这些</h2>
+      <p class="reason" id="listMeta"></p>
+    </div>
+
+    <div class="shopping-list" id="shoppingList"></div>
+
+    <div class="price-total" id="priceTotal"></div>
+
+    <div class="panel">
+      <div class="field">
+        <label>去哪买？</label>
+        <div class="channels" id="channelAdvice"></div>
+      </div>
+      <div class="list-actions">
+        <button class="ghost-btn" id="btnCopyList">复制清单</button>
+        <button class="ghost-btn danger" id="btnClearList">清空重来</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== 视图：菜谱详情 ======== -->
+  <section class="view" id="view-recipe">
+    <div class="view-head">
+      <button class="back-btn" data-back="home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg>
+        返回
+      </button>
+      <div id="recipeHead"></div>
+    </div>
+    <div id="recipeBody"></div>
+  </section>
+
+  <!-- ======== 视图：情侣一起做 ======== -->
+  <section class="view" id="view-couple">
+    <div class="view-head">
+      <p class="eyebrow">情侣一起做</p>
+      <h2 class="serif view-title">把做饭，变成约会</h2>
+    </div>
+
+    <!-- 恋爱进度卡 -->
+    <div class="panel love-progress hidden" id="loveProgress">
+      <div class="lp-top">
+        <div class="lp-days">
+          <span class="lp-num" id="lpDays">--</span>
+          <span class="lp-label" id="lpLabel">在一起 · 天</span>
+        </div>
+        <div class="lp-actions">
+          <button class="lp-set-btn" id="btnSetName">✏️ TA 的名字</button>
+          <button class="lp-set-btn" id="btnSetMyName">✏️ 我的名字</button>
+          <button class="lp-set-btn" id="btnSetAnniv">💗 纪念日</button>
+        </div>
+      </div>
+      <div class="lp-cook">
+        <span class="lp-cook-text">一起做过饭 <b id="lpCount">0</b> 次</span>
+        <span class="lp-next" id="lpNext"></span>
+      </div>
+      <div class="lp-bar"><div class="lp-fill" id="lpFill"></div></div>
+      <div class="lp-badges" id="lpBadges"></div>
+    </div>
+
+    <!-- 纪念日设置 -->
+    <div class="anniv-set hidden" id="annivSet">
+      <label>你们的纪念日是哪天？</label>
+      <div class="anniv-row">
+        <select id="anYear"></select>
+        <select id="anMonth"></select>
+        <select id="anDay"></select>
+      </div>
+      <button class="btn-primary btn-block" id="btnSaveAnniv">保存纪念日</button>
+      <button class="ghost-btn btn-block" id="btnSkipAnniv">先跳过</button>
+    </div>
+
+    <!-- 名字设置（TA / 我） -->
+    <div class="anniv-set hidden" id="nameSet">
+      <label id="nameSetLabel">TA 怎么称呼？</label>
+      <input type="text" id="nameInput" maxlength="8" placeholder="输入名字或昵称，如：小美">
+      <button class="btn-primary btn-block" id="btnSaveName">保存</button>
+      <button class="ghost-btn btn-block" id="btnCancelName">取消</button>
+    </div>
+
+    <!-- 模式选择 -->
+    <div class="panel" id="couplePanel">
+      <div class="field">
+        <label>今天是哪种日子？</label>
+        <div class="chips" id="cpOccasion">
+          <button class="chip active" data-val="daily">日常</button>
+          <button class="chip" data-val="weekend">周末大餐</button>
+          <button class="chip" data-val="anniversary">纪念日 / 情人节</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>你俩的辣度</label>
+        <div class="chips" id="cpSpicy">
+          <button class="chip active" data-val="0">都不吃辣</button>
+          <button class="chip" data-val="1">轻度</button>
+          <button class="chip" data-val="2">来点刺激</button>
+        </div>
+      </div>
+      <button class="btn-primary btn-block" id="btnGenCouple">AI 为你推算协作菜单</button>
+    </div>
+
+    <div class="result hidden" id="coupleResult">
+      <div class="result-head">
+        <p class="reason" id="coupleReason"></p>
+        <button class="ghost-btn" id="btnShuffleCouple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+          换一批
+        </button>
+      </div>
+      <div class="menu-list" id="coupleMenuList"></div>
+      <button class="btn-primary btn-block" id="btnDrawRoles">
+        抽分工卡
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 6H3l2-3h14l2 3z"/><path d="M3 6v3a3 3 0 0 0 3 3h1"/><path d="M21 6v3a3 3 0 0 1-3 3h-1"/><path d="M8 12v3"/><path d="M16 12v3"/><path d="M5 21h14"/></svg>
+      </button>
+      <button class="btn-sub btn-block" id="btnCoupleList">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2l2 3h8l2-3"/><path d="M4 7h16l-1.5 13a2 2 0 0 1-2 1.8H7.5a2 2 0 0 1-2-1.8L4 7z"/><path d="M9 11v4"/><path d="M15 11v4"/></svg>
+        生成买菜清单
+      </button>
+      <button class="btn-sub btn-block" id="btnShareCouple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5l6 6-6 6v-4c-5 0-8 1-10 4 0-6 3-9 10-9z"/></svg>
+        做完晒一晒 · 发朋友圈
+      </button>
+    </div>
+
+    <!-- 分工卡 + 默契问答 + 感情任务 + 纪念卡 -->
+    <div class="hidden" id="couplePlay">
+      <div class="role-cards" id="roleCards"></div>
+      <div class="quiz-card hidden" id="quizCard">
+        <div class="q-label">💞 今日默契一问</div>
+        <div class="q-text" id="qText"></div>
+        <div class="q-opts" id="qOpts"></div>
+        <div class="q-reveal hidden" id="qReveal"></div>
+        <button class="ghost-btn btn-block q-more hidden" id="btnNextQuiz">再来一题</button>
+      </div>
+      <div class="task-card" id="loveTask"></div>
+      <button class="btn-primary btn-block" id="btnMakeCard">
+        生成纪念卡
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.5-9.2-8.6C1.4 8.7 3 6 5.8 6c1.8 0 3 .9 3.7 2.2C10.2 6.9 11.4 6 13.2 6 16 6 18.6 8.7 17.2 11.4 15 15.5 12 20 12 20z"/></svg>
+      </button>
+      <div class="memorial hidden" id="memorial"></div>
+    </div>
+  </section>
+
+  <!-- ======== 视图：出去吃（二期预告） ======== -->
+  <section class="view" id="view-out">
+    <div class="view-head">
+      <p class="eyebrow">出去吃</p>
+      <h2 class="serif view-title">半径内，吃什么好</h2>
+    </div>
+    <div class="panel soon-panel">
+      <div class="soon-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+      </div>
+      <h3 class="serif">二期开发中</h3>
+      <p class="lead">地图选半径 → AI 按你的人群推算菜系餐厅 → 一键直达点评好评。即将上线。</p>
+      <p class="field-hint">届时支持：朋友→烧烤火锅 · 对象→氛围感中餐 · 家人→健康清淡 · 单身→一人食友好</p>
+    </div>
+  </section>
+
+  <!-- ======== 视图：历史 ======== -->
+  <section class="view" id="view-history">
+    <div class="view-head">
+      <p class="eyebrow">历史</p>
+      <h2 class="serif view-title">吃过的每一顿</h2>
+      <p class="reason" id="historyMeta"></p>
+    </div>
+    <div class="history-list" id="historyList"></div>
+  </section>
+
+  <!-- ======== 视图：晒一晒（饭桌打卡） ======== -->
+  <section class="view" id="view-share">
+    <div class="view-head">
+      <button class="back-btn" data-back="home">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg>
+        返回
+      </button>
+      <p class="eyebrow">饭桌打卡</p>
+      <h2 class="serif view-title">做完，晒一晒</h2>
+      <p class="reason" id="shareMeta"></p>
+    </div>
+
+    <div class="share-card-wrap" id="shareCardWrap"></div>
+
+    <div class="share-actions">
+      <button class="btn-primary btn-block" id="btnSaveCardImage">保存图片 · 发朋友圈</button>
+      <button class="ghost-btn btn-block" id="btnCopyCaption">复制分享文案</button>
+    </div>
+    <p class="field-hint" id="shareHint">手机上长按图片即可保存，然后发朋友圈打卡</p>
+  </section>
+
+</main>
+
+<!-- 全局提示 -->
+<div class="toast" id="toast"></div>
+
+<script src="js/recipes.js"></script>
+<script src="js/recipes2.js"></script>
+<script src="js/recipes3.js"></script>
+<script src="js/recipes4.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/llm.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
