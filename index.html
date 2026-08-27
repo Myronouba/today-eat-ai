@@ -15,22 +15,12 @@
 <!-- ======== 顶部品牌栏 ======== -->
 <header class="topbar">
   <div class="topbar-inner">
-    <button class="back-btn topbar-back" id="btnTopBack" hidden>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg>
-      返回
+    <button class="back-btn topbar-back" id="btnTopBack" hidden aria-label="返回">
+      <span class="tb-arrow">‹</span><span>返回</span>
     </button>
-    <div class="brand">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3l1.5-6a1 1 0 0 1 1.96.18L8.6 11H15l1.5-6a1 1 0 0 1 1.96.18L18.6 11H21"/><path d="M4 11h16v2a7 7 0 0 1-7 7h-2a7 7 0 0 1-7-7v-2z"/></svg>
-      </span>
-      <span class="brand-name">今天吃啥</span>
-      <span class="brand-ai">AI</span>
-    </div>
-    <div class="topbar-right">
-      <button class="reset-prefs-btn" id="btnSettings" title="设置" aria-label="设置">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        设置
-      </button>
+    <div class="topbar-title" id="topTitle">
+      <span class="tt-emoji" id="topTitleEmoji"></span>
+      <span class="tt-text" id="topTitleText">在家吃</span>
     </div>
   </div>
 </header>
@@ -87,8 +77,7 @@
   <!-- ======== 视图：设置中心 ======== -->
   <section class="view" id="view-settings">
     <div class="view-head">
-            <p class="eyebrow">设置</p>
-      <h2 class="serif view-title">设置</h2>
+            <h2 class="serif view-title">设置</h2>
     </div>
     <div class="settings-list">
       <div class="set-group">
@@ -121,8 +110,7 @@
   <!-- ======== 视图：我的 ======== -->
   <section class="view" id="view-me">
     <div class="view-head">
-            <p class="eyebrow">我的</p>
-      <h2 class="serif view-title">我的</h2>
+            <h2 class="serif view-title">我的</h2>
     </div>
 
     <div class="me-card">
@@ -153,6 +141,13 @@
       </div>
     </div>
 
+    <div class="panel">
+      <button class="set-item" id="btnMeSettings">
+        <span class="set-main">设置<span class="set-sub">口味重置 · 数据管理 · 主题更换</span></span>
+        <span class="set-arrow">›</span>
+      </button>
+    </div>
+
     <div class="me-login-box" id="meLoginBox">
       <button class="btn-primary btn-block" id="btnMeLogin">登录 / 注册</button>
     </div>
@@ -163,8 +158,8 @@
   <section class="view" id="view-onboard">
     <div class="onboard-wrap">
       <div class="q-top">
-        <span class="q-track"><span class="q-fill" id="qFill"></span></span>
-        <span class="q-count" id="qCount">1 / 6</span>
+        <span class="q-track"><span class="q-fill" id="qFill"><span class="q-fill-dot" id="qFillDot">🍅</span></span></span>
+        <span class="q-count" id="qCount">1 / 6 · 17%</span>
       </div>
       <div class="q-card" id="qCard"></div>
       <div class="q-nav">
@@ -178,7 +173,6 @@
   <!-- ======== 视图：在家吃 ======== -->
   <section class="view" id="view-home">
     <div class="view-head">
-      <p class="eyebrow">在家吃</p>
       <h2 class="serif view-title">今天，吃什么？</h2>
     </div>
 
@@ -284,7 +278,6 @@
   <!-- ======== 视图：情侣一起做 ======== -->
   <section class="view" id="view-couple">
     <div class="view-head">
-      <p class="eyebrow">情侣一起做</p>
       <h2 class="serif view-title">把做饭，变成约会</h2>
     </div>
 
@@ -395,7 +388,6 @@
   <!-- ======== 视图：出去吃（二期预告） ======== -->
   <section class="view" id="view-out">
     <div class="view-head">
-      <p class="eyebrow">出去吃</p>
       <h2 class="serif view-title">半径内，吃什么好</h2>
     </div>
     <div class="panel soon-panel">
@@ -411,7 +403,6 @@
   <!-- ======== 视图：历史 ======== -->
   <section class="view" id="view-history">
     <div class="view-head">
-      <p class="eyebrow">历史</p>
       <h2 class="serif view-title">吃过的每一顿</h2>
       <p class="reason" id="historyMeta"></p>
     </div>
@@ -456,7 +447,7 @@
     <span>历史</span>
   </button>
   <button class="tab" data-view="me">
-    <span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+    <span class="tab-ico"><img src="assets/icons/me.png" alt=""></span>
     <span>我的</span>
   </button>
 </nav>

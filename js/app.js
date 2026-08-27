@@ -174,9 +174,23 @@
 
   /* ---------- 视图切换 ---------- */
   let backStack = [];   // 子页面返回栈（顶部固定返回按钮使用）
+  const VIEW_TITLES = {
+    home: { e: "🍳", t: "在家吃" }, couple: { e: "💞", t: "情侣一起做" },
+    out: { e: "🍽️", t: "出去吃" }, history: { e: "📖", t: "历史" },
+    me: { e: "🙂", t: "我的" }, settings: { e: "⚙️", t: "设置" },
+    login: { e: "", t: "登录" }, onboard: { e: "✨", t: "口味问答" },
+    "home-result": { e: "🍽️", t: "今天吃这些" }, list: { e: "🧺", t: "买菜清单" },
+    recipe: { e: "📜", t: "菜谱详情" }, "couple-result": { e: "💞", t: "约会菜单" },
+    "out-result": { e: "🍽️", t: "出去吃" }, welcome: { e: "", t: "今天吃啥" }
+  };
   function showView(id, fromBack) {
     let v = $("#view-" + id);
     if (!v) { id = "home"; v = $("#view-home"); }  // 视图不存在 → 安全回退首页，避免空白
+    /* 顶部栏：显示当前页面标题（渐变文字 + emoji，替代品牌 LOGO） */
+    const vt = VIEW_TITLES[id] || { e: "", t: "" };
+    const tte = $("#topTitleEmoji"), ttt = $("#topTitleText");
+    if (ttt) ttt.textContent = vt.t;
+    if (tte) tte.textContent = vt.e;
     /* 返回栈：进入子页面时记住上一个视图，顶部固定返回按钮由此弹出 */
     const MAIN_VIEWS = ["home", "couple", "out", "history"];
     const NO_BACK = ["welcome", "onboard", "login"];
@@ -200,7 +214,7 @@
     });
     $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.view === id));
     document.body.classList.toggle("hide-shell", id === "welcome" || id === "login");
-    if (id === "home" || id === "couple") window.scrollTo({ top: 0, behavior: "smooth" });
+    if (id !== "welcome" && id !== "login") window.scrollTo({ top: 0, behavior: "smooth" });
     if (id === "couple") renderCoupleProgress();
     if (id === "me") renderMeView();
     if (id === "history") renderHistory();
@@ -354,6 +368,17 @@
 
   function currentQStep() { return OB_STEPS[obStep]; }
 
+  /* 进度条：百分比 + 小番茄随进度移动 */
+  function updateQProgress() {
+    const pct = Math.round((obStep + 1) / OB_STEPS.length * 100);
+    const f = $("#qFill");
+    if (f) f.style.width = pct + "%";
+    const dot = $("#qFillDot");
+    if (dot) dot.style.left = pct + "%";
+    const c = $("#qCount");
+    if (c) c.textContent = (obStep + 1) + " / " + OB_STEPS.length + " · " + pct + "%";
+  }
+
   function renderQStep() {
     const s = currentQStep();
     if (s.custom) { renderQCustom(s); return; }
@@ -375,8 +400,7 @@
       <div class="qc-grid" id="qOpts" data-multi="${s.multi ? "1" : ""}">${opts}</div>
       ${hint}`;
     bindQOpts();
-    $("#qFill").style.width = ((obStep + 1) / OB_STEPS.length * 100) + "%";
-    $("#qCount").textContent = (obStep + 1) + " / " + OB_STEPS.length;
+    updateQProgress();
     updateQNav();
   }
 
@@ -422,8 +446,7 @@
     renderMoreZone(s);
     renderCustomZone(s);
     updateQHint(s);
-    $("#qFill").style.width = ((obStep + 1) / OB_STEPS.length * 100) + "%";
-    $("#qCount").textContent = (obStep + 1) + " / " + OB_STEPS.length;
+    updateQProgress();
     updateQNav();
   }
 
@@ -657,8 +680,7 @@
       });
     });
     updateHint();
-    $("#qFill").style.width = ((obStep + 1) / OB_STEPS.length * 100) + "%";
-    $("#qCount").textContent = (obStep + 1) + " / " + OB_STEPS.length;
+    updateQProgress();
     updateQNav();
   }
 
@@ -694,8 +716,7 @@
         h.textContent = sel ? ("📍 " + sel + " · " + flavorDesc(sel)) : "点一下你的家乡 👆";
       });
     });
-    $("#qFill").style.width = ((obStep + 1) / OB_STEPS.length * 100) + "%";
-    $("#qCount").textContent = (obStep + 1) + " / " + OB_STEPS.length;
+    updateQProgress();
     updateQNav();
   }
 
@@ -894,8 +915,6 @@
     const d = window.RECIPES.find(r => r.id === id);
     if (!d) return;
     viewingRecipe = d;
-    const backMap = { home: "home-result", couple: "couple", list: "home-result" };
-    document.querySelector("#view-recipe .back-btn").dataset.back = backMap[mode] || "home";
     const t = TYPE_META[d.type];
     $("#recipeHead").innerHTML = `
       <div class="recipe-hero">
@@ -945,7 +964,6 @@
     if (!homeState || !homeState.dishes.length) { toast("先为你推算菜单吧"); return; }
     const hid = saveHistory("home", homeState.ctx.people, homeState.dishes);
     listState = { dishes: homeState.dishes, people: homeState.ctx.people, historyId: hid };
-    document.querySelector("#view-list .back-btn").dataset.back = "home-result";
     renderList();
     showView("list");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -955,7 +973,6 @@
   $("#btnCoupleList").addEventListener("click", () => {
     if (!coupleState || !coupleState.dishes.length) { toast("先推算协作菜单吧"); return; }
     listState = { dishes: coupleState.dishes, people: 2, historyId: coupleState.historyId };
-    document.querySelector("#view-list .back-btn").dataset.back = "couple";
     renderList();
     showView("list");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -1413,10 +1430,9 @@
     toast(u.nickname ? ("昵称已更新：" + u.nickname) : "已保存");
   });
 
-  /* ---------- 设置中心 ---------- */
-  $("#btnSettings").addEventListener("click", () => {
+  /* ---------- 设置中心（入口：我的页「设置」项） ---------- */
+  $("#btnMeSettings").addEventListener("click", () => {
     showView("settings");
-    window.scrollTo({ top: 0 });
   });
   $("#setItemMe").addEventListener("click", () => {
     renderMeView();
