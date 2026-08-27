@@ -15,6 +15,10 @@
 <!-- ======== 顶部品牌栏 ======== -->
 <header class="topbar">
   <div class="topbar-inner">
+    <button class="back-btn topbar-back" id="btnTopBack" hidden>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg>
+      返回
+    </button>
     <div class="brand">
       <span class="brand-mark" aria-hidden="true">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3l1.5-6a1 1 0 0 1 1.96.18L8.6 11H15l1.5-6a1 1 0 0 1 1.96.18L18.6 11H21"/><path d="M4 11h16v2a7 7 0 0 1-7 7h-2a7 7 0 0 1-7-7v-2z"/></svg>
@@ -23,10 +27,6 @@
       <span class="brand-ai">AI</span>
     </div>
     <div class="topbar-right">
-      <button class="reset-prefs-btn me-btn" id="btnMe" title="我的" aria-label="我的">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-        我的
-      </button>
       <button class="reset-prefs-btn" id="btnSettings" title="设置" aria-label="设置">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         设置
@@ -34,26 +34,6 @@
     </div>
   </div>
 </header>
-
-<!-- ======== 主题导航 ======== -->
-<nav class="tabs" id="tabs">
-  <button class="tab active" data-view="home">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11l8-7 8 7"/><path d="M6 10v10h12V10"/><path d="M10 20v-6h4v6"/></svg>
-    <span>在家吃</span>
-  </button>
-  <button class="tab" data-view="couple">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20s-7-4.5-9.2-8.6C1.4 8.7 3 6 5.8 6c1.8 0 3 .9 3.7 2.2C10.2 6.9 11.4 6 13.2 6 16 6 18.6 8.7 17.2 11.4 15 15.5 12 20 12 20z"/><path d="M18 8l1.2 2.4L21 12l-1.8 1.2L18 16l-1.2-2.8L15 12l1.8-1.6z"/></svg>
-    <span>情侣一起做</span>
-  </button>
-  <button class="tab" data-view="out">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21s-6-5.3-6-10a6 6 0 0 1 12 0c0 4.7-6 10-6 10z"/><circle cx="12" cy="11" r="2.2"/></svg>
-    <span>出去吃</span>
-  </button>
-  <button class="tab" data-view="history">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg>
-    <span>历史</span>
-  </button>
-</nav>
 
 <main class="stage" id="stage">
 
@@ -82,11 +62,7 @@
   <section class="view" id="view-login">
     <div class="login-wrap">
       <div class="view-head">
-        <button class="back-btn" data-back="welcome">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg>
-          返回
-        </button>
-        <p class="eyebrow">账号</p>
+                <p class="eyebrow">账号</p>
         <h2 class="serif view-title">登录 / 注册</h2>
       </div>
 
@@ -111,11 +87,7 @@
   <!-- ======== 视图：设置中心 ======== -->
   <section class="view" id="view-settings">
     <div class="view-head">
-      <button class="back-btn" data-back="home">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg>
-        返回
-      </button>
-      <p class="eyebrow">设置</p>
+            <p class="eyebrow">设置</p>
       <h2 class="serif view-title">设置</h2>
     </div>
     <div class="settings-list">
@@ -149,11 +121,7 @@
   <!-- ======== 视图：我的 ======== -->
   <section class="view" id="view-me">
     <div class="view-head">
-      <button class="back-btn" data-back="settings">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg>
-        返回
-      </button>
-      <p class="eyebrow">我的</p>
+            <p class="eyebrow">我的</p>
       <h2 class="serif view-title">我的</h2>
     </div>
 
@@ -216,25 +184,32 @@
 
     <!-- 条件面板 -->
     <div class="panel" id="homePanel">
-      <div class="field">
-        <label>几个人吃？</label>
-        <div class="chips" id="hmPeople">
-          <button class="chip" data-val="1">1 人</button>
-          <button class="chip active" data-val="2">2 人</button>
-          <button class="chip" data-val="3">3 人</button>
-          <button class="chip" data-val="4">4 人+</button>
+      <div class="hm-setting">
+        <div class="hm-summary" id="hmSummary"></div>
+        <button class="link hm-adjust" id="btnHmAdjust">临时调整 <span class="hm-caret">▾</span></button>
+      </div>
+      <div class="hm-extra" id="hmExtra">
+        <div class="field">
+          <label>几个人吃？</label>
+          <div class="chips" id="hmPeople">
+            <button class="chip" data-val="1">1 人</button>
+            <button class="chip" data-val="2">2 人</button>
+            <button class="chip" data-val="3">3 人</button>
+            <button class="chip" data-val="5">5 人</button>
+            <button class="chip" data-val="6">6 人+</button>
+          </div>
+        </div>
+        <div class="field">
+          <label>谁来做？</label>
+          <div class="chips" id="hmCooker">
+            <button class="chip" data-val="lazy">懒人</button>
+            <button class="chip" data-val="newbie">新手</button>
+            <button class="chip" data-val="pro">老手</button>
+          </div>
         </div>
       </div>
       <div class="field">
-        <label>谁来做？</label>
-        <div class="chips" id="hmCooker">
-          <button class="chip active" data-val="lazy">懒人</button>
-          <button class="chip" data-val="newbie">新手</button>
-          <button class="chip" data-val="pro">老手</button>
-        </div>
-      </div>
-      <div class="field">
-        <label>今天的口味倾向</label>
+        <label>今天口味想偏哪边？</label>
         <div class="chips" id="hmMood">
           <button class="chip active" data-val="balance">均衡</button>
           <button class="chip" data-val="spicy">想吃辣</button>
@@ -246,7 +221,15 @@
     </div>
 
     <!-- 结果区 -->
-    <div class="result hidden" id="homeResult">
+  </section>
+
+  <!-- ======== 视图：在家吃 · AI 推算结果 ======== -->
+  <section class="view" id="view-home-result">
+    <div class="view-head">
+            <p class="eyebrow">AI 推算结果</p>
+      <h2 class="serif view-title">今天吃这些</h2>
+    </div>
+    <div class="result" id="homeResult">
       <div class="result-head">
         <p class="reason" id="homeReason"></p>
         <button class="ghost-btn" id="btnShuffleHome">
@@ -269,11 +252,7 @@
   <!-- ======== 视图：买菜清单 ======== -->
   <section class="view" id="view-list">
     <div class="view-head">
-      <button class="back-btn" data-back="home">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg>
-        返回
-      </button>
-      <p class="eyebrow">买菜清单</p>
+            <p class="eyebrow">买菜清单</p>
       <h2 class="serif view-title">今天要买这些</h2>
       <p class="reason" id="listMeta"></p>
     </div>
@@ -297,11 +276,7 @@
   <!-- ======== 视图：菜谱详情 ======== -->
   <section class="view" id="view-recipe">
     <div class="view-head">
-      <button class="back-btn" data-back="home">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg>
-        返回
-      </button>
-      <div id="recipeHead"></div>
+            <div id="recipeHead"></div>
     </div>
     <div id="recipeBody"></div>
   </section>
@@ -446,11 +421,7 @@
   <!-- ======== 视图：晒一晒（饭桌打卡） ======== -->
   <section class="view" id="view-share">
     <div class="view-head">
-      <button class="back-btn" data-back="home">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M11 18l-6-6 6-6"/></svg>
-        返回
-      </button>
-      <p class="eyebrow">饭桌打卡</p>
+            <p class="eyebrow">饭桌打卡</p>
       <h2 class="serif view-title">做完，晒一晒</h2>
       <p class="reason" id="shareMeta"></p>
     </div>
@@ -466,6 +437,30 @@
 
 </main>
 
+<!-- ======== 底部导航栏 ======== -->
+<nav class="tabs" id="tabs">
+  <button class="tab active" data-view="home">
+    <span class="tab-ico"><img src="assets/icons/home.png" alt=""></span>
+    <span>在家吃</span>
+  </button>
+  <button class="tab" data-view="couple">
+    <span class="tab-ico"><img src="assets/icons/couple.png" alt=""></span>
+    <span>情侣一起做</span>
+  </button>
+  <button class="tab" data-view="out">
+    <span class="tab-ico"><img src="assets/icons/out.png" alt=""></span>
+    <span>出去吃</span>
+  </button>
+  <button class="tab" data-view="history">
+    <span class="tab-ico"><img src="assets/icons/history.png" alt=""></span>
+    <span>历史</span>
+  </button>
+  <button class="tab" data-view="me">
+    <span class="tab-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+    <span>我的</span>
+  </button>
+</nav>
+
 <!-- 全局提示 -->
 <div class="toast" id="toast"></div>
 
@@ -475,6 +470,7 @@
 <script src="js/recipes4.js"></script>
 <script src="js/engine.js"></script>
 <script src="js/llm.js"></script>
+<script src="js/data/china.js"></script>
 <script src="js/app.js"></script>
 </body>
 </html>

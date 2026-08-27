@@ -28,6 +28,8 @@ body[data-theme="gold"] { --accent: #A97B2F; --accent-deep: #8F6426; --accent-so
 body[data-theme="green"] { --accent: #3E7A56; --accent-deep: #2F5F42; --accent-soft: #E4EFE8; --gold: #A98A3E; --gold-soft: #F0EAD6; }
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+/* hidden 属性必须隐藏（防止被组件自身 display 覆盖） */
+[hidden] { display: none !important; }
 
 html { scroll-behavior: smooth; }
 
@@ -53,10 +55,11 @@ body {
 }
 .topbar-inner {
   max-width: 560px; margin: 0 auto;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 20px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 20px;
 }
-.brand { display: flex; align-items: center; gap: 10px; }
+.brand { display: flex; align-items: center; gap: 10px; margin-right: auto; }
+.topbar-back { margin-right: 0; flex-shrink: 0; }
 .brand-mark { color: var(--accent); display: inline-flex; }
 .brand-mark svg { width: 24px; height: 24px; }
 .brand-name {
@@ -89,13 +92,15 @@ body {
 .icon-btn:hover { background: var(--card); color: var(--ink); }
 .icon-btn svg { width: 20px; height: 20px; }
 
-/* ============ 主题导航 ============ */
+/* ============ 底部导航栏 ============ */
 .tabs {
-  position: sticky; top: 63px; z-index: 40;
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
   max-width: 560px; margin: 0 auto;
-  display: flex; gap: 4px; padding: 8px 16px 12px;
-  background: rgba(250, 246, 240, .9);
+  display: flex; gap: 2px; padding: 8px 10px calc(10px + env(safe-area-inset-bottom));
+  background: rgba(250, 246, 240, .92);
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border-top: 1px solid var(--line);
+  box-shadow: 0 -8px 24px rgba(120, 60, 20, .06);
 }
 .tab {
   flex: 1; min-width: 0;
@@ -107,17 +112,25 @@ body {
   font-family: inherit;
 }
 .tab svg { width: 21px; height: 21px; }
+.tab-ico { width: 27px; height: 27px; border-radius: 50%; background: #fff; border: 1.5px solid var(--line); overflow: hidden; display: flex; align-items: center; justify-content: center; transition: all .25s var(--ease); }
+.tab-ico img { width: 100%; height: 100%; object-fit: cover; }
 .tab.active {
   background: var(--accent-soft); color: var(--accent); font-weight: 600;
 }
-.tab.active svg { color: var(--accent); }
+.tab.active .tab-ico { border-color: var(--accent); transform: scale(1.06); }
 .tab:not(.active):hover { color: var(--ink); background: var(--card); }
+.tab:not(.active):hover .tab-ico { border-color: var(--accent); }
 
 /* ============ 主舞台 ============ */
-.stage { max-width: 560px; margin: 0 auto; padding: 20px 20px 60px; }
+.stage { max-width: 560px; margin: 0 auto; padding: 20px 20px 108px; }
 
-.view { display: none; animation: fadeUp .45s var(--ease); }
+.view { display: none; }
 .view.active { display: block; }
+/* 视图内容错落渐入：JS 在切换视图时给子元素加 .view-enter，实现层层柔和浮现 */
+.view-enter { animation: fadeUp .5s var(--ease); }
+@media (prefers-reduced-motion: reduce) {
+  .view-enter { animation: none !important; }
+}
 
 @keyframes fadeUp {
   from { opacity: 0; transform: translateY(10px); }
@@ -145,6 +158,17 @@ body {
   display: block; font-size: 13px; font-weight: 500; color: var(--ink-soft);
   margin-bottom: 10px; letter-spacing: .02em;
 }
+
+/* 在家吃：当前设定摘要 + 临时调整 */
+.hm-setting { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; padding: 12px 14px; background: var(--bg); border-radius: 14px; border: 1px solid var(--line); }
+.hm-summary { font-size: 13px; color: var(--ink-soft); line-height: 1.7; }
+.hm-summary b { color: var(--ink); font-weight: 600; }
+.hm-summary .hm-taste { color: var(--accent); font-size: 12px; }
+.hm-adjust { font-size: 12px; color: var(--accent); white-space: nowrap; cursor: pointer; }
+.hm-adjust:hover { text-decoration: underline; }
+.hm-caret { font-size: 10px; transition: transform .25s var(--ease); display: inline-block; }
+.hm-extra { display: none; padding-top: 2px; }
+.hm-extra.open { display: block; animation: fadeUp .3s var(--ease); }
 .field-hint { font-size: 12px; color: var(--muted); margin-top: 8px; line-height: 1.5; }
 
 /* 芯片选择器 */
@@ -239,13 +263,19 @@ body {
 
 /* ============ 菜谱详情 ============ */
 .back-btn {
-  display: inline-flex; align-items: center; gap: 4px;
-  border: none; background: none; color: var(--muted); cursor: pointer;
-  font-size: 13px; font-family: inherit; margin-bottom: 12px; padding: 0;
-  transition: color .2s;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 16px 8px 12px; border-radius: 999px;
+  border: 1px solid var(--line); background: var(--card);
+  color: var(--ink-soft); cursor: pointer;
+  font-size: 13px; font-weight: 500; font-family: inherit;
+  margin-bottom: 18px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  transition: all .25s var(--ease);
 }
-.back-btn:hover { color: var(--ink); }
-.back-btn svg { width: 16px; height: 16px; }
+.back-btn svg { width: 15px; height: 15px; transition: transform .25s var(--ease); }
+.back-btn:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-deep); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(225,77,42,.12); }
+.back-btn:hover svg { transform: translateX(-2px); }
+.back-btn:active { transform: scale(.96); }
 .recipe-hero {
   background: var(--card); border-radius: var(--radius); padding: 24px 20px;
   box-shadow: var(--shadow); border: 1px solid rgba(237, 230, 219, .6);
@@ -264,6 +294,25 @@ body {
 .section-block { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid rgba(237,230,219,.6); margin-bottom: 14px; }
 .section-block h3 { font-size: 15px; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
 .section-block h3::before { content: ""; width: 4px; height: 16px; background: var(--accent); border-radius: 2px; }
+
+/* 健康档案 */
+.health-block { border-left: 3px solid var(--green); }
+.health-level { display: inline-block; font-size: 11px; color: #fff; background: var(--green); border-radius: 999px; padding: 2px 9px; margin-left: 6px; }
+.health-score { display: flex; align-items: baseline; gap: 10px; margin: 4px 0 12px; }
+.health-score span { font-size: 12px; color: var(--muted); }
+.health-score b { font-size: 30px; color: var(--accent); font-weight: 700; line-height: 1; }
+.health-list { margin-top: 8px; }
+.health-list .hl-title { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.health-list ul { list-style: none; }
+.health-list li { font-size: 13px; color: var(--ink-soft); padding: 5px 0 5px 22px; position: relative; line-height: 1.5; }
+.health-list li::before { content: "·"; position: absolute; left: 8px; color: var(--green); font-weight: 700; font-size: 15px; }
+.health-list .hl-warn li::before { content: "!"; color: var(--accent); font-weight: 700; }
+
+/* 菜单卡片：健康摘要 + 换一换 */
+.mc-health { margin-top: 10px; font-size: 11px; color: var(--muted); background: var(--bg); border-radius: 10px; padding: 7px 11px; line-height: 1.5; }
+.mc-swap { margin-top: 10px; width: 100%; padding: 8px 0; border: 1px dashed rgba(225,77,42,.45); background: none; color: var(--accent); border-radius: 10px; font-size: 12px; cursor: pointer; font-family: inherit; transition: all .2s; }
+.mc-swap:hover { background: var(--accent-soft); }
+.mc-swap:active { transform: scale(.98); }
 .ingredient-list { list-style: none; }
 .ingredient-list li {
   display: flex; justify-content: space-between; padding: 9px 0;
@@ -613,6 +662,61 @@ body.hide-shell .topbar, body.hide-shell .tabs { display: none; }
 .q-step { font-size: 12px; color: var(--accent); font-weight: 600; letter-spacing: .08em; margin-bottom: 10px; }
 .q-step span { color: var(--muted); font-weight: 400; }
 .q-title { font-size: 26px; line-height: 1.3; margin-bottom: 24px; }
+
+/* 图像化选项卡片（问答） */
+.qc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.qc-opt { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 18px 12px 16px; background: var(--bg); border: 1.5px solid var(--line); border-radius: 18px; cursor: pointer; font-family: inherit; color: var(--ink-soft); transition: all .2s; }
+.qc-opt .qc-emoji { font-size: 36px; line-height: 1; filter: grayscale(.15); transition: transform .2s; }
+.qc-opt .qc-label { font-size: 15px; font-weight: 600; color: var(--ink); }
+.qc-opt .qc-sub { font-size: 12px; color: var(--muted); text-align: center; line-height: 1.4; }
+.qc-opt:hover { border-color: var(--accent); background: var(--accent-soft); transform: translateY(-2px); }
+.qc-opt:hover .qc-emoji { transform: scale(1.15); }
+.qc-opt.active { border-color: var(--accent); background: linear-gradient(160deg, var(--accent-soft), rgba(255,255,255,.4)); box-shadow: 0 4px 14px rgba(225,77,42,.12); }
+.qc-opt.active .qc-emoji { filter: none; transform: scale(1.12); }
+.qc-opt.active .qc-label { color: var(--accent-deep); }
+
+/* 口味派系（问答第一步） */
+.rc-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.rc-card { display: flex; flex-direction: column; align-items: flex-start; gap: 3px; padding: 18px 15px 15px; background: var(--bg); border: 1.5px solid var(--line); border-radius: 18px; cursor: pointer; font-family: inherit; text-align: left; transition: all .2s; }
+.rc-emoji { font-size: 32px; line-height: 1; margin-bottom: 7px; }
+.rc-name { font-size: 18px; font-weight: 700; color: var(--ink); }
+.rc-words { font-size: 13px; color: var(--accent); font-weight: 600; }
+.rc-dish { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.rc-card:hover { border-color: var(--accent); background: var(--accent-soft); transform: translateY(-2px); }
+.rc-card.active { border-color: var(--accent); background: linear-gradient(160deg, var(--accent-soft), rgba(255,255,255,.4)); box-shadow: 0 4px 14px rgba(225,77,42,.12); }
+.rc-card.active .rc-name { color: var(--accent-deep); }
+.rc-card.rc-more { border-style: dashed; border-color: var(--gold); color: var(--gold-deep); justify-content: center; align-items: center; text-align: center; background: transparent; }
+.rc-card.rc-more .rc-name { color: var(--gold-deep); }
+.rc-card.rc-more .rc-words { color: var(--muted); }
+.rc-card.rc-more.active { border-color: var(--gold); background: var(--gold-soft); }
+.qc-grid-more { margin-top: 16px; padding-top: 16px; border-top: 1px dashed var(--line); animation: fadeUp .3s var(--ease); }
+.rc-card.rc-custom { border-style: dashed; border-color: var(--accent); background: var(--accent-soft); }
+.q-custom { margin-top: 16px; padding: 14px 16px; background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 16px; animation: fadeUp .3s var(--ease); }
+.q-custom-more { background: var(--card); border-color: var(--line); }
+.q-custom-tip { display: block; font-size: 13px; color: var(--ink); font-weight: 600; margin-bottom: 10px; }
+.q-custom-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.q-custom-chips .chip { flex: 0 0 auto; padding: 10px 16px; font-size: 14px; }
+.q-custom-row { display: flex; gap: 10px; }
+.q-custom-row input { flex: 1; min-width: 0; padding: 12px 14px; border: 1px solid var(--line); border-radius: 12px; font-size: 15px; background: #fff; font-family: inherit; }
+.q-custom-row input:focus { outline: none; border-color: var(--accent); }
+.q-custom-row button { white-space: nowrap; }
+
+/* 触屏设备：禁用 hover 位移，避免点击抖动 */
+@media (hover: none) {
+  .rc-card:hover, .qc-opt:hover, .chip:hover, .hm-adjust:hover { transform: none !important; }
+  .qc-opt:hover .qc-emoji { transform: none !important; }
+}
+.rc-prov-wrap { margin-top: 14px; padding: 12px 14px; background: var(--card); border: 1px solid var(--line); border-radius: 16px; animation: fadeUp .3s var(--ease); }
+.rc-prov-tip { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.rc-prov-tip em { font-style: normal; color: #C7BFAF; font-size: 11px; }
+.rc-prov-list { display: flex; flex-wrap: wrap; gap: 8px; }
+
+/* 中国地图选择 */
+.china-box { background: var(--bg); border: 1px solid var(--line); border-radius: 18px; padding: 10px 4px 6px; }
+.china-map { width: 100%; height: auto; display: block; }
+.china-p { fill: var(--card); stroke: #E3D9C8; stroke-width: .8; cursor: pointer; transition: fill .18s, stroke .18s; }
+.china-p:hover { fill: var(--accent-soft); stroke: var(--accent); }
+.china-p.sel { fill: var(--gold-soft); stroke: var(--gold); stroke-width: 1.4; }
 .q-opts { display: flex; flex-direction: row; flex-wrap: wrap; gap: 10px; }
 .q-opts .chip { padding: 13px 18px; font-size: 15px; flex: 0 0 auto; }
 .q-nav { display: flex; gap: 12px; margin-top: 22px; }

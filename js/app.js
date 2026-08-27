@@ -1,5 +1,5 @@
 /* ============================================================
-   今天吃啥 AI 版 · 主应用逻辑
+   今天吃啥 AI 版 · 主应用逻辑 · build v4
    ============================================================ */
 (function () {
   "use strict";
@@ -173,13 +173,36 @@
   ];
 
   /* ---------- 视图切换 ---------- */
-  function showView(id) {
-    $$(".view").forEach(v => v.classList.remove("active"));
-    $("#view-" + id).classList.add("active");
+  let backStack = [];   // 子页面返回栈（顶部固定返回按钮使用）
+  function showView(id, fromBack) {
+    let v = $("#view-" + id);
+    if (!v) { id = "home"; v = $("#view-home"); }  // 视图不存在 → 安全回退首页，避免空白
+    /* 返回栈：进入子页面时记住上一个视图，顶部固定返回按钮由此弹出 */
+    const MAIN_VIEWS = ["home", "couple", "out", "history"];
+    const NO_BACK = ["welcome", "onboard", "login"];
+    const prevEl = document.querySelector(".view.active");
+    const prevId = prevEl ? prevEl.id.replace("view-", "") : null;
+    const isSub = !MAIN_VIEWS.includes(id) && !NO_BACK.includes(id);
+    if (isSub && !fromBack && prevId && prevId !== id) {
+      backStack.push(prevId);
+      if (backStack.length > 10) backStack.shift();
+    }
+    const tb = $("#btnTopBack");
+    if (tb) tb.hidden = !isSub;   // 仅子页面显示固定返回按钮
+    $$(".view").forEach(x => x.classList.remove("active"));
+    v.classList.add("active");
+    /* 强制重播进入动画：子元素依次柔和浮现（返回菜单更细腻） */
+    v.querySelectorAll(":scope > *").forEach((el, i) => {
+      el.classList.remove("view-enter");
+      void el.offsetWidth;  // 强制 reflow，确保动画重播
+      el.style.animationDelay = Math.min(i * 0.05, 0.45) + "s";
+      el.classList.add("view-enter");
+    });
     $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.view === id));
     document.body.classList.toggle("hide-shell", id === "welcome" || id === "login");
     if (id === "home" || id === "couple") window.scrollTo({ top: 0, behavior: "smooth" });
     if (id === "couple") renderCoupleProgress();
+    if (id === "me") renderMeView();
     if (id === "history") renderHistory();
   }
 
@@ -219,22 +242,113 @@
      ① 30 秒问答（onboarding）
      ============================================================ */
   const OB_STEPS = [
-    { key: "region", title: "你是哪里人？", multi: false,
-      hint: "不同地方的口味倾向不同，我会据此推算",
-      hintMap: { sichuan: "🌶️ 川渝 —— 偏麻辣鲜香，无辣不欢", jiangnan: "🍲 江浙 —— 偏清淡甜鲜，讲究本味", guangdong: "🥘 广东 —— 偏清淡重原味，爱喝汤", north: "🍜 北方 —— 偏咸鲜，爱面食", central: "🌶️ 两湖 —— 偏辣香浓郁", northwest: "🍖 西北 —— 偏咸鲜，爱牛羊肉面食", other: "🍚 其他 —— 口味不拘一格" },
-      options: [["sichuan", "川渝"], ["jiangnan", "江浙"], ["guangdong", "广东"], ["north", "北方"], ["central", "两湖"], ["northwest", "西北"], ["other", "其他"]] },
-    { key: "people", title: "平时几个人吃？", multi: false,
-      options: [["1", "1 人"], ["2", "2 人"], ["3", "3 人"], ["4", "4 人+"]] },
-    { key: "cooker", title: "家里谁做饭？", multi: false,
-      options: [["lazy", "懒人 · 少折腾"], ["newbie", "新手 · 求不翻车"], ["pro", "老手 · 要硬菜"], ["none", "没人做 · 外出吃"]] },
-    { key: "spicy", title: "吃辣程度？", multi: false,
-      options: [["0", "不吃辣"], ["1", "微辣"], ["2", "中辣"], ["3", "无辣不欢"]] },
-    { key: "avoid", title: "有什么忌口？", multi: true,
-      hint: "可多选，没有就选「没有」",
-      options: [["none", "没有"], ["cilantro", "不吃香菜"], ["pork", "不吃猪肉"], ["seafood", "海鲜过敏"], ["vegetarian", "素食"], ["garlic", "不吃葱蒜"]] },
-    { key: "health", title: "有没有健康目标？", multi: false,
-      options: [["none", "吃好就行"], ["fitness", "减脂塑形"], ["sugar", "控糖"], ["light", "清淡养生"]] }
+    { key: "region", title: "最想宠哪一口？", multi: true, custom: "cuisine",
+      hint: "菜系可以多选，菜品池会把你爱吃的都记下，AI 只宠你一个人" },
+    { key: "people", title: "平时几个人吃？", multi: false, custom: "people",
+      hint: "告诉我几个人，分量和搭配我都给你安排妥妥的",
+      options: [
+        { v: "1", emoji: "🍚", label: "一个人", sub: "给自己做顿好的" },
+        { v: "2", emoji: "👫", label: "两个人", sub: "朋友 · 情侣 · 搭子" },
+        { v: "3", emoji: "👨👩👧", label: "一家三口", sub: "温馨小家庭" },
+        { v: "4", emoji: "🎉", label: "四人以上", sub: "朋友局 · 大家庭" } ] },
+    { key: "cooker", title: "家里谁掌勺？", multi: false,
+      options: [
+        { v: "lazy", emoji: "🛋️", label: "躺平懒人", sub: "能少一步是一步" },
+        { v: "newbie", emoji: "🥄", label: "厨房新手", sub: "不翻车就算赢" },
+        { v: "pro", emoji: "👨‍🍳", label: "老手大厨", sub: "硬菜随便拿捏" },
+        { v: "none", emoji: "🍽️", label: "没人做", sub: "出门觅食去" } ] },
+    { key: "spicy", title: "你能吃多辣？", multi: false,
+      options: [
+        { v: "0", emoji: "🌿", label: "不吃辣", sub: "一滴辣都不碰" },
+        { v: "1", emoji: "🌶️", label: "微辣", sub: "意思一下" },
+        { v: "2", emoji: "🌶️🌶️", label: "中辣", sub: "越吃越过瘾" },
+        { v: "3", emoji: "🌶️🌶️🌶️", label: "无辣不欢", sub: "辣才是灵魂" } ] },
+    { key: "avoid", title: "有什么要避开的？", multi: true, custom: "avoid",
+      hint: "多选都行，你的忌口我都记在小本本上了，放心",
+      options: [
+        { v: "none", emoji: "🙆", label: "没有忌口", sub: "什么都吃" },
+        { v: "cilantro", emoji: "🌿", label: "不吃香菜", sub: "香菜一生之敌" },
+        { v: "pork", emoji: "🐷", label: "不吃猪肉" },
+        { v: "seafood", emoji: "🦐", label: "海鲜过敏" },
+        { v: "vegetarian", emoji: "🥦", label: "素食主义" },
+        { v: "garlic", emoji: "🧄", label: "不吃葱蒜" } ] },
+    { key: "health", title: "吃饭有没有小目标？", multi: false,
+      options: [
+        { v: "none", emoji: "🛌", label: "吃好就行", sub: "躺平快乐干饭" },
+        { v: "fitness", emoji: "💪", label: "减脂塑形", sub: "自律给我自由" },
+        { v: "muscle", emoji: "🏋️", label: "增肌高蛋白", sub: "肉蛋奶管够" },
+        { v: "bone", emoji: "🦴", label: "补钙强骨", sub: "奶豆常备" },
+        { v: "sugar", emoji: "🍬", label: "控糖中", sub: "甜要适度" },
+        { v: "light", emoji: "🍵", label: "清淡养生", sub: "佛系轻负担" } ] }
   ];
+
+  /* ---------- 自定义步骤数据：6 框 + 更多展开 ---------- */
+  const CUISINE = {
+    mains: [
+      { v: "sichuan", emoji: "🌶️", label: "川菜", sub: "麻辣鲜香 · 下饭顶流" },
+      { v: "guangdong", emoji: "🍲", label: "粤菜", sub: "清淡原味 · 鲜到眉毛" },
+      { v: "central", emoji: "🔥", label: "湘菜", sub: "香辣浓郁 · 越吃越上瘾" },
+      { v: "jiangnan", emoji: "🐟", label: "江浙菜", sub: "清淡甜鲜 · 讲究本味" },
+      { v: "other", emoji: "🍚", label: "全国通吃", sub: "佛系 · 什么都能宠" },
+      { v: "__more__", emoji: "🗺️", label: "更多菜系", sub: "八大菜系 + 环球风味", more: true }
+    ],
+    more: [
+      { v: "lu", emoji: "🥟", label: "鲁菜", sub: "咸鲜厚重", flavor: "north" },
+      { v: "dongbei", emoji: "🥘", label: "东北菜", sub: "豪爽炖菜", flavor: "northeast" },
+      { v: "xibei", emoji: "🍖", label: "西北菜", sub: "牛羊面食", flavor: "northwest" },
+      { v: "yungui", emoji: "🍜", label: "云贵菜", sub: "酸辣多民族", flavor: "southwest" },
+      { v: "e", emoji: "🦆", label: "鄂菜", sub: "江湖鲜香", flavor: "central" },
+      { v: "hui", emoji: "🏮", label: "徽菜", sub: "重油重色", flavor: "north" },
+      { v: "min", emoji: "🍤", label: "闽菜", sub: "清鲜和醇", flavor: "guangdong" },
+      { v: "jing", emoji: "🍲", label: "京菜", sub: "官府风味", flavor: "north" },
+      { v: "french", emoji: "🥐", label: "法式西餐", sub: "精致浪漫", flavor: "other" },
+      { v: "italy", emoji: "🍕", label: "意大利菜", sub: "奶酪番茄", flavor: "other" },
+      { v: "japan", emoji: "🍣", label: "日式料理", sub: "清淡鲜甜", flavor: "other" },
+      { v: "korea", emoji: "🥘", label: "韩式料理", sub: "辣爽烤肉", flavor: "other" },
+      { v: "thai", emoji: "🍜", label: "泰式料理", sub: "酸辣开胃", flavor: "other" },
+      { v: "seasia", emoji: "🍛", label: "东南亚菜", sub: "香料风味", flavor: "other" },
+      { v: "america", emoji: "🍔", label: "美式料理", sub: "硬核热量", flavor: "other" }
+    ]
+  };
+  const PEOPLE = {
+    mains: [
+      { v: "1", emoji: "🍚", label: "一个人", sub: "独享小确幸" },
+      { v: "2", emoji: "👫", label: "两个人", sub: "情侣 · 闺蜜 · 好兄弟" },
+      { v: "3", emoji: "👨‍👩‍👧", label: "一家三口", sub: "温馨小家庭" },
+      { v: "8", emoji: "🏠", label: "大家庭", sub: "默认八人 · 团圆饭" },
+      { v: "__custom__", emoji: "🎉", label: "聚会人数自定义", sub: "点这里自己定", custom: true },
+      { v: "__more__", emoji: "🔢", label: "更多人数", sub: "预设 + 自定义", more: true }
+    ],
+    more: [
+      { v: "4", emoji: "👨‍👩‍👧‍👦", label: "一家四口" },
+      { v: "5", emoji: "🎊", label: "一家五口" },
+      { v: "6", emoji: "🎊", label: "六人局" },
+      { v: "10", emoji: "🎊", label: "十人以上" }
+    ]
+  };
+  const AVOID = {
+    mains: [
+      { v: "cilantro", emoji: "🌿", label: "不吃香菜", sub: "香菜一生之敌" },
+      { v: "garlic", emoji: "🧄", label: "不吃葱蒜", sub: "葱蒜退散" },
+      { v: "pork", emoji: "🐷", label: "不吃猪肉", sub: "猪肉拜拜" },
+      { v: "seafood", emoji: "🦐", label: "海鲜过敏", sub: "虾蟹避开" },
+      { v: "vegetarian", emoji: "🥦", label: "素食主义", sub: "素净也精彩" },
+      { v: "__more__", emoji: "⋯", label: "更多忌口", sub: "牛羊肉 · 蛋 · 乳糖等", more: true }
+    ],
+    more: [
+      { v: "beef", emoji: "🐂", label: "不吃牛羊肉", sub: "牛羊避开" },
+      { v: "egg", emoji: "🥚", label: "不吃蛋", sub: "蛋类避开" },
+      { v: "lactose", emoji: "🥛", label: "乳糖不耐", sub: "奶制品避开" },
+      { v: "organ", emoji: "🍖", label: "不吃内脏", sub: "肝腰肠肚避开" },
+      { v: "mushroom", emoji: "🍄", label: "不吃菌菇", sub: "香菇木耳避开" },
+      { v: "soy", emoji: "🫘", label: "不吃豆制品", sub: "豆腐豆干避开" },
+      { v: "noSpicy", emoji: "🌶️", label: "一点辣不碰", sub: "零辣度" },
+      { v: "lowOil", emoji: "🫒", label: "少油少脂", sub: "清淡饮食" },
+      { v: "lowSalt", emoji: "🧂", label: "少盐控钠", sub: "低盐饮食" },
+      { v: "lowSugar", emoji: "🍬", label: "控糖戒甜", sub: "低糖饮食" }
+    ]
+  };
+  const CUSTOM = { cuisine: CUISINE, people: PEOPLE, avoid: AVOID };
   let obStep = 0;
   const obState = {};
 
@@ -242,25 +356,343 @@
 
   function renderQStep() {
     const s = currentQStep();
+    if (s.custom) { renderQCustom(s); return; }
+    if (s.region) { renderQRegions(s); return; }
+    if (s.map) { renderQMap(s); return; }
     const qCard = $("#qCard");
-    const opts = s.options.map(([v, label]) => {
+    const opts = s.options.map(o => {
       let active = false;
-      if (s.multi) active = (obState[s.key] || []).includes(v);
-      else active = obState[s.key] === v;
-      return `<button class="chip ${active ? "active" : ""}" data-val="${v}">${label}</button>`;
+      if (s.multi) active = (obState[s.key] || []).includes(o.v);
+      else active = obState[s.key] === o.v;
+      const emoji = o.emoji ? `<span class="qc-emoji">${o.emoji}</span>` : "";
+      const sub = o.sub ? `<span class="qc-sub">${o.sub}</span>` : "";
+      return `<button class="qc-opt ${active ? "active" : ""}" data-val="${o.v}">${emoji}<span class="qc-label">${o.label}</span>${sub}</button>`;
     }).join("");
-    const hint = (s.hintMap && obState[s.key] && s.hintMap[obState[s.key]]) || (s.hint || "");
+    const hint = s.hint ? `<p class="field-hint" id="qHint">${s.hint}</p>` : "";
     qCard.innerHTML = `
       <div class="q-step">${String(obStep + 1).padStart(2, "0")}<span>/ ${OB_STEPS.length}</span></div>
       <h3 class="q-title serif">${s.title}</h3>
-      <div class="chips q-opts" id="qOpts" data-multi="${s.multi ? "1" : ""}">${opts}</div>
-      <p class="field-hint" id="qHint">${hint}</p>`;
-    bindChips($("#qOpts"), () => {
-      const v = s.multi ? chipVals($("#qOpts")) : chipVal($("#qOpts"));
-      obState[s.key] = v;
-      const h = $("#qHint");
-      if (s.hintMap && !s.multi && s.hintMap[v]) h.textContent = s.hintMap[v];
+      <div class="qc-grid" id="qOpts" data-multi="${s.multi ? "1" : ""}">${opts}</div>
+      ${hint}`;
+    bindQOpts();
+    $("#qFill").style.width = ((obStep + 1) / OB_STEPS.length * 100) + "%";
+    $("#qCount").textContent = (obStep + 1) + " / " + OB_STEPS.length;
+    updateQNav();
+  }
+
+  function renderQCustom(s) {
+    const D = CUSTOM[s.custom];
+    const qCard = $("#qCard");
+    const mainsHtml = D.mains.map(o => {
+      return `<button class="rc-card ${o.more ? "rc-more" : ""} ${o.custom ? "rc-custom" : ""}" data-v="${o.v}" data-more="${o.more ? "1" : "0"}" data-custom="${o.custom ? "1" : "0"}">
+        <span class="rc-emoji">${o.emoji}</span>
+        <span class="rc-name">${o.label}</span>
+        <span class="rc-words">${o.sub}</span>
+      </button>`;
+    }).join("");
+    qCard.innerHTML = `
+      <div class="q-step">${String(obStep + 1).padStart(2, "0")}<span>/ ${OB_STEPS.length}</span></div>
+      <h3 class="q-title serif">${s.title}</h3>
+      <div class="rc-grid" id="rcGrid">${mainsHtml}</div>
+      <div id="qMoreZone"></div>
+      <div id="qCustomZone"></div>
+      <p class="field-hint" id="qHint"></p>`;
+    /* 主卡片：事件委托，只切 class，不重建 */
+    $("#rcGrid").addEventListener("click", e => {
+      const c = e.target.closest(".rc-card");
+      if (!c) return;
+      if (c.dataset.more === "1") {
+        obState["__more_" + s.key] = !obState["__more_" + s.key];
+        c.classList.toggle("active", !!obState["__more_" + s.key]);
+        renderMoreZone(s);
+        return;
+      }
+      if (c.dataset.custom === "1") {
+        obState["__custom_" + s.key] = !obState["__custom_" + s.key];
+        c.classList.toggle("active", !!obState["__custom_" + s.key]);
+        renderCustomZone(s);
+        return;
+      }
+      toggleQVal(s, c.dataset.v);
+      syncQStates(s);
+      updateQHint(s);
       updateQNav();
+    });
+    syncQStates(s);
+    renderMoreZone(s);
+    renderCustomZone(s);
+    updateQHint(s);
+    $("#qFill").style.width = ((obStep + 1) / OB_STEPS.length * 100) + "%";
+    $("#qCount").textContent = (obStep + 1) + " / " + OB_STEPS.length;
+    updateQNav();
+  }
+
+  function syncQStates(s) {
+    const D = CUSTOM[s.custom];
+    const cur = obState[s.key];
+    const arr = s.multi ? (Array.isArray(cur) ? cur : []) : (cur ? [cur] : []);
+    document.querySelectorAll("#rcGrid .rc-card").forEach(c => {
+      if (c.dataset.more === "1") { c.classList.toggle("active", !!obState["__more_" + s.key]); return; }
+      if (c.dataset.custom === "1") { c.classList.toggle("active", !!obState["__custom_" + s.key]); return; }
+      c.classList.toggle("active", arr.includes(c.dataset.v));
+    });
+    document.querySelectorAll("#qMoreZone .qc-opt").forEach(c => {
+      c.classList.toggle("active", arr.includes(c.dataset.v));
+    });
+  }
+
+  function renderMoreZone(s) {
+    const D = CUSTOM[s.custom];
+    const zone = $("#qMoreZone");
+    if (!zone) return;
+    const moreOpen = !!obState["__more_" + s.key];
+    if (!moreOpen) { zone.innerHTML = ""; return; }
+    const moreHtml = D.more.length ? `<div class="qc-grid qc-grid-more" id="qMore">${D.more.map(o =>
+      `<button class="qc-opt" data-v="${o.v}"><span class="qc-emoji">${o.emoji}</span><span class="qc-label">${o.label}</span>${o.sub ? `<span class="qc-sub">${o.sub}</span>` : ""}</button>`).join("")}</div>` : "";
+    const moreCustomHtml = s.custom === "people" ? `
+      <div class="q-custom q-custom-more">
+        <span class="q-custom-tip">这些还不够？点一个或直接输入</span>
+        <div class="q-custom-chips">${[6, 8, 10, 12, 15, 20].map(n => `<button class="chip" data-n="${n}">${n} 人</button>`).join("")}</div>
+        <div class="q-custom-row"><input type="number" id="qMoreCustomNum" min="1" max="30" placeholder="如 12"><button class="ghost-btn" id="qMoreCustomOk">确定</button></div>
+      </div>` : "";
+    zone.innerHTML = moreHtml + moreCustomHtml;
+    zone.querySelectorAll(".qc-opt").forEach(c => {
+      c.addEventListener("click", () => { toggleQVal(s, c.dataset.v); syncQStates(s); updateQHint(s); updateQNav(); });
+    });
+    const setN = (n) => {
+      if (n >= 1 && n <= 30) {
+        obState[s.key] = String(n);
+        obState["__custom_" + s.key] = false;
+        syncQStates(s); updateQHint(s); updateQNav();
+        toast("已设定 " + n + " 人一起吃");
+      }
+    };
+    zone.querySelectorAll(".q-custom-chips .chip").forEach(ch => {
+      ch.addEventListener("click", () => setN(Number(ch.dataset.n)));
+    });
+    const ok2 = $("#qMoreCustomOk");
+    if (ok2) {
+      const doSet2 = () => setN(parseInt($("#qMoreCustomNum").value, 10));
+      ok2.addEventListener("click", doSet2);
+      const inp2 = $("#qMoreCustomNum");
+      if (inp2) inp2.addEventListener("keydown", e => { if (e.key === "Enter") doSet2(); });
+    }
+    syncQStates(s);
+  }
+
+  function renderCustomZone(s) {
+    const zone = $("#qCustomZone");
+    if (!zone) return;
+    if (s.custom !== "people" || !obState["__custom_" + s.key]) { zone.innerHTML = ""; return; }
+    zone.innerHTML = `<div class="q-custom" id="qCustom">
+      <span class="q-custom-tip">🎉 一共有几个人吃？</span>
+      <div class="q-custom-chips" id="qCustomChips">${[6, 8, 10, 12, 15, 20].map(n => `<button class="chip" data-n="${n}">${n} 人</button>`).join("")}</div>
+      <div class="q-custom-row"><input type="number" id="qCustomNum" min="1" max="30" placeholder="或直接输入，如 7"><button class="btn-primary" id="qCustomOk">确定</button></div>
+    </div>`;
+    const setN = (n) => {
+      if (n >= 1 && n <= 30) {
+        obState[s.key] = String(n);
+        obState["__custom_" + s.key] = false;
+        renderCustomZone(s); syncQStates(s); updateQHint(s); updateQNav();
+        toast("已设定 " + n + " 人一起吃");
+      }
+    };
+    $("#qCustomChips").querySelectorAll(".chip").forEach(ch => {
+      ch.addEventListener("click", () => setN(Number(ch.dataset.n)));
+    });
+    const ok = $("#qCustomOk");
+    ok.addEventListener("click", () => setN(parseInt($("#qCustomNum").value, 10)));
+    const inp = $("#qCustomNum");
+    if (inp) inp.addEventListener("keydown", e => { if (e.key === "Enter") setN(parseInt(inp.value, 10)); });
+  }
+
+  function updateQHint(s) {
+    const cur = obState[s.key];
+    const arr = s.multi ? (Array.isArray(cur) ? cur : []) : (cur ? [cur] : []);
+    const hintEl = $("#qHint");
+    if (hintEl) hintEl.textContent = fmtQHint(s, arr);
+  }
+
+  function toggleQVal(s, v) {
+    if (s.multi) {
+      const arr = Array.isArray(obState[s.key]) ? obState[s.key].slice() : [];
+      const i = arr.indexOf(v);
+      if (i >= 0) arr.splice(i, 1); else arr.push(v);
+      obState[s.key] = arr;
+    } else {
+      obState[s.key] = obState[s.key] === v ? null : v;
+    }
+  }
+
+  function fmtQHint(s, arr) {
+    if (!arr.length) return s.hint;
+    const D = CUSTOM[s.custom];
+    const names = arr.map(v => { const o = [...D.mains, ...D.more].find(x => x.v === v); return o ? o.emoji + o.label : v; }).join(" ");
+    if (s.custom === "cuisine") return "已宠： " + names + " · 菜品池按这些口味来安排";
+    if (s.custom === "people") {
+      if (arr.length === 1 && /^\d+$/.test(arr[0])) return "👥 " + arr[0] + " 人 · 分量按这个来";
+      return "👥 " + names + " · 分量按这个来";
+    }
+    if (s.custom === "avoid") return "已记下忌口： " + names + " · 放心，都避开";
+    return names;
+  }
+
+  function bindQOpts() {
+    const el = $("#qOpts");
+    el.addEventListener("click", (e) => {
+      const chip = e.target.closest(".qc-opt");
+      if (!chip) return;
+      const multi = el.dataset.multi === "1";
+      if (multi) {
+        chip.classList.toggle("active");
+        if (chip.dataset.val === "none") {
+          el.querySelectorAll(".qc-opt").forEach(x => { if (x.dataset.val !== "none") x.classList.remove("active"); });
+        } else {
+          const none = el.querySelector('.qc-opt[data-val="none"]');
+          if (none) none.classList.remove("active");
+        }
+      } else {
+        const was = chip.classList.contains("active");
+        el.querySelectorAll(".qc-opt").forEach(x => x.classList.remove("active"));
+        if (!was) chip.classList.add("active");
+      }
+      // 同步写入本次选择，立即启用「下一步」
+      obState[currentQStep().key] = multi
+        ? Array.from(el.querySelectorAll(".qc-opt.active")).map(x => x.dataset.val)
+        : (el.querySelector(".qc-opt.active") ? el.querySelector(".qc-opt.active").dataset.val : null);
+      updateQNav();
+    });
+  }
+
+  function flavorDesc(provinceName) {
+    const fk = window.CHINA.flavors[provinceName];
+    const rf = Engine.REGION_FLAVOR[fk];
+    if (!rf) return "";
+    return rf.desc.replace(/^你来自[^，]*，/, "");
+  }
+
+  /* ---------- 第一步：口味派系（8 大口味圈 + 省份精修） ---------- */
+  const REGION_CIRCLES = [
+    { key: "sichuan", emoji: "🌶️", name: "川渝派", words: "麻辣鲜香", dish: "火锅 · 回锅肉", provs: ["四川省", "重庆市"] },
+    { key: "central", emoji: "🥘", name: "两湖派", words: "辣香浓郁", dish: "剁椒鱼头", provs: ["湖南省", "湖北省", "江西省"] },
+    { key: "north", emoji: "🍜", name: "北方派", words: "咸鲜 · 爱面食", dish: "炸酱面 · 饺子", provs: ["北京市", "天津市", "河北省", "山东省", "河南省", "山西省"] },
+    { key: "northeast", emoji: "🥟", name: "东北派", words: "咸鲜豪爽 · 炖菜", dish: "锅包肉 · 炖鸡", provs: ["辽宁省", "吉林省", "黑龙江省"] },
+    { key: "northwest", emoji: "🍖", name: "西北派", words: "牛羊 · 面食", dish: "羊肉泡馍", provs: ["陕西省", "甘肃省", "宁夏回族自治区", "青海省", "新疆维吾尔自治区", "内蒙古自治区"] },
+    { key: "jiangnan", emoji: "🍲", name: "江浙派", words: "清淡甜鲜", dish: "清蒸鱼 · 糖醋", provs: ["上海市", "江苏省", "浙江省", "安徽省", "福建省"] },
+    { key: "guangdong", emoji: "🍵", name: "广粤派", words: "原味 · 爱喝汤", dish: "白切鸡 · 靓汤", provs: ["广东省", "广西壮族自治区", "海南省"] },
+    { key: "southwest", emoji: "🍚", name: "云贵派", words: "酸辣 · 多民族", dish: "酸汤鱼", provs: ["贵州省", "云南省", "西藏自治区"] }
+  ];
+
+  function circleOfRegion(val) {
+    if (!val) return null;
+    return REGION_CIRCLES.find(c => c.key === val || c.provs.includes(val)) || null;
+  }
+
+  function renderQRegions(s) {
+    const qCard = $("#qCard");
+    const selArr = Array.isArray(obState.region) ? obState.region.slice() : (obState.region ? [obState.region] : []);
+    const cards = REGION_CIRCLES.map(c => {
+      const active = selArr.includes(c.key) || selArr.some(v => c.provs.includes(v));
+      return `<button class="rc-card ${active ? "active" : ""}" data-key="${c.key}">
+        <span class="rc-emoji">${c.emoji}</span>
+        <span class="rc-name">${c.name}</span>
+        <span class="rc-words">${c.words}</span>
+        <span class="rc-dish">${c.dish}</span>
+      </button>`;
+    }).join("");
+    // 省份精修：仅当「只选了一个派系且没落到具体省份」时展示
+    const singleCircle = REGION_CIRCLES.find(c => selArr.length === 1 && (c.key === selArr[0] || c.provs.includes(selArr[0])));
+    const showProvs = selArr.length === 1 && singleCircle && !singleCircle.provs.includes(selArr[0]);
+    const provs = showProvs ? singleCircle.provs.map(p => {
+      const active = selArr.includes(p);
+      return `<button class="chip rc-prov ${active ? "active" : ""}" data-p="${p}">${p.replace(/省|市|自治区|壮族|回族|维吾尔|特别行政区/g, "")}</button>`;
+    }).join("") : "";
+    qCard.innerHTML = `
+      <div class="q-step">${String(obStep + 1).padStart(2, "0")}<span>/ ${OB_STEPS.length}</span></div>
+      <h3 class="q-title serif">${s.title}</h3>
+      <div class="rc-grid">${cards}</div>
+      <div class="rc-prov-wrap" id="rcProvWrap" ${showProvs ? "" : "style='display:none'"}>
+        <p class="rc-prov-tip">再选个省份更精准 <em>（不选就用派系口味）</em></p>
+        <div class="chips rc-prov-list">${provs}</div>
+      </div>
+      <p class="field-hint" id="qHint"></p>`;
+    function updateHint() {
+      const h = $("#qHint");
+      if (!selArr.length) {
+        h.textContent = "口味可以多选哦，都吃都爱就都点上，菜品池会按你的混搭口味来 👇";
+        return;
+      }
+      const desc = selArr.map(v => {
+        const c = REGION_CIRCLES.find(x => x.key === v);
+        if (c) return c.emoji + c.name;
+        return "📍" + v;
+      }).join(" + ");
+      h.textContent = "已选 " + desc
+        + (selArr.length > 1 ? " · 多口味混合，菜品池会兼顾你的偏好" : " · 再选个省份更精准（可选）");
+    }
+    qCard.querySelectorAll(".rc-card").forEach(c => {
+      c.addEventListener("click", () => {
+        const key = c.dataset.key;
+        let arr = selArr.slice();
+        // 若当前落在该圈省份上 → 归并为圈本身
+        const cObj = REGION_CIRCLES.find(x => x.key === key);
+        if (arr.some(v => cObj.provs.includes(v))) {
+          arr = arr.filter(v => !cObj.provs.includes(v));
+          arr.push(key);
+        } else if (arr.includes(key)) {
+          arr = arr.filter(k => k !== key);
+        } else {
+          arr.push(key);
+        }
+        obState.region = arr;
+        renderQRegions(s);
+        updateQNav();
+      });
+    });
+    qCard.querySelectorAll(".rc-prov").forEach(p => {
+      p.addEventListener("click", () => {
+        obState.region = [p.dataset.p];
+        renderQRegions(s);
+        updateQNav();
+      });
+    });
+    updateHint();
+    $("#qFill").style.width = ((obStep + 1) / OB_STEPS.length * 100) + "%";
+    $("#qCount").textContent = (obStep + 1) + " / " + OB_STEPS.length;
+    updateQNav();
+  }
+
+  function renderQMap(s) {
+    const qCard = $("#qCard");
+    const sel = obState.region || "";
+    const paths = window.CHINA.provinces.map(p =>
+      `<path class="china-p ${sel === p.n ? "sel" : ""}" data-name="${p.n}" d="${p.d}"/>`
+    ).join("");
+    const hintTxt = sel ? ("📍 " + sel + " · " + flavorDesc(sel)) : "点一下你的家乡 👆";
+    qCard.innerHTML = `
+      <div class="q-step">${String(obStep + 1).padStart(2, "0")}<span>/ ${OB_STEPS.length}</span></div>
+      <h3 class="q-title serif">${s.title}</h3>
+      <div class="china-box">
+        <svg viewBox="0 0 740 430" class="china-map" preserveAspectRatio="xMidYMid meet">${paths}</svg>
+      </div>
+      <p class="field-hint" id="qHint">${hintTxt}</p>`;
+    qCard.querySelectorAll(".china-p").forEach(p => {
+      p.addEventListener("click", () => {
+        obState.region = p.dataset.name;
+        qCard.querySelectorAll(".china-p").forEach(x => x.classList.toggle("sel", x === p));
+        const h = $("#qHint");
+        h.textContent = "📍 " + p.dataset.name + " · " + flavorDesc(p.dataset.name);
+        updateQNav();
+      });
+      p.addEventListener("mouseenter", () => {
+        const h = $("#qHint");
+        const fk = window.CHINA.flavors[p.dataset.name];
+        h.textContent = "📍 " + p.dataset.name + (fk ? " · " + flavorDesc(p.dataset.name) : "");
+      });
+      p.addEventListener("mouseleave", () => {
+        const h = $("#qHint");
+        h.textContent = sel ? ("📍 " + sel + " · " + flavorDesc(sel)) : "点一下你的家乡 👆";
+      });
     });
     $("#qFill").style.width = ((obStep + 1) / OB_STEPS.length * 100) + "%";
     $("#qCount").textContent = (obStep + 1) + " / " + OB_STEPS.length;
@@ -279,7 +711,12 @@
 
   function goQNext() {
     const s = currentQStep();
-    obState[s.key] = s.multi ? chipVals($("#qOpts")) : chipVal($("#qOpts"));
+    if (!s.custom && !s.map && !s.region) {
+      const el = $("#qOpts");
+      obState[s.key] = s.multi
+        ? Array.from(el.querySelectorAll(".qc-opt.active")).map(x => x.dataset.val)
+        : (el.querySelector(".qc-opt.active") ? el.querySelector(".qc-opt.active").dataset.val : null);
+    }
     if (obStep === OB_STEPS.length - 1) { finishOnboard(); return; }
     obStep++;
     renderQStep();
@@ -297,9 +734,17 @@
     savePrefs(); enterApp(); toast("已按大众口味为你推算");
   });
 
+  function cuisineToFlavor(v) {
+    if (!v) return "other";
+    if (["sichuan", "guangdong", "central", "jiangnan", "other"].includes(v)) return v;
+    const o = CUISINE.more.find(x => x.v === v);
+    return o ? o.flavor : "other";
+  }
   function finishOnboard() {
+    const regArr = (Array.isArray(obState.region) ? obState.region : (obState.region ? [obState.region] : []))
+      .map(cuisineToFlavor).filter((v, i, a) => a.indexOf(v) === i);
     prefs = {
-      region: obState.region || "other",
+      region: regArr.length ? regArr : "other",
       people: Number(obState.people || 2),
       cooker: obState.cooker || "newbie",
       spicy: Number(obState.spicy || 1),
@@ -314,26 +759,64 @@
   /* ============================================================
      ② 在家吃
      ============================================================ */
-  bindChips($("#hmPeople"));
-  bindChips($("#hmCooker"));
+  bindChips($("#hmPeople"), updateHmSummary);
+  bindChips($("#hmCooker"), updateHmSummary);
   bindChips($("#hmMood"));
+
+  /* 在家吃：当前设定摘要 + 临时调整折叠 */
+  function hmChipLabel(group, key) {
+    const map = {
+      people: { "1": "1 人", "2": "2 人", "3": "3 人", "4": "4 人", "5": "5 人", "6": "6 人", "8": "8 人", "10": "10 人" },
+      cooker: { "lazy": "懒人掌勺", "newbie": "新手掌勺", "pro": "老手掌勺" }
+    };
+    if (group === "people") return map.people[key] || (key ? key + " 人" : "");
+    return (map[group] && map[group][key]) || "";
+  }
+  function regionSummary() {
+    const arr = (Array.isArray(prefs.region) ? prefs.region : (prefs.region ? [prefs.region] : [])).filter(v => v !== "other");
+    if (!arr.length) return "大众口味";
+    const names = arr.map(v => {
+      const c = REGION_CIRCLES.find(x => x.key === v);
+      if (c) return c.emoji + c.name;
+      const fc = REGION_CIRCLES.find(x => x.provs.includes(v));
+      return (fc ? fc.emoji : "📍") + v;
+    });
+    return names.join(" + ");
+  }
+  function updateHmSummary() {
+    const p = Number(chipVal($("#hmPeople")) || prefs.people || 2);
+    const c = chipVal($("#hmCooker")) || prefs.cooker || "newbie";
+    const el = $("#hmSummary");
+    if (el) el.innerHTML = `<b>👥 ${hmChipLabel("people", String(p))}</b>　<b>${hmChipLabel("cooker", c)}</b>　<span class="hm-taste">${regionSummary()}</span>`;
+  }
+  $("#btnHmAdjust").addEventListener("click", () => {
+    $("#hmExtra").classList.toggle("open");
+    const open = $("#hmExtra").classList.contains("open");
+    $("#btnHmAdjust .hm-caret").textContent = open ? "▴" : "▾";
+  });
 
   async function generateHome(showToast) {
     const opts = {
-      people: Number(chipVal($("#hmPeople")) || 2),
-      cooker: chipVal($("#hmCooker")) || "newbie",
+      people: Number(chipVal($("#hmPeople")) || prefs.people || 2),
+      cooker: chipVal($("#hmCooker")) || prefs.cooker || "newbie",
       mood: chipVal($("#hmMood")) || "balance",
       spicyTarget: prefs.spicy
     };
     const res = Engine.genHomeMenu(opts, prefs);
     homeState = res;
     let reason = Engine.buildReason(res.dishes, res.ctx, "home", opts, prefs);
-    const aiReason = await window.AI.enhanceReason(res.dishes, res.ctx, "home", opts, prefs);
-    if (aiReason) reason = aiReason;
+    try {
+      const aiReason = await Promise.race([
+        window.AI.enhanceReason(res.dishes, res.ctx, "home", opts, prefs),
+        new Promise(r => setTimeout(() => r(null), 6000))   // AI 挂起 6 秒超时兜底
+      ]);
+      if (aiReason) reason = aiReason;
+    } catch (e) { /* AI 异常 → 用本地文案 */ }
 
     $("#homeReason").textContent = reason;
     renderMenuList($("#homeMenuList"), res.dishes, "home");
-    $("#homeResult").classList.remove("hidden");
+    showView("home-result");
+    window.scrollTo({ top: 0 });
     if (showToast) toast("已为你推算今日菜单");
   }
 
@@ -342,7 +825,7 @@
 
   /* ---------- 菜单卡片渲染 ---------- */
   function renderMenuList(el, dishes, mode) {
-    el.innerHTML = dishes.map(d => {
+    el.innerHTML = dishes.map((d, i) => {
       const t = TYPE_META[d.type];
       const tags = [
         { text: d.cuisine + "菜", cls: "ghost" },
@@ -354,6 +837,9 @@
       if (d.coop >= 2) tags.push({ text: "协作 " + "★".repeat(d.coop), cls: "accent" });
       const coopLine = mode === "couple" && d.coop > 0
         ? `<div class="coop">协作强度 <span class="stars">${"★".repeat(d.coop)}${"☆".repeat(3 - d.coop)}</span> 两人配合更出彩</div>` : "";
+      const nh = Engine.assessNutrition(d);
+      const swapBtn = (mode === "home" || mode === "couple")
+        ? `<button class="mc-swap" data-idx="${i}" data-mode="${mode}">↻ 换一换</button>` : "";
       return `
         <div class="menu-card" data-id="${d.id}" data-mode="${mode}">
           <div class="mc-top">
@@ -365,11 +851,40 @@
           </div>
           <div class="mc-tags">${tags.map(x => `<span class="tag ${x.cls}">${x.text}</span>`).join("")}</div>
           ${coopLine}
+          <div class="mc-health" title="点开菜名查看完整健康档案">🌿 ${nh.summary}</div>
+          ${swapBtn}
         </div>`;
     }).join("");
     el.querySelectorAll(".menu-card").forEach(card => {
       card.addEventListener("click", () => openRecipe(Number(card.dataset.id), card.dataset.mode));
     });
+    el.querySelectorAll(".mc-swap").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        swapDish(btn.dataset.mode, Number(btn.dataset.idx));
+      });
+    });
+  }
+
+  /* ---------- 单菜换一换 ---------- */
+  function swapDish(mode, index) {
+    let dishes, opts, el;
+    if (mode === "home") {
+      if (!homeState || !homeState.dishes.length) { toast("先推算菜单吧"); return; }
+      dishes = homeState.dishes;
+      opts = { people: Number(chipVal($("#hmPeople")) || 2), cooker: chipVal($("#hmCooker")) || "newbie", mood: chipVal($("#hmMood")) || "balance", spicyTarget: prefs.spicy };
+      el = $("#homeMenuList");
+    } else if (mode === "couple") {
+      if (!coupleState || !coupleState.dishes.length) { toast("先推算协作菜单吧"); return; }
+      dishes = coupleState.dishes;
+      opts = { occasion: chipVal($("#cpOccasion")) || "daily", spicy: Number(chipVal($("#cpSpicy")) || 0), people: 2 };
+      el = $("#coupleMenuList");
+    } else return;
+    const nd = Engine.altDish(dishes, index, opts, prefs, mode);
+    if (!nd) { toast("同类菜都换过了，试试「换一批」"); return; }
+    dishes[index] = nd;
+    renderMenuList(el, dishes, mode);
+    toast("已换一道：" + nd.name);
   }
 
   /* ============================================================
@@ -379,6 +894,8 @@
     const d = window.RECIPES.find(r => r.id === id);
     if (!d) return;
     viewingRecipe = d;
+    const backMap = { home: "home-result", couple: "couple", list: "home-result" };
+    document.querySelector("#view-recipe .back-btn").dataset.back = backMap[mode] || "home";
     const t = TYPE_META[d.type];
     $("#recipeHead").innerHTML = `
       <div class="recipe-hero">
@@ -396,7 +913,20 @@
           ${d.health.map(h => `<span class="tag green">${h === "fitness" ? "减脂友好" : h === "sugar" ? "控糖友好" : "清淡"}</span>`).join("")}
         </div>
       </div>`;
+    const nh = Engine.assessNutrition(d);
     $("#recipeBody").innerHTML = `
+      <div class="section-block health-block">
+        <h3>🥗 健康档案 <span class="health-level">${nh.level}</span></h3>
+        <div class="health-score"><span>综合健康度</span><b>${nh.score}</b></div>
+        <div class="health-list">
+          <div class="hl-title">🌿 有助于补充</div>
+          <ul>${nh.benefits.map(b => `<li>${b}</li>`).join("")}</ul>
+        </div>
+        <div class="health-list">
+          <div class="hl-title">⚠️ 注意事项</div>
+          <ul class="hl-warn">${nh.cautions.map(c => `<li>${c}</li>`).join("")}</ul>
+        </div>
+      </div>
       <div class="section-block">
         <h3>食材（${prefs.people || 2}人份）</h3>
         <ul class="ingredient-list">${d.ing.map(([n, q]) => `<li><span>${n}</span><span class="qty">${q}</span></li>`).join("")}</ul>
@@ -415,7 +945,7 @@
     if (!homeState || !homeState.dishes.length) { toast("先为你推算菜单吧"); return; }
     const hid = saveHistory("home", homeState.ctx.people, homeState.dishes);
     listState = { dishes: homeState.dishes, people: homeState.ctx.people, historyId: hid };
-    document.querySelector("#view-list .back-btn").dataset.back = "home";
+    document.querySelector("#view-list .back-btn").dataset.back = "home-result";
     renderList();
     showView("list");
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -571,8 +1101,13 @@
     const res = Engine.genCoupleMenu(opts, prefs);
     coupleState = res;
     let reason = Engine.buildReason(res.dishes, res.ctx, "couple", opts, prefs);
-    const aiReason = await window.AI.enhanceReason(res.dishes, res.ctx, "couple", opts, prefs);
-    if (aiReason) reason = aiReason;
+    try {
+      const aiReason = await Promise.race([
+        window.AI.enhanceReason(res.dishes, res.ctx, "couple", opts, prefs),
+        new Promise(r => setTimeout(() => r(null), 6000))
+      ]);
+      if (aiReason) reason = aiReason;
+    } catch (e) { /* AI 异常 → 用本地文案 */ }
 
     $("#coupleReason").textContent = reason;
     renderMenuList($("#coupleMenuList"), res.dishes, "couple");
@@ -800,8 +1335,14 @@
     if (!tab) return;
     showView(tab.dataset.view);
   });
+  /* 顶部固定返回按钮：弹出返回栈回到上一个视图 */
+  $("#btnTopBack").addEventListener("click", () => {
+    const target = backStack.pop() || "home";
+    showView(target, true);
+  });
   $$(".back-btn").forEach(btn => {
-    btn.addEventListener("click", () => showView(btn.dataset.back));
+    if (btn.id === "btnTopBack") return;   // 顶部返回按钮单独处理
+    btn.addEventListener("click", () => showView(btn.dataset.back, true));
   });
 
   /* 进入主流程：没做过口味问答 → 先走 30 秒问答；做过 → 直接进主页 */
@@ -856,12 +1397,7 @@
     toast("登录成功，欢迎回来 🍅");
   });
 
-  /* ---------- 我的页 ---------- */
-  $("#btnMe").addEventListener("click", () => {
-    renderMeView();
-    showView("me");
-    window.scrollTo({ top: 0 });
-  });
+  /* ---------- 我的页（入口：底部导航「我的」tab → showView 里已 renderMeView） ---------- */
   $("#btnMeLogin").addEventListener("click", () => {
     $("#loginPhone").value = "";
     $("#loginCode").value = "";
@@ -1363,6 +1899,7 @@
     ⑦ 初始化
      ============================================================ */
   function enterApp() {
+    updateHmSummary();
     showView("home");
   }
   function init() {

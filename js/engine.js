@@ -10,9 +10,11 @@ window.Engine = (function () {
     sichuan:  { spicy: 2, desc: "你来自川渝，口味偏麻辣鲜香" },
     central:  { spicy: 2, desc: "你来自两湖，口味偏辣香浓郁" },
     north:    { spicy: 1, desc: "你来自北方，口味偏咸鲜、爱面食" },
+    northeast:{ spicy: 0, desc: "你来自东北，口味偏咸鲜豪爽、爱炖菜" },
     northwest:{ spicy: 1, desc: "你来自西北，口味偏咸鲜、爱牛羊肉和面食" },
     jiangnan: { spicy: 0, desc: "你来自江浙，口味偏清淡甜鲜" },
     guangdong:{ spicy: 0, desc: "你来自广东，口味偏清淡、重原味" },
+    southwest:{ spicy: 2, desc: "你来自云贵，口味偏酸辣、风味多变" },
     other:    { spicy: 1, desc: "口味不拘一格，为你均衡搭配" }
   };
 
@@ -21,7 +23,13 @@ window.Engine = (function () {
     pork:     ["猪肉", "猪里脊", "五花肉", "猪"],
     seafood:  ["虾", "鱼", "蟹", "贝", "鱿", "海", "鲍", "参"],
     vegetarian: [], // 特殊处理
-    garlic:   ["葱", "蒜", "洋葱", "韭", "香葱"]
+    garlic:   ["葱", "蒜", "洋葱", "韭", "香葱"],
+    beef:     ["牛肉", "牛腩", "牛排", "肥牛", "牛", "羊肉", "羊排", "肥羊", "羊"],
+    egg:      ["鸡蛋", "鸭蛋", "鹌鹑蛋", "蛋"],
+    lactose:  ["牛奶", "酸奶", "奶酪", "芝士", "淡奶油", "奶油", "奶粉"],
+    organ:    ["猪肝", "牛肝", "鸡肝", "鸭肠", "肥肠", "猪肚", "腰花", "毛肚", "鹅肝", "鸭血", "猪血"],
+    mushroom: ["香菇", "金针菇", "杏鲍菇", "平菇", "口蘑", "木耳", "茶树菇", "菌"],
+    soy:      ["豆腐", "豆干", "豆皮", "腐竹", "黄豆", "毛豆", "豆浆", "千张", "香干"]
   };
 
   /* ---------- 工具 ---------- */
@@ -31,6 +39,7 @@ window.Engine = (function () {
   /* 忌口过滤 */
   function passesAvoid(dish, avoid) {
     if (!avoid || avoid.length === 0 || avoid.includes("none")) return true;
+    const ingText = dish.ing.map(i => i[0]).join(" ");
     for (const a of avoid) {
       if (a === "vegetarian") {
         if (dish.type === "hot") {
@@ -39,6 +48,10 @@ window.Engine = (function () {
         }
         continue;
       }
+      if (a === "noSpicy") { if (dish.spicy > 0) return false; continue; }
+      if (a === "lowOil") { if (dish.kcal > 480 || /炸|肥肉|五花|酥/.test(ingText)) return false; continue; }
+      if (a === "lowSalt") { if (/酸菜|腊|咸鱼|榨菜|腌|火腿|香肠|腊肉/.test(ingText)) return false; continue; }
+      if (a === "lowSugar") { if (dish.flavor === "sweet" || /糖|冰糖|蜂蜜|可乐|白糖|炼乳/.test(ingText)) return false; continue; }
       const keys = AVOID_MAP[a] || [];
       for (const k of keys) {
         if (dish.ing.some(i => i[0].includes(k))) return false;
@@ -164,28 +177,60 @@ window.Engine = (function () {
     return { dishes: chosen, ctx, pool };
   }
 
+  /* 把「口味圈 key」或「省份名」统一解析成口味 key（支持数组多选） */
+  function resolveFlavorKeys(region) {
+    if (!region) return ["other"];
+    const arr = Array.isArray(region) ? region : [region];
+    const keys = arr.map(r => {
+      if (REGION_FLAVOR[r]) return r;
+      if (window.CHINA && window.CHINA.flavors && window.CHINA.flavors[r]) return window.CHINA.flavors[r];
+      return null;
+    }).filter(Boolean);
+    return keys.length ? keys : ["other"];
+  }
+  function resolveFlavorKey(region) {
+    return resolveFlavorKeys(region)[0];
+  }
+  /* 多口味 → 默认辣度（取平均，用户后续可单独覆盖） */
+  function defaultSpicyFromRegions(keys) {
+    const vals = keys.map(k => REGION_FLAVOR[k] ? REGION_FLAVOR[k].spicy : 1);
+    if (!vals.length) return 1;
+    return Math.round(vals.reduce((a, b) => a + b, 0) / vals.length);
+  }
+  /* 多口味 → 风格倾向（纯辣 / 纯清淡 / 混合则中立） */
+  function resolveFlavorFromRegions(keys) {
+    const map = { sichuan: "spicy", central: "spicy", jiangnan: "light", guangdong: "light" };
+    const set = new Set(keys.map(k => map[k]).filter(Boolean));
+    if (set.size === 1) return [...set][0];
+    return null;
+  }
+  /* 多口味 → 推荐语 */
+  function regionDesc(region) {
+    const keys = resolveFlavorKeys(region);
+    const real = keys.filter(k => REGION_FLAVOR[k]);
+    if (!real.length) return "口味均衡";
+    if (real.length === 1) return REGION_FLAVOR[real[0]].desc;
+    const short = real.map(k => REGION_FLAVOR[k].desc.replace(/^你来自[^，]*，/, "").replace(/^口味偏/, "").replace(/^偏/, ""));
+    return "你兼容" + short.join("、") + "，口味很百搭";
+  }
+
   function buildCtx(opts, prefs, mode) {
     const people = opts.people || prefs.people || 2;
     const cooker = opts.cooker || prefs.cooker || "newbie";
-    const region = prefs.region;
+    const regionKeys = resolveFlavorKeys(prefs.region);
     let spicyTarget = opts.spicyTarget !== undefined ? opts.spicyTarget
-      : (opts.spicy !== undefined ? opts.spicy : (REGION_FLAVOR[region] ? REGION_FLAVOR[region].spicy : 1));
+      : (opts.spicy !== undefined ? opts.spicy : defaultSpicyFromRegions(regionKeys));
 
     if (opts.mood === "spicy") spicyTarget = Math.max(spicyTarget, 2);
     if (opts.mood === "light") spicyTarget = 0;
 
     const health = prefs.health || "none";
-    const regionFlavor = {
-      sichuan: "spicy", central: "spicy",
-      jiangnan: "light", guangdong: "light",
-      north: null, northwest: null, other: null
-    };
     return {
-      people, cooker, region, spicyTarget, health,
+      people, cooker, region: regionKeys.join("+"), spicyTarget, health,
       mood: opts.mood || "balance",
       scene: opts.scene,
       avoid: prefs.avoid || [],
-      flavor: opts.flavor || (regionFlavor[region] || null),
+      flavor: opts.flavor || resolveFlavorFromRegions(regionKeys),
       mode
     };
   }
@@ -195,7 +240,7 @@ window.Engine = (function () {
     const people = ctx.people;
     const cookerText = ctx.cooker === "lazy" ? "你是懒人党，推荐都控制在 20 分钟左右" :
       ctx.cooker === "newbie" ? "家里是新手掌勺，选的都是不易翻车的菜" : "老手上阵，给你上了几道硬菜";
-    const regionText = prefs.region && REGION_FLAVOR[prefs.region] ? REGION_FLAVOR[prefs.region].desc : "口味均衡";
+    const regionText = regionDesc(prefs.region);
     const spicyText = ctx.spicyTarget === 0 ? "你不太吃辣" : ctx.spicyTarget === 1 ? "微辣适合你" : ctx.spicyTarget === 2 ? "够味的辣度给你安排上" : "无辣不欢，爽";
 
     let head;
@@ -415,11 +460,85 @@ window.Engine = (function () {
     };
   }
 
+  /* ---------- 营养健康评估 ---------- */
+  function assessNutrition(d) {
+    const ing = (d.ing || []).map(i => i[0]).join(" ");
+    const benefits = [];
+    const cautions = [];
+    let score = 72;
+
+    /* 营养补充 */
+    if (d.protein >= 28 || /牛|鸡|鸭|鱼|虾|蟹|瘦/.test(ing)) { benefits.push("补充优质蛋白，助力肌肉与体力"); score += 4; }
+    if (/番茄|西红柿/.test(ing)) benefits.push("富含维生素C与番茄红素");
+    if (/菠菜|青菜|小白菜|油麦菜|生菜|西兰花|豆苗|芥蓝|茼蒿/.test(ing)) benefits.push("提供膳食纤维与多种维生素");
+    if (/胡萝卜|南瓜|彩椒/.test(ing)) benefits.push("β-胡萝卜素，有益眼睛");
+    if (/香菇|金针菇|杏鲍菇|木耳|平菇|口蘑/.test(ing)) benefits.push("菌菇多糖与膳食纤维，增强饱腹感");
+    if (/豆腐|豆干|豆皮|香干|腐竹|黄豆|毛豆/.test(ing)) { benefits.push("植物蛋白与钙质，补钙友好"); score += 3; }
+    if (/虾|鱼|鱿|贝|海带|紫菜/.test(ing)) benefits.push("富含DHA、碘与锌，益智补碘");
+    if (/鸡蛋|鸭蛋|蛋/.test(ing)) benefits.push("卵磷脂与优质蛋白，护脑");
+    if (/花生|芝麻|核桃|腰果|杏仁/.test(ing)) benefits.push("不饱和脂肪酸与维生素E");
+    if (/牛奶|酸奶|奶酪|芝士/.test(ing)) benefits.push("直接补钙，强健骨骼");
+    if (/海带|紫菜/.test(ing)) benefits.push("天然补碘");
+    if (/红枣|枸杞|山药|红薯|玉米/.test(ing)) benefits.push("温和滋养，兼顾碳水与膳食纤维");
+    if (/洋葱|葱|蒜|姜/.test(ing)) benefits.push("天然香辛，富含硫化物抗氧化");
+    if (d.type === "veg") score += 8;
+    if (d.type === "soup") score += 4;
+    if (d.health.includes("light")) score += 6;
+    if (d.health.includes("fitness")) score += 5;
+
+    /* 注意事项（忌什么 / 谁不适合） */
+    if (d.kcal > 550 || /炸|五花|肥肉|肥牛|红烧/.test(ing)) {
+      cautions.push("热量与油脂偏高，减脂或血脂偏高人群适量"); score -= 12;
+    }
+    if (/酸菜|腊|咸鱼|榨菜|腌|火腿|香肠/.test(ing)) {
+      cautions.push("腌制类较咸，钠偏高，高血压人群注意控盐"); score -= 6;
+    }
+    if (/虾|蟹|鱿|贝|鱼|海带|紫菜|内脏|浓汤/.test(ing)) {
+      cautions.push("嘌呤中等偏高，痛风或高尿酸人群适量"); score -= 5;
+    }
+    if (d.spicy >= 2) { cautions.push("偏辣，肠胃敏感或哺乳期注意适量"); score -= 4; }
+    if (d.flavor === "sweet" || /糖|冰糖|蜂蜜|可乐|白糖/.test(ing)) { cautions.push("含糖偏高，控糖人群注意"); score -= 4; }
+    if (/菠菜|苋菜|空心菜|笋/.test(ing) && /豆腐|豆干|牛奶|虾皮/.test(ing)) {
+      cautions.push("绿叶菜含草酸，与豆腐/高钙同食会降低钙吸收，想补钙可错开食用");
+    }
+    if (d.type === "cold") { cautions.push("凉菜偏凉，脾胃虚寒者少食"); score -= 2; }
+    if (!cautions.length) cautions.push("整体较均衡，适合日常食用");
+
+    score = Math.max(55, Math.min(98, score));
+    const level = score >= 85 ? "很健康" : score >= 75 ? "比较均衡" : score >= 65 ? "普通" : "建议适量";
+    const summary = [level, ...benefits.slice(0, 1), ...cautions.slice(0, 1)].join(" · ");
+    return { score, level, benefits, cautions, summary };
+  }
+
+  /* ---------- 单菜换一换 ---------- */
+  function altDish(dishes, index, opts, prefs, mode) {
+    const ctx = buildCtx(opts, prefs, mode || "home");
+    const d = dishes[index];
+    if (!d) return null;
+    let pool;
+    if (mode === "couple") {
+      pool = window.RECIPES.filter(x => passesAvoid(x, ctx.avoid));
+      const occ = opts.occasion;
+      if (occ === "anniversary") pool = pool.filter(x => x.coop >= 2 || x.type === "soup" || x.scene.includes("纪念日") || x.scene.includes("情侣"));
+      else if (occ === "weekend") pool = pool.filter(x => x.coop >= 2 || x.scene.includes("周末") || x.type === "hot");
+      else pool = pool.filter(x => x.coop >= 1);
+    } else {
+      pool = window.RECIPES.filter(x => passesAvoid(x, ctx.avoid) && x.coop <= 1 && x.type !== "staple" && x.type !== "cold");
+    }
+    let cands = pool.filter(x => x.type === d.type).map(x => ({ d: x, s: score(x, ctx) }));
+    if (mode === "couple") cands.forEach(x => { if (x.d.coop >= 2) x.s += 10; if (x.d.coop === 3) x.s += 6; });
+    cands = cands.filter(x => !dishes.some(c => c && c.id === x.d.id)).sort((a, b) => b.s - a.s);
+    if (!cands.length) return null;
+    const top = cands.slice(0, Math.min(8, cands.length));
+    return pick(top).d;
+  }
+
   return {
     REGION_FLAVOR, AVOID_MAP,
     genHomeMenu, genCoupleMenu, buildCtx, score,
     buildReason, buildList, channelAdvice,
     drawRoles, loveTask, buildMemorial,
+    assessNutrition, altDish,
     priceOf, PRICE_MAP,
     QUIZES
   };
