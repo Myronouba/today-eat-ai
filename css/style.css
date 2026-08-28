@@ -33,6 +33,14 @@ body[data-theme="green"] { --accent: #3E7A56; --accent-deep: #2F5F42; --accent-s
 
 html { scroll-behavior: smooth; }
 
+/* App 化固定：禁缩放、禁滚动回弹/橡皮筋，框架不随内容移动 */
+html, body {
+  overscroll-behavior: none;
+  touch-action: manipulation;
+  -webkit-text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
+
 body {
   font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   background: var(--bg);
@@ -678,9 +686,34 @@ body.hide-shell { padding-top: 0; }
 
 /* ============ 启动页（极简品牌开屏） ============ */
 #view-splash.active { height: 100vh; height: 100dvh; overflow: hidden; }
+/* 摆桌氛围：餐具线稿缓缓呈现，传达「准备开饭」的仪式感 */
+.splash-dine { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+.splash-dine svg { position: absolute; fill: none; stroke: #E8A98F; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; opacity: 0; }
+/* 大盘子：logo 后方由远及近缓缓浮现 */
+.dine-plate {
+  width: 320px; height: 150px; left: 50%; top: 44%;
+  transform: translate(-50%, -50%);
+  animation: plateIn 1.7s var(--ease) .1s forwards;
+}
+/* 刀叉勺：从两侧/下方缓缓立起，营造摆桌感 */
+.dine-fork { width: 40px; height: 118px; left: 20%; top: 48%; animation: riseIn 1.6s var(--ease) .45s forwards; }
+.dine-knife { width: 40px; height: 118px; right: 20%; top: 48%; animation: riseIn 1.6s var(--ease) .6s forwards; }
+.dine-spoon { width: 34px; height: 100px; right: 8%; top: 54%; animation: riseIn 1.6s var(--ease) .78s forwards; }
+@keyframes plateIn {
+  from { opacity: 0; transform: translate(-50%, -42%) scale(.94); }
+  to   { opacity: .5; transform: translate(-50%, -50%) scale(1); }
+}
+@keyframes riseIn {
+  from { opacity: 0; transform: translateY(30px) rotate(-9deg); }
+  to   { opacity: .45; transform: none; }
+}
+/* 窄屏隐藏远端餐具，避免拥挤 */
+@media (max-width: 380px) {
+  .splash-dine .dine-spoon { display: none; }
+}
 .splash-wrap {
-  height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-  text-align: center; padding: 11vh 28px 0; position: relative;
+  height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; padding: 0 28px; position: relative;
 }
 .splash-wrap::before {
   content: ""; position: absolute; top: -120px; left: 0; right: 0; margin: 0 auto;
@@ -708,13 +741,6 @@ body.hide-shell { padding-top: 0; }
   background: linear-gradient(135deg, #FF6B3D, #E14D2A); color: #fff;
   box-shadow: 0 6px 16px rgba(225, 77, 42, .38), inset 0 1px 2px rgba(255, 255, 255, .4);
 }
-/* 开始使用按钮：按钮下边缘固定于页面 85% 高度处，水平 margin:auto 居中 */
-.splash-btn {
-  position: absolute; bottom: 15%; left: 0; right: 0; margin: 0 auto;
-  width: calc(100% - 56px); max-width: 320px;
-}
-.splash-btn svg { width: 18px; height: 18px; transition: transform .25s var(--ease); }
-.splash-btn:hover svg { transform: translateX(3px); }
 
 /* ============ 欢迎页（首次进入） ============ */
 body.hide-shell .topbar, body.hide-shell .tabs { display: none; }
@@ -752,7 +778,6 @@ body.hide-shell { overflow: hidden; }
   #view-splash.active .splash-logo { width: 80px; height: 80px; border-radius: 25px; margin-bottom: 18px; }
   #view-splash.active .splash-logo svg { width: 36px; height: 36px; }
   #view-splash.active .splash-brand { font-size: 32px; }
-  #view-splash.active .splash-btn { bottom: 16%; padding: 13px; }
   #view-splash.active .splash-brandline { bottom: 18px; }
 }
 /* 顶部柔光氛围：极简留白里的一抹暖调 */
@@ -792,15 +817,6 @@ body.hide-shell { overflow: hidden; }
   animation: wglow 2.6s ease-in-out infinite;
 }
 .welcome-logo svg { position: relative; width: 50px; height: 50px; filter: drop-shadow(0 3px 6px rgba(120, 30, 5, .35)); }
-/* Logo 顶部扫光 */
-.welcome-logo::after {
-  content: ""; position: absolute; top: 0; left: -65%; width: 45%; height: 100%;
-  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, .55), transparent);
-  transform: skewX(-18deg);
-  animation: wshimmer 3.6s ease-in-out infinite;
-  z-index: 1;
-}
-@keyframes wshimmer { 0% { left: -65%; } 55%, 100% { left: 135%; } }
 @keyframes wbounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
 @keyframes wglow { 0%, 100% { opacity: .55; transform: scale(1); } 50% { opacity: 1; transform: scale(1.08); } }
 .welcome-brand { font-size: 42px; font-weight: 700; color: var(--ink); display: flex; align-items: center; gap: 10px; margin-bottom: 22px; letter-spacing: .02em; }

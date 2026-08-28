@@ -5,6 +5,71 @@
   "use strict";
   const $ = (sel) => document.querySelector(sel);
   const $$ = (sel, ctx) => Array.from((ctx || document).querySelectorAll(sel));
+
+  /* App 化固定：禁止双指缩放/平移手势（兼容 iOS Safari 忽略 user-scalable 的情况） */
+  document.addEventListener("touchmove", (e) => {
+    if (e.touches.length > 1) e.preventDefault();
+  }, { passive: false });
+
+  /* 微信式边界阻尼：仅作用于内容区（#stage），上下固定栏保持不动。
+     内容不满一屏 → 任意拖拽有阻尼回弹；
+     内容超一屏 → 正常滚动，但滚到顶继续下拉 / 滚到底继续上拉时同样有阻尼回弹 */
+  (function initBounce() {
+    var dragging = false, bouncing = false, lastY = 0, offset = 0;
+    var stageEl = document.querySelector("#stage");
+    var doc = document.documentElement;
+    function inInnerScroller(el) {
+      var n = el;
+      while (n && n !== document.body && n !== document.documentElement) {
+        var s = getComputedStyle(n);
+        if (/auto|scroll|overlay/.test(s.overflowY) && n.scrollHeight > n.clientHeight + 4) return true;
+        n = n.parentElement;
+      }
+      return false;
+    }
+    function settle() {
+      if (!bouncing) return;
+      bouncing = false;
+      if (!stageEl) return;
+      stageEl.style.transition = "transform .45s cubic-bezier(.22,.9,.24,1)";
+      stageEl.style.transform = "translateY(0)";
+      setTimeout(function () { if (stageEl) stageEl.style.transition = ""; }, 520);
+    }
+    document.addEventListener("touchstart", function (e) {
+      if (e.touches.length > 1 || inInnerScroller(e.target)) return;
+      dragging = true; bouncing = false; lastY = e.touches[0].clientY; offset = 0;
+    }, { passive: true });
+    document.addEventListener("touchmove", function (e) {
+      if (!dragging || !stageEl || e.touches.length > 1) return;
+      var curY = e.touches[0].clientY;
+      var dy = curY - lastY;
+      lastY = curY;
+      if (Math.abs(dy) < 1) return;
+      var overflow = doc.scrollHeight - window.innerHeight;
+      var atEdge;
+      if (overflow <= 0) atEdge = true;                                  // 内容不满一屏
+      else if (dy > 0 && window.scrollY <= 1) atEdge = true;             // 滚到顶继续下拉
+      else if (dy < 0 && window.scrollY + window.innerHeight >= doc.scrollHeight - 1) atEdge = true; // 滚到底继续上拉
+      else atEdge = false;
+      if (!atEdge) {                                                     // 正常滚动，不干预
+        if (bouncing) settle();
+        return;
+      }
+      e.preventDefault();                                                // 边界：进入阻尼
+      if (!bouncing) { bouncing = true; offset = 0; }
+      offset += dy;
+      var damp = offset * 0.42;                                          /* 阻尼压缩：越拖越“黏” */
+      stageEl.style.transition = "none";
+      stageEl.style.transform = "translateY(" + damp.toFixed(1) + "px)";
+    }, { passive: false });
+    document.addEventListener("touchend", function () {
+      if (dragging) { dragging = false; settle(); }
+    }, { passive: true });
+    document.addEventListener("touchcancel", function () {
+      if (dragging) { dragging = false; settle(); }
+    }, { passive: true });
+  })();
+
   const LS_PREFS = "eat-ai-prefs";
   const LS_ANNIV = "eat-ai-anniv";
   const LS_ACH_TIP = "eat-ai-ach-tip";
@@ -375,6 +440,7 @@
     login: { e: "", t: "登录" }, onboard: { e: "✨", t: "口味问答" },
     "home-result": { e: "🍽️", t: "今天吃这些" }, list: { e: "🧺", t: "买菜清单" },
     recipe: { e: "📜", t: "菜谱详情" }, "couple-result": { e: "💞", t: "约会菜单" },
+    "couple-play": { e: "💑", t: "默契分工" },
     "out-result": { e: "🍽️", t: "出去吃" }, welcome: { e: "", t: "今天吃啥" }
   };
   function showView(id, fromBack) {
@@ -1473,8 +1539,10 @@
 
     $("#coupleReason").textContent = reason;
     renderMenuList($("#coupleMenuList"), res.dishes, "couple");
-    $("#coupleResult").classList.remove("hidden");
-    $("#couplePlay").classList.add("hidden");
+    if (showToast) {
+      showView("couple-result");               // 首次生成 → 跳转独立结果页
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
     if (showToast) toast("为你们挑了适合一起做的菜");
   }
 
@@ -1505,7 +1573,8 @@
       </div>`;
     $("#loveTask").innerHTML = "";
     showQuiz();
-    $("#couplePlay").classList.remove("hidden");
+    showView("couple-play");                   // 跳转独立分工玩法页
+    window.scrollTo({ top: 0, behavior: "smooth" });
     toast("分工卡已抽出");
     // 更新恋爱进度，解锁成就则提示
     const ach = renderCoupleProgress();
@@ -1719,14 +1788,14 @@
     }
   }
 
-  /* 启动页：开始使用 → 已登录直接进主页，未登录进登录页（个性化欢迎页） */
-  $("#btnSplashStart").addEventListener("click", () => {
+  /* 启动页：品牌动画约 1.8s 后自动路由（老用户直接进主界面，新用户进登录页） */
+  setTimeout(() => {
     if (loadUser()) {
       enterApp();
     } else {
       showView("welcome");
     }
-  });
+  }, 1800);
 
   /* 欢迎页入口（保留） */
   $("#btnGuestStart").addEventListener("click", () => {
