@@ -27,15 +27,49 @@
 
 <main class="stage" id="stage">
 
-  <!-- ======== 视图：欢迎页（首次进入） ======== -->
-  <section class="view active" id="view-welcome">
+  <!-- ======== 视图：启动页（极简品牌开屏） ======== -->
+  <section class="view active" id="view-splash">
+    <div class="splash-wrap">
+      <div class="splash-logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3l1.5-6a1 1 0 0 1 1.96.18L8.6 11H15l1.5-6a1 1 0 0 1 1.96.18L18.6 11H21"/><path d="M4 11h16v2a7 7 0 0 1-7 7h-2a7 7 0 0 1-7-7v-2z"/></svg>
+      </div>
+      <div class="splash-brand"><span class="serif">今天吃啥</span><span class="splash-ai">AI</span></div>
+      <button class="btn-primary btn-block splash-btn" id="btnSplashStart">开始使用
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
+      </button>
+      <div class="splash-brandline">
+        <span>今天吃啥 AI <i id="splashVersion">v4.0.0</i></span>
+        <span>© 2026 上海HW信息技术有限公司</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== 视图：登录页（原欢迎页 · 个性化） ======== -->
+  <section class="view" id="view-welcome">
     <div class="welcome-wrap">
+      <div class="welcome-particles" aria-hidden="true">
+        <span style="--x:10%;--d:7.5s;--delay:0s;--s:6px"></span>
+        <span style="--x:24%;--d:9.5s;--delay:1.4s;--s:4px"></span>
+        <span style="--x:38%;--d:8s;--delay:.6s;--s:5px"></span>
+        <span style="--x:52%;--d:10.5s;--delay:2.1s;--s:7px"></span>
+        <span style="--x:64%;--d:7s;--delay:1s;--s:4px"></span>
+        <span style="--x:76%;--d:9s;--delay:.2s;--s:6px"></span>
+        <span style="--x:88%;--d:8.5s;--delay:1.8s;--s:5px"></span>
+        <span style="--x:94%;--d:10s;--delay:.9s;--s:4px"></span>
+      </div>
       <div class="welcome-hero">
         <div class="welcome-logo">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11h3l1.5-6a1 1 0 0 1 1.96.18L8.6 11H15l1.5-6a1 1 0 0 1 1.96.18L18.6 11H21"/><path d="M4 11h16v2a7 7 0 0 1-7 7h-2a7 7 0 0 1-7-7v-2z"/></svg>
         </div>
         <div class="welcome-brand"><span class="serif">今天吃啥</span><span class="welcome-ai">AI</span></div>
-        <p class="welcome-slogan serif">认真吃饭的日子<br>也值得记录</p>
+        <p class="welcome-slogan serif" id="welcomeSlogan">认真吃饭的日子<br>也值得记录</p>
+        <div class="welcome-30">
+          <span class="w30-badge">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h7l-1 8 10-12h-7l1-8z"/></svg>
+            30 秒
+          </span>
+          <span class="w30-txt">定制你的专属口味</span>
+        </div>
         <p class="welcome-sub">在家吃 · 情侣一起做 · 出去吃</p>
       </div>
       <div class="welcome-foot">
@@ -44,8 +78,6 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg>
         </button>
         <button class="btn-sub btn-block welcome-btn2" id="btnGoLogin">登录 / 注册</button>
-        <button class="welcome-link" id="btnReOnboard">重新设置口味 · 30 秒问答</button>
-        <p class="welcome-tip">不登录也能用 · 登录后数据归到你的账号</p>
       </div>
     </div>
   </section>
@@ -111,51 +143,161 @@
     </div>
   </section>
 
+  <!-- ======== 视图：发现（内容聚合 · 微信发现页式列表） ======== -->
+  <section class="view" id="view-discover">
+    <div class="view-head">
+            <h2 class="serif view-title">发现</h2>
+    </div>
+
+    <div class="panel me-panel">
+      <button class="me-item" data-act="luck">
+        <span class="me-ic ic-orange">🍀</span>
+        <span class="me-main">今日好运菜<span class="me-sub">随手一翻，今天吃它</span></span>
+        <span class="me-arrow">›</span>
+      </button>
+      <div class="me-divider"></div>
+      <button class="me-item" data-act="season">
+        <span class="me-ic ic-green">🍂</span>
+        <span class="me-main">时令吃鲜<span class="me-sub" id="discSeasonSub">本月应季吃什么</span></span>
+        <span class="me-arrow">›</span>
+      </button>
+      <div class="me-divider"></div>
+      <button class="me-item" data-act="fact">
+        <span class="me-ic ic-gold">💡</span>
+        <span class="me-main">干饭冷知识<span class="me-sub">一条你不知道的美食冷知识</span></span>
+        <span class="me-arrow">›</span>
+      </button>
+      <div class="me-divider"></div>
+      <button class="me-item" data-act="quiz">
+        <span class="me-ic ic-red">💞</span>
+        <span class="me-main">默契一问<span class="me-sub">问 TA 一道情侣默契题</span></span>
+        <span class="me-arrow">›</span>
+      </button>
+      <div class="me-divider"></div>
+      <button class="me-item" data-act="achieve">
+        <span class="me-ic ic-gold">🏆</span>
+        <span class="me-main">干饭成就<span class="me-sub" id="discAchieveSub">查看等级与徽章</span></span>
+        <span class="me-arrow">›</span>
+      </button>
+      <div class="me-divider"></div>
+      <button class="me-item" data-act="near">
+        <span class="me-ic ic-green">🗺️</span>
+        <span class="me-main">附近美食<span class="me-sub">出去吃 · 按距离找好店</span></span>
+        <span class="me-arrow">›</span>
+      </button>
+    </div>
+
+    <!-- 发现弹层：好运菜 / 时令 / 冷知识 / 默契问 -->
+    <div class="disc-modal hidden" id="discModal">
+      <div class="disc-card">
+        <p class="disc-tag" id="discTag">🍀 今日好运菜</p>
+        <p class="disc-title serif" id="discTitle"></p>
+        <p class="disc-text" id="discText"></p>
+        <button class="btn-primary btn-block disc-again" id="btnDiscAgain">再来一次</button>
+        <button class="link disc-done" id="btnDiscDone">知道了</button>
+      </div>
+    </div>
+  </section>
+
   <!-- ======== 视图：我的 ======== -->
   <section class="view" id="view-me">
     <div class="view-head">
             <h2 class="serif view-title">我的</h2>
     </div>
 
-    <div class="me-card">
+    <div class="me-card" id="meCard">
       <div class="me-avatar" id="meAvatar">🍅</div>
       <div class="me-body">
         <div class="me-name" id="meName">未登录</div>
         <div class="me-phone" id="mePhone"></div>
+      </div>
+      <span class="me-card-arrow" id="meCardArrow">›</span>
+    </div>
+
+    <!-- 微信式分组列表 -->
+    <div class="panel me-panel">
+      <button class="me-item" id="btnMeAchieve">
+        <span class="me-ic ic-gold">🏆</span>
+        <span class="me-main">干饭成就<span class="me-sub" id="meAchieveSub">新晋吃货 · 0/3</span></span>
+        <span class="me-arrow">›</span>
+      </button>
+      <div class="me-divider"></div>
+      <button class="me-item" id="btnMeTheme">
+        <span class="me-ic ic-orange">🎨</span>
+        <span class="me-main">主题<span class="me-sub" id="meThemeSub">番茄红</span></span>
+        <span class="me-arrow">›</span>
+      </button>
+      <div class="me-divider"></div>
+      <button class="me-item" id="btnMeSettings">
+        <span class="me-ic ic-gold">⚙️</span>
+        <span class="me-main">设置<span class="me-sub">口味 · 数据 · 关于</span></span>
+        <span class="me-arrow">›</span>
+      </button>
+      <div class="me-divider"></div>
+      <button class="me-item" id="btnMeHistory">
+        <span class="me-ic ic-green">📖</span>
+        <span class="me-main">历史记录<span class="me-sub" id="meHistSub2">已存 0 顿</span></span>
+        <span class="me-arrow">›</span>
+      </button>
+    </div>
+
+    <!-- 主题选择：点「主题」展开 -->
+    <div class="me-theme-box hidden" id="meThemeBox">
+      <p class="me-theme-title">主题色 · 一键换肤</p>
+      <div class="theme-row" id="themeRow">
+        <button class="theme-dot active" data-theme="tomato" style="--dot:#E14D2A" title="番茄红"></button>
+        <button class="theme-dot" data-theme="orange" style="--dot:#E8731B" title="暖橙"></button>
+        <button class="theme-dot" data-theme="gold" style="--dot:#A97B2F" title="茶金"></button>
+        <button class="theme-dot" data-theme="green" style="--dot:#3E7A56" title="青绿"></button>
+      </div>
+    </div>
+
+    <button class="me-item me-out hidden" id="btnLogoutMe">
+      <span class="me-ic ic-red">👋</span>
+      <span class="me-main">退出登录</span>
+      <span class="me-arrow">›</span>
+    </button>
+  </section>
+
+  <!-- ======== 视图：个人信息（登录后点用户卡片进入） ======== -->
+  <section class="view" id="view-profile">
+    <div class="view-head">
+            <p class="eyebrow">账号</p>
+      <h2 class="serif view-title">个人信息</h2>
+    </div>
+
+    <div class="panel">
+      <div class="profile-avatar-row">
+        <div class="profile-avatar" id="profileAvatar">🍅</div>
+        <div class="profile-avatar-side">
+          <p class="profile-avatar-hint">点选下面图标更换头像</p>
+          <div class="avatar-grid" id="avatarGrid"></div>
+        </div>
       </div>
     </div>
 
     <div class="panel">
       <div class="field">
         <label>昵称</label>
-        <input type="text" class="text-input" id="meNickname" maxlength="10" placeholder="给自己起个名字" autocomplete="off">
+        <input type="text" class="text-input" id="profileNickname" maxlength="10" placeholder="给自己起个名字" autocomplete="off">
       </div>
-      <button class="btn-primary btn-block" id="btnSaveMe">保存</button>
-    </div>
-
-    <div class="panel">
       <div class="field">
-        <label>主题</label>
-        <div class="theme-row" id="themeRow">
-          <button class="theme-dot active" data-theme="tomato" style="--dot:#E14D2A" title="番茄红"></button>
-          <button class="theme-dot" data-theme="orange" style="--dot:#E8731B" title="暖橙"></button>
-          <button class="theme-dot" data-theme="gold" style="--dot:#A97B2F" title="茶金"></button>
-          <button class="theme-dot" data-theme="green" style="--dot:#3E7A56" title="青绿"></button>
+        <label>个性签名</label>
+        <div class="sign-row">
+          <input type="text" class="text-input" id="profileSign" maxlength="24" placeholder="一句话介绍自己" autocomplete="off">
+          <button class="ghost-btn sign-shuffle" id="btnSignShuffle" title="随机换一句">🎲</button>
         </div>
       </div>
+      <button class="btn-primary btn-block" id="btnSaveProfile">保存</button>
     </div>
 
-    <div class="panel">
-      <button class="set-item" id="btnMeSettings">
-        <span class="set-main">设置<span class="set-sub">口味重置 · 数据管理 · 主题更换</span></span>
-        <span class="set-arrow">›</span>
-      </button>
+    <div class="panel foodie-card">
+      <p class="eyebrow">吃货档案</p>
+      <div class="foodie-id" id="foodieId">吃货 #----</div>
+      <div class="foodie-tags" id="foodieTags"></div>
+      <p class="foodie-flavor-label">我的口味偏好</p>
+      <div class="foodie-flavors" id="foodieFlavors"></div>
     </div>
-
-    <div class="me-login-box" id="meLoginBox">
-      <button class="btn-primary btn-block" id="btnMeLogin">登录 / 注册</button>
-    </div>
-    <button class="ghost-btn btn-block logout-btn hidden" id="btnLogoutMe">退出登录</button>
   </section>
 
   <!-- ======== 视图：30 秒问答（首次进入） ======== -->
@@ -176,8 +318,14 @@
 
   <!-- ======== 视图：在家吃 ======== -->
   <section class="view" id="view-home">
-    <div class="view-head">
-      <h2 class="serif view-title">今天，吃什么？</h2>
+    <div class="home-hello">
+      <div class="hh-top">
+        <span class="hh-greet serif" id="hhGreet"></span>
+        <span class="hh-ai"><span class="hh-ai-dot"></span>AI</span>
+      </div>
+      <h2 class="serif home-title">今天，吃什么？</h2>
+      <p class="hh-sub" id="hhSub"></p>
+      <p class="hh-date" id="hhDate"></p>
     </div>
 
     <!-- 条件面板 -->
@@ -215,7 +363,10 @@
           <button class="chip" data-val="comfort">家常暖胃</button>
         </div>
       </div>
-      <button class="btn-primary btn-block" id="btnGenHome">AI 为你推算菜单</button>
+      <button class="btn-primary ai-gen-btn" id="btnGenHome"><span class="ai-glow">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.8L18 9l-4.2 1.2L12 15l-1.8-4.8L6 9l4.2-1.2z"/><path d="M19 14l.9 2.4L22 17l-2.1.6L19 20l-.9-2.4L16 17l2.1-.6z"/></svg>
+        AI 为你推算菜单
+      </span></button>
     </div>
 
     <!-- 结果区 -->
@@ -410,6 +561,7 @@
       <h2 class="serif view-title">吃过的每一顿</h2>
       <p class="reason" id="historyMeta"></p>
     </div>
+    <div class="history-stats" id="historyStats"></div>
     <div class="history-list" id="historyList"></div>
   </section>
 
@@ -446,9 +598,9 @@
     <span class="tab-ico"><img src="assets/icons/out.png" alt=""></span>
     <span>出去吃</span>
   </button>
-  <button class="tab" data-view="history">
-    <span class="tab-ico"><img src="assets/icons/history.png" alt=""></span>
-    <span>历史</span>
+  <button class="tab" data-view="discover">
+    <span class="tab-ico"><img src="assets/icons/discover.png" alt=""></span>
+    <span>发现</span>
   </button>
   <button class="tab" data-view="me">
     <span class="tab-ico"><img src="assets/icons/me.png" alt=""></span>

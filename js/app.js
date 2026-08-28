@@ -52,27 +52,140 @@
   }
   function renderMeView() {
     const u = loadUser();
-    const av = $("#meAvatar"), nm = $("#meName"), ph = $("#mePhone"), nick = $("#meNickname");
+    const av = $("#meAvatar"), nm = $("#meName"), ph = $("#mePhone"), card = $("#meCard");
     if (!av) return;
     if (u) {
       av.textContent = u.avatar || "🍅";
       nm.textContent = u.nickname || "欢迎回来";
       ph.textContent = maskPhone(u.phone);
-      nick.value = u.nickname || "";
-      const lb = $("#meLoginBox");
-      if (lb) lb.classList.add("hidden");
+      if (card) card.classList.remove("can-login");
       const lo = $("#btnLogoutMe");
       if (lo) lo.classList.remove("hidden");
     } else {
       av.textContent = "🍅";
       nm.textContent = "未登录";
-      ph.textContent = "登录后解锁账号功能";
-      nick.value = "";
-      const lb = $("#meLoginBox");
-      if (lb) lb.classList.remove("hidden");
+      ph.textContent = "点击登录 / 注册";
+      if (card) card.classList.add("can-login");
       const lo = $("#btnLogoutMe");
       if (lo) lo.classList.add("hidden");
     }
+    renderAchieve();
+  }
+  /* 干饭等级表（我的页成就 & 发现页共用） */
+  const FOODIE_LEVELS = [
+    { min: 0, name: "新晋吃货", icon: "🍳", to: 3 },
+    { min: 3, name: "干饭学徒", icon: "🥢", to: 10 },
+    { min: 10, name: "干饭达人", icon: "🍚", to: 30 },
+    { min: 30, name: "美食家", icon: "🍜", to: 100 },
+    { min: 100, name: "食神", icon: "👑", to: Infinity }
+  ];
+  function foodieLevel(n) { return FOODIE_LEVELS.find(l => n < l.to) || FOODIE_LEVELS[FOODIE_LEVELS.length - 1]; }
+  /* 干饭成就：按历史记录顿数推算等级与进度（可玩性） */
+  function renderAchieve() {
+    const hist = loadHistory();
+    const n = hist && hist.length ? hist.length : 0;
+    const lv = foodieLevel(n);
+    const t = $("#meAchieveSub");
+    if (t) t.textContent = lv.name + " · " + n + "/" + (lv.to === Infinity ? "∞" : lv.to);
+    const hs = $("#meHistSub2");
+    if (hs) hs.textContent = "已存 " + n + " 顿";
+  }
+
+  /* ---------- 发现页 ---------- */
+  const LUCK_DISHES = [
+    { name: "可乐鸡翅", emoji: "🍗", say: "甜咸交织，好运藏在一口焦糖里" },
+    { name: "番茄牛腩", emoji: "🍅", say: "酸中带甜，日子会越炖越香" },
+    { name: "麻婆豆腐", emoji: "🌶️", say: "麻辣滚烫，今天的你红红火火" },
+    { name: "清蒸鲈鱼", emoji: "🐟", say: "鲜上加鲜，年年有余" },
+    { name: "宫保鸡丁", emoji: "🥜", say: "酥香下饭，好事会接二连三" },
+    { name: "糖醋里脊", emoji: "🍖", say: "酸甜开胃，心情自动满格" },
+    { name: "蒜蓉西兰花", emoji: "🥦", say: "清爽解腻，越简单越好运" },
+    { name: "红烧排骨", emoji: "🍖", say: "浓油赤酱，生活有滋有味" },
+    { name: "酸菜鱼", emoji: "🐠", say: "酸辣鲜爽，好运像鱼片一样滑溜" },
+    { name: "西红柿炒蛋", emoji: "🍳", say: "国民下饭菜，平淡见真章" },
+    { name: "大盘鸡", emoji: "🍗", say: "分量十足，诚意满满" },
+    { name: "虾仁滑蛋", emoji: "🦐", say: "鲜嫩弹滑，好运连连" },
+    { name: "红烧肉", emoji: "🥘", say: "肥而不腻，人生圆满" },
+    { name: "凉拌黄瓜", emoji: "🥒", say: "清脆爽口，烦恼一拍即散" },
+    { name: "冬瓜排骨汤", emoji: "🍲", say: "汤暖人心，喝出好气色" },
+    { name: "扬州炒饭", emoji: "🍚", say: "粒粒分明，每一口都是踏实" },
+    { name: "水煮鱼", emoji: "🌶️", say: "麻辣过瘾，好运扑面而来" },
+    { name: "孜然羊肉", emoji: "🍢", say: "焦香四溢，越吃越有干劲" },
+    { name: "皮蛋豆腐", emoji: "🥚", say: "清凉爽滑，简单即快乐" },
+    { name: "香煎三文鱼", emoji: "🐟", say: "高蛋白好运，健康又美味" }
+  ];
+  const SEASON = [
+    { m: 1, label: "1月", food: "萝卜、白菜、羊肉、冬笋", dish: "羊肉萝卜汤、冬笋炒腊肉", tip: "冬吃萝卜，暖身又通气" },
+    { m: 2, label: "2月", food: "韭菜、菠菜、春笋、河蚌", dish: "韭菜炒蛋、油焖春笋", tip: "立春咬春，第一口鲜" },
+    { m: 3, label: "3月", food: "荠菜、香椿、蚕豆、河虾", dish: "荠菜馄饨、香椿炒蛋", tip: "春菜最嫩，错过等一年" },
+    { m: 4, label: "4月", food: "春笋、莴笋、豌豆、鲈鱼", dish: "腌笃鲜、清蒸鲈鱼", tip: "谷雨前后，鲜掉眉毛" },
+    { m: 5, label: "5月", food: "蒜薹、苋菜、枇杷、小龙虾", dish: "蒜薹炒肉、油焖大虾", tip: "初夏第一口，够鲜活" },
+    { m: 6, label: "6月", food: "黄瓜、茄子、苦瓜、荔枝", dish: "凉拌黄瓜、肉末茄子", tip: "苦夏吃苦，清热降火" },
+    { m: 7, label: "7月", food: "丝瓜、冬瓜、毛豆、西瓜", dish: "丝瓜蛋汤、盐水毛豆", tip: "消暑三宝，清爽一夏" },
+    { m: 8, label: "8月", food: "莲藕、玉米、黄桃、梭子蟹", dish: "排骨莲藕汤、清蒸梭子蟹", tip: "秋初贴膘，补补身子" },
+    { m: 9, label: "9月", food: "板栗、山药、大闸蟹、芋头", dish: "板栗烧鸡、芋头蒸排骨", tip: "金秋九月，膏肥蟹美" },
+    { m: 10, label: "10月", food: "萝卜、红薯、南瓜、鲈鱼", dish: "萝卜炖牛腩、南瓜小米粥", tip: "霜降之后，根茎最甜" },
+    { m: 11, label: "11月", food: "白菜、羊肉、柑橘、冬枣", dish: "白菜炖豆腐、羊肉汤", tip: "小雪进补，暖到心里" },
+    { m: 12, label: "12月", food: "冬笋、腊肉、火锅、汤圆", dish: "冬笋炒腊肉、围炉火锅", tip: "冬至大如年，热热闹闹吃一顿" }
+  ];
+  const FOOD_FACTS = [
+    "蜂蜜放久了结晶不是坏了，是真蜂蜜的表现。",
+    "辣不是味觉，是痛觉——吃辣时的刺激由痛觉感受器传递。",
+    "番茄曾是观赏植物，两百多年前才被欧洲人接受入菜。",
+    "菠萝含有菠萝蛋白酶，会分解蛋白质，所以吃多有点扎嘴。",
+    "西瓜 92% 都是水，吃西瓜约等于喝水。",
+    "黑胡椒和盐是全世界最常用的两种调味料。",
+    "方便面不是日本人发明的，第一份速食面饼由华裔发明。",
+    "柠檬的酸是柠檬酸，苹果的酸是苹果酸，各有各的酸。",
+    "「挂羊头卖狗肉」里，狗肉在古代其实是常见食材。",
+    "豆腐放越久越硬，是水分慢慢蒸发导致的。",
+    "巧克力的熔点接近体温，所以入口即化。",
+    "紫菜、海带这类海藻富含碘，沿海地区很少缺碘。",
+    "「炒鱿鱼」指被辞退，源于旧时雇主卷铺盖走人的习俗。",
+    "味精最早从海带汤里提取，鲜味来自谷氨酸钠。",
+    "鱼香肉丝没有鱼，宫保鸡丁的「宫保」是清代官衔。",
+    "冬天涮羊肉，是因为羊肉性温驱寒。",
+    "米饭放凉后抗性淀粉增加，升糖会更慢。",
+    "一块广式月饼的热量，约等于两碗米饭。",
+    "粥煮久会糊化，口感绵密，但升糖也更快。",
+    "喝汤补钙效果有限，补钙还得靠牛奶和豆制品。"
+  ];
+  let discKind = "luck";
+  function showDisc(kind) {
+    const tag = $("#discTag"), title = $("#discTitle"), text = $("#discText");
+    if (!tag) return;
+    discKind = kind;
+    if (kind === "luck") {
+      const d = LUCK_DISHES[Math.floor(Math.random() * LUCK_DISHES.length)];
+      tag.textContent = "🍀 今日好运菜";
+      title.textContent = d.emoji + " " + d.name;
+      text.textContent = d.say;
+    } else if (kind === "season") {
+      const s = SEASON[new Date().getMonth()];
+      tag.textContent = "🍂 " + s.label + " · 时令吃鲜";
+      title.textContent = "应季吃什么";
+      text.innerHTML = "当季吃：<b>" + s.food + "</b><br>推荐菜：<b>" + s.dish + "</b><br><br>" + s.tip;
+    } else if (kind === "fact") {
+      tag.textContent = "💡 干饭冷知识";
+      title.textContent = "你知道嘛";
+      text.textContent = FOOD_FACTS[Math.floor(Math.random() * FOOD_FACTS.length)];
+    } else if (kind === "quiz") {
+      const q = QUIZ_POOL[Math.floor(Math.random() * QUIZ_POOL.length)];
+      tag.textContent = "💞 默契一问";
+      title.textContent = q.q;
+      text.innerHTML = q.o.map(x => "· " + x).join("<br>");
+    }
+    $("#discModal").classList.remove("hidden");
+  }
+  function renderDiscover() {
+    const s = SEASON[new Date().getMonth()];
+    const ss = $("#discSeasonSub");
+    if (ss) ss.textContent = s.label + " · 应季吃什么";
+    const hist = loadHistory();
+    const n = hist && hist.length ? hist.length : 0;
+    const lv = foodieLevel(n);
+    const as = $("#discAchieveSub");
+    if (as) as.textContent = lv.name + " · " + n + " 顿";
   }
   function logoutUser() {
     if (confirm("确定退出登录吗？")) {
@@ -82,6 +195,83 @@
       window.scrollTo({ top: 0 });
       toast("已退出登录");
     }
+  }
+
+  /* ---------- 个人信息 ---------- */
+  const AVATARS = ["🍅", "🍜", "🍣", "🥑", "🍤", "🍕", "🍰", "🌶️", "🥩", "🍉", "🍳", "🍚", "🥟", "🍔", "🍩", "🍵"];
+  const PROFILE_SIGNS = [
+    "认真吃饭，快乐生活", "今天也要好好吃饭呀", "干饭人，干饭魂",
+    "美食是生活的解药", "饿了吗？那就去吃呀", "把日子过成诗，把饭吃出香",
+    "人间烟火气，最抚凡人心", "吃饭不积极，思想有问题", "一米一饭，皆是热爱",
+    "吃的开心，长得可爱", "一碗热汤，慰藉日常", "快乐干饭，烦恼退散",
+    "人生苦短，趁热吃", "吃饭是头等大事", "认真干饭，认真生活", "以食会友，以味传情"
+  ];
+  let selAvatar = "🍅";
+  function foodieId(phone) {
+    const s = phone || ("guest" + Date.now());
+    let h = 0;
+    for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
+    return "吃货 #" + (h % 9000 + 1000);
+  }
+  function foodieTags(prefs) {
+    if (!prefs) return ["佛系吃货"];
+    const p = prefs;
+    const tags = [];
+    const people = Number(p.people) || 0;
+    if (people <= 1) tags.push("独食侠");
+    else if (people === 2) tags.push("干饭搭子");
+    else if (people <= 5) tags.push("家庭掌勺");
+    else tags.push("聚餐控");
+    if ((p.spicy || 0) >= 4) tags.push("无辣不欢");
+    else if ((p.spicy || 0) <= 1) tags.push("清淡温和");
+    const r = p.region;
+    if (r === "sichuan") tags.push("川味信徒");
+    else if (r === "guangdong") tags.push("原味主义者");
+    else if (r === "central") tags.push("香辣上瘾");
+    else if (r === "jiangnan") tags.push("本帮美食家");
+    if (tags.length < 2) tags.push("佛系吃货");
+    return tags.slice(0, 4);
+  }
+  function flavorList(prefs) {
+    if (!prefs) return [{ t: "口味待解锁 · 去答 30 秒", primary: true }];
+    const p = prefs;
+    const list = [];
+    const all = [...CUISINE.mains, ...CUISINE.more];
+    const c = all.find(x => x.v === p.region);
+    if (c) list.push({ t: c.label, primary: true });
+    if (p.spicy) list.push({ t: ["微辣", "中辣", "重辣", "魔鬼辣"][Math.min(Math.max(p.spicy - 1, 0), 3)] });
+    if (p.people) list.push({ t: p.people + " 人食" });
+    if (p.avoid && p.avoid.length) {
+      const avAll = [...AVOID.mains, ...AVOID.more];
+      const names = p.avoid.map(v => { const a = avAll.find(x => x.v === v); return a ? a.label : null; }).filter(Boolean);
+      if (names.length) list.push({ t: "忌：" + names.slice(0, 2).join(" / ") });
+    }
+    return list;
+  }
+  function renderProfile() {
+    const u = loadUser();
+    if (!u) { toast("请先登录"); return; }
+    selAvatar = u.avatar || "🍅";
+    const pa = $("#profileAvatar"); if (pa) pa.textContent = selAvatar;
+    const nick = $("#profileNickname"); if (nick) nick.value = u.nickname || "";
+    const sign = $("#profileSign"); if (sign) sign.value = u.sign || "";
+    const g = $("#avatarGrid");
+    if (g && !g.dataset.ready) {
+      g.dataset.ready = "1";
+      g.innerHTML = AVATARS.map(a => `<button class="avatar-opt" data-a="${a}">${a}</button>`).join("");
+      g.addEventListener("click", (e) => {
+        const b = e.target.closest(".avatar-opt");
+        if (!b) return;
+        $$(".avatar-opt", g).forEach(x => x.classList.remove("active"));
+        b.classList.add("active");
+        selAvatar = b.dataset.a;
+        if (pa) pa.textContent = selAvatar;
+      });
+    }
+    if (g) $$(".avatar-opt", g).forEach(x => x.classList.toggle("active", x.dataset.a === selAvatar));
+    const fid = $("#foodieId"); if (fid) fid.textContent = foodieId(u.phone);
+    const ft = $("#foodieTags"); if (ft) ft.innerHTML = foodieTags(loadPrefs()).map(t => `<span class="foodie-tag">${t}</span>`).join("");
+    const fl = $("#foodieFlavors"); if (fl) fl.innerHTML = flavorList(loadPrefs()).map(x => `<span class="flavor-chip${x.primary ? " primary" : ""}">${x.t}</span>`).join("");
   }
 
   /* ---------- 状态 ---------- */
@@ -178,8 +368,10 @@
   let backStack = [];   // 子页面返回栈（顶部固定返回按钮使用）
   const VIEW_TITLES = {
     home: { e: "🍳", t: "在家吃" }, couple: { e: "💞", t: "情侣一起做" },
-    out: { e: "🍽️", t: "出去吃" }, history: { e: "📖", t: "历史" },
+    out: { e: "🍽️", t: "出去吃" }, discover: { e: "🧭", t: "发现" },
+    history: { e: "📖", t: "历史" },
     me: { e: "🙂", t: "我的" }, settings: { e: "⚙️", t: "设置" },
+    profile: { e: "👤", t: "个人信息" },
     login: { e: "", t: "登录" }, onboard: { e: "✨", t: "口味问答" },
     "home-result": { e: "🍽️", t: "今天吃这些" }, list: { e: "🧺", t: "买菜清单" },
     recipe: { e: "📜", t: "菜谱详情" }, "couple-result": { e: "💞", t: "约会菜单" },
@@ -194,8 +386,8 @@
     if (ttt) ttt.textContent = vt.t;
     if (tte) tte.textContent = vt.e;
     /* 返回栈：进入子页面时记住上一个视图，顶部固定返回按钮由此弹出 */
-    const MAIN_VIEWS = ["home", "couple", "out", "history"];
-    const NO_BACK = ["welcome", "onboard", "login"];
+    const MAIN_VIEWS = ["home", "couple", "out", "discover"];
+    const NO_BACK = ["splash", "welcome", "onboard", "login"];
     const prevEl = document.querySelector(".view.active");
     const prevId = prevEl ? prevEl.id.replace("view-", "") : null;
     const isSub = !MAIN_VIEWS.includes(id) && !NO_BACK.includes(id);
@@ -214,12 +406,136 @@
       el.style.animationDelay = Math.min(i * 0.05, 0.45) + "s";
       el.classList.add("view-enter");
     });
-    $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.view === id));
-    document.body.classList.toggle("hide-shell", id === "welcome" || id === "login");
-    if (id !== "welcome" && id !== "login") window.scrollTo({ top: 0, behavior: "smooth" });
+    $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.view === id || (id === "history" && t.dataset.view === "me")));
+    document.body.classList.toggle("hide-shell", id === "splash" || id === "welcome" || id === "login");
+    if (id !== "splash" && id !== "welcome" && id !== "login") window.scrollTo({ top: 0, behavior: "smooth" });
     if (id === "couple") renderCoupleProgress();
     if (id === "me") renderMeView();
+    if (id === "profile") renderProfile();
+    if (id === "discover") renderDiscover();
     if (id === "history") renderHistory();
+    if (id === "home") renderHomeHello();
+    if (id === "welcome") renderWelcomeSlogan();
+  }
+
+  /* ---------- 登录页 slogan：100 句轮播（每次刷新同步换一句） ---------- */
+  const SLOGANS = [
+    "认真吃饭的日子，也值得记录",
+    "好好吃饭，是爱自己的开始",
+    "人间烟火气，最抚凡人心",
+    "一蔬一饭，皆是生活",
+    "把日子过成诗，从好好吃饭开始",
+    "三餐四季，温柔有趣",
+    "胃暖了，心也就暖了",
+    "认真吃好每一顿饭，就是认真过好每一天",
+    "家的味道，就是最好的味道",
+    "吃饭这件事，从来都不简单",
+    "烟火气里，藏着生活最本真的模样",
+    "饭桌，是家里最温暖的角落",
+    "一人食，也要好好对待",
+    "两个人，一桌菜，就是小小的幸福",
+    "一家人围坐，胜过人间无数",
+    "好好吃饭的人，运气都不会太差",
+    "吃进去的是饭，温暖的是心",
+    "一日三餐，是生活最温柔的仪式",
+    "让每一顿饭，都值得期待",
+    "生活的答案，往往在一粥一饭里",
+    "柴米油盐，也是诗和远方",
+    "慢慢吃饭，好好生活",
+    "一碗热汤，足以慰风尘",
+    "认真做饭的人，最可爱",
+    "被美食治愈的一天",
+    "人间值得，因为有你爱的那一口",
+    "吃好每一顿，过好这一生",
+    "简单的饭菜，最动人心",
+    "生活再忙，也要好好吃饭",
+    "吃饱和吃好之间，隔着用心",
+    "用一顿饭的时间，好好爱自己",
+    "饭要热着吃，日子要暖着过",
+    "把普通的日子，过得热气腾腾",
+    "世间万物，唯有爱与美食不可辜负",
+    "认真生活，从认真吃饭开始",
+    "好好吃饭，好好睡觉，好好生活",
+    "每一顿饭，都是平凡生活里的闪光",
+    "烟火人间，风味长存",
+    "日子滚烫，人间可爱",
+    "一粥一饭，当思来处不易",
+    "饭桌上的人，就是最亲的人",
+    "厨房升起的烟火，是最踏实的幸福",
+    "会吃饭的人，更懂生活",
+    "今天也要好好吃饭呀",
+    "把胃喂饱，把心哄好",
+    "热爱可抵岁月漫长，美食可暖三餐日常",
+    "生活的仪式感，从一顿好饭开始",
+    "好好吃饭，是对自己最好的温柔",
+    "有饭吃，有人爱，有所期待",
+    "吃顿好的，什么都会好起来",
+    "生活五味，酸甜苦辣都尝遍",
+    "慢下来，好好吃一顿饭",
+    "用心做的每一餐，都值得被记录",
+    "热气腾腾，就是生活最好的样子",
+    "今天的快乐，是美食给的",
+    "认真吃饭的人，心里都有光",
+    "一顿好饭，治愈所有的不开心",
+    "饭桌方寸间，藏着大大的幸福",
+    "吃什么不重要，和谁吃才重要",
+    "好好吃饭，就是好好爱家人",
+    "陪伴是最长情的告白，吃饭是最日常的陪伴",
+    "愿有人问你粥可温",
+    "有人陪你立黄昏，有人问你粥可温",
+    "细水长流的日子里，一起吃很多很多饭",
+    "和你吃饭，连白粥都是甜的",
+    "爱意，都藏在好好吃饭里",
+    "两个人的晚餐，是一天的温柔收尾",
+    "分享食物，是分享快乐",
+    "最好的关系，是一起好好吃饭",
+    "把爱煮进饭菜里，把日子过成喜欢的样子",
+    "记录每一顿，也记录认真生活的瞬间",
+    "照片会泛黄，但好好吃饭的日子不会忘",
+    "今天吃过的饭，都是明天回忆的甜",
+    "每一张餐桌，都见证过平凡珍贵的时光",
+    "用心生活的人，连剩菜都能翻出花来",
+    "认真吃饭，是对生活最大的尊重",
+    "好好吃饭，才有力气对抗世界的难",
+    "吃饱喝足，人生自有归处",
+    "烟火气，是治愈一切的良药",
+    "一顿饭的功夫，把烦恼都吃掉",
+    "吃得好一点，活得好一点",
+    "一屋两人，三餐四季",
+    "好好吃饭，认真生活，努力发光",
+    "让吃饭成为一种享受，而不是应付",
+    "生活的甜，藏在每一次好好吃饭里",
+    "吃饭是治愈，是充电，是重新出发",
+    "把日子嚼出滋味，把生活过出香气",
+    "认真对待每一餐，温柔对待每一天",
+    "吃下的每一口，都是生活的回响",
+    "热气腾腾的饭菜，热气腾腾的生活",
+    "生活很苦，但饭菜很香",
+    "好好吃饭的人，温柔且强大",
+    "一顿饭，慰藉一天的疲惫",
+    "今天吃什么，是每天的小确幸",
+    "认真吃饭，是成年人最浪漫的自律",
+    "有饭可吃，有家可回，有人可爱",
+    "把平凡的日子，吃出仪式感",
+    "认真吃饭，认真生活，认真去爱",
+    "往后余生，好好吃饭，好好爱自己",
+    "把饭吃得香，把日子过成糖"
+  ];
+  const LS_SLOGAN_IDX = "eat-ai-slogan-idx";
+  function renderWelcomeSlogan() {
+    const el = $("#welcomeSlogan");
+    if (!el) return;
+    let idx = Number(localStorage.getItem(LS_SLOGAN_IDX) || "-1") + 1;
+    if (idx >= SLOGANS.length) idx = 0;
+    localStorage.setItem(LS_SLOGAN_IDX, String(idx));
+    const text = SLOGANS[idx];
+    // 按第一个逗号断为两行，避免窄屏自动换行断点难看
+    const i = text.indexOf("，");
+    if (i > 0 && i < text.length - 1) {
+      el.innerHTML = text.slice(0, i) + "<br>" + text.slice(i + 1);
+    } else {
+      el.textContent = text;
+    }
   }
 
   /* ---------- 芯片选择器 ---------- */
@@ -782,6 +1098,33 @@
   /* ============================================================
      ② 在家吃
      ============================================================ */
+  /* 首页问候区：时段问候 + 昵称 + 日期 + AI 速览 */
+  function renderHomeHello() {
+    const now = new Date();
+    const h = now.getHours();
+    let greet;
+    if (h < 5) greet = "夜深了";
+    else if (h < 9) greet = "早上好";
+    else if (h < 11) greet = "上午好";
+    else if (h < 14) greet = "中午好";
+    else if (h < 18) greet = "下午好";
+    else greet = "晚上好";
+    const u = loadUser();
+    const who = (u && u.nickname) ? u.nickname : "朋友";
+    const g = $("#hhGreet");
+    if (g) g.textContent = greet + "，" + who + (h < 5 ? " 🌙" : " 👋");
+    const week = ["周日", "周一", "周二", "周三", "周四", "周五", "周六"];
+    const d = $("#hhDate");
+    if (d) d.textContent = (now.getMonth() + 1) + "月" + now.getDate() + "日 · " + week[now.getDay()];
+    const s = $("#hhSub");
+    if (s) {
+      const taste = regionSummary();
+      s.textContent = taste === "大众口味"
+        ? "AI 已按大众口味为你备好今日灵感，随时可调整"
+        : "AI 已记住你的「" + taste + "」偏好 · 今日灵感为你备好";
+    }
+  }
+
   bindChips($("#hmPeople"), updateHmSummary);
   bindChips($("#hmCooker"), updateHmSummary);
   bindChips($("#hmMood"));
@@ -1376,6 +1719,15 @@
     }
   }
 
+  /* 启动页：开始使用 → 已登录直接进主页，未登录进登录页（个性化欢迎页） */
+  $("#btnSplashStart").addEventListener("click", () => {
+    if (loadUser()) {
+      enterApp();
+    } else {
+      showView("welcome");
+    }
+  });
+
   /* 欢迎页入口（保留） */
   $("#btnGuestStart").addEventListener("click", () => {
     if (prefs) {
@@ -1385,12 +1737,6 @@
       enterWithOnboard();
       toast("先回答 30 秒，为你定制口味");
     }
-  });
-  $("#btnReOnboard").addEventListener("click", () => {
-    obStep = 0;
-    renderQStep();
-    showView("onboard");
-    window.scrollTo({ top: 0 });
   });
   $("#btnGoLogin").addEventListener("click", () => {
     if (loadUser()) { logoutUser(); return; }
@@ -1417,24 +1763,67 @@
   });
 
   /* ---------- 我的页（入口：底部导航「我的」tab → showView 里已 renderMeView） ---------- */
-  $("#btnMeLogin").addEventListener("click", () => {
+  /* 未登录点用户卡片 → 登录页；已登录点用户卡片 → 个人信息 */
+  $("#meCard").addEventListener("click", () => {
+    const u = loadUser();
+    if (u) { renderProfile(); showView("profile"); return; }
     $("#loginPhone").value = "";
     $("#loginCode").value = "";
     showView("login");
   });
   $("#btnLogoutMe").addEventListener("click", logoutUser);
-  $("#btnSaveMe").addEventListener("click", () => {
+  /* 干饭成就：点击进入历史记录回顾 */
+  $("#btnMeAchieve").addEventListener("click", () => {
+    renderHistory();
+    showView("history");
+    window.scrollTo({ top: 0 });
+  });
+  /* 主题：展开 / 收起主题色选择 */
+  $("#btnMeTheme").addEventListener("click", () => {
+    $("#meThemeBox").classList.toggle("hidden");
+  });
+
+  /* ---------- 发现页：列表项交互 + 弹层 ---------- */
+  $("#view-discover .me-panel").addEventListener("click", (e) => {
+    const it = e.target.closest(".me-item");
+    if (!it) return;
+    const act = it.dataset.act;
+    if (act === "achieve") { renderMeView(); showView("me"); return; }
+    if (act === "near") { showView("out"); return; }
+    showDisc(act);
+  });
+  $("#btnDiscAgain").addEventListener("click", () => showDisc(discKind));
+  $("#btnDiscDone").addEventListener("click", () => $("#discModal").classList.add("hidden"));
+  $("#discModal").addEventListener("click", (e) => {
+    if (e.target === e.currentTarget) e.currentTarget.classList.add("hidden");
+  });
+
+  /* ---------- 个人信息 ---------- */
+  $("#btnSignShuffle").addEventListener("click", () => {
+    $("#profileSign").value = PROFILE_SIGNS[Math.floor(Math.random() * PROFILE_SIGNS.length)];
+  });
+  $("#btnSaveProfile").addEventListener("click", () => {
     const u = loadUser();
-    if (!u) { toast("请先登录后再设置昵称"); return; }
-    u.nickname = $("#meNickname").value.trim();
+    if (!u) { toast("请先登录"); return; }
+    u.avatar = selAvatar;
+    u.nickname = $("#profileNickname").value.trim();
+    u.sign = $("#profileSign").value.trim();
     saveUser(u);
     applyUserShell();
-    toast(u.nickname ? ("昵称已更新：" + u.nickname) : "已保存");
+    renderMeView();
+    toast(u.nickname ? ("已保存，" + u.nickname) : "已保存");
+    showView("me");
   });
 
   /* ---------- 设置中心（入口：我的页「设置」项） ---------- */
   $("#btnMeSettings").addEventListener("click", () => {
     showView("settings");
+  });
+  /* ---------- 历史记录（入口：我的页「历史记录」项） ---------- */
+  $("#btnMeHistory").addEventListener("click", () => {
+    renderHistory();
+    showView("history");
+    window.scrollTo({ top: 0 });
   });
   $("#setItemMe").addEventListener("click", () => {
     renderMeView();
@@ -1467,6 +1856,9 @@
     document.body.setAttribute("data-theme", th);
     localStorage.setItem(LS_THEME, th);
     $$("#themeRow .theme-dot").forEach(d => d.classList.toggle("active", d.dataset.theme === th));
+    const TNAMES = { tomato: "番茄红", orange: "暖橙", gold: "茶金", green: "青绿" };
+    const ms = $("#meThemeSub");
+    if (ms) ms.textContent = TNAMES[th] || th;
   }
   $("#themeRow").addEventListener("click", (e) => {
     const dot = e.target.closest(".theme-dot");
@@ -1531,6 +1923,7 @@
         <div class="his-body" hidden>
           <div class="his-dishes">${names}${more}</div>
           <div class="his-actions">
+            <button class="ghost-btn" data-act="redo">再做一次</button>
             <button class="ghost-btn" data-act="buy">再去买菜</button>
             <button class="ghost-btn" data-act="share">晒一晒</button>
             <button class="ghost-btn danger" data-act="del">删除</button>
@@ -1542,12 +1935,31 @@
   function renderHistory() {
     const h = loadHistory();
     const el = $("#historyList");
+    const statsEl = $("#historyStats");
+    const meSub = $("#meHistSub");
+    if (meSub) meSub.textContent = h.length ? "已存 " + h.length + " 顿 · 回顾与打卡" : "吃过的每一顿 · 回顾与打卡";
     if (!h.length) {
       $("#historyMeta").textContent = "还没有记录，去推算一顿吧";
+      if (statsEl) statsEl.innerHTML = "";
       el.innerHTML = `<div class="his-empty"><div class="he-ico">🍽️</div><p>生成菜单后会在这里留档</p></div>`;
       return;
     }
     $("#historyMeta").textContent = "共 " + h.length + " 顿 · 生成菜单后自动记录";
+    /* 统计卡：吃过顿数 / 累计菜品 / 最常吃 / 已打卡 */
+    const allNames = h.flatMap(r => r.names || []);
+    const cnt = {};
+    allNames.forEach(n => { cnt[n] = (cnt[n] || 0) + 1; });
+    const topDish = Object.entries(cnt).sort((a, b) => b[1] - a[1])[0] || [];
+    const doneCnt = h.filter(r => r.checkedIn).length;
+    if (statsEl) {
+      statsEl.innerHTML = `
+        <div class="his-stats">
+          <div class="hs-item"><b>${h.length}</b><span>顿好饭</span></div>
+          <div class="hs-item"><b>${allNames.length}</b><span>道菜</span></div>
+          <div class="hs-item hs-top"><b>${topDish[0] || "—"}</b><span>最常吃</span></div>
+          <div class="hs-item"><b>${doneCnt}</b><span>已打卡</span></div>
+        </div>`;
+    }
     const now = new Date();
     const todayStr = fmtDate(now);
     const yestStr = fmtDate(new Date(now.getTime() - 86400000));
@@ -1580,7 +1992,16 @@
         const rec = loadHistory().find(x => x.id === b.closest(".his-item").dataset.id);
         if (!rec) return;
         const act = b.dataset.act;
-        if (act === "buy") {
+        if (act === "redo") {
+          const dishes = restoreDishes(rec);
+          if (!dishes.length) { toast("菜品数据缺失"); return; }
+          homeState = { dishes, ctx: Object.assign({}, (homeState && homeState.ctx) || {}, { people: rec.people || 2 }) };
+          $("#homeReason").textContent = "从历史回顾 · " + (rec.people || 2) + " 人份的这顿";
+          renderMenuList($("#homeMenuList"), dishes, "home");
+          showView("home-result");
+          window.scrollTo({ top: 0 });
+          toast("已重现这顿菜单，想换菜点「换一换」");
+        } else if (act === "buy") {
           const dishes = restoreDishes(rec);
           if (!dishes.length) { toast("菜品数据缺失"); return; }
           listState = { dishes, people: rec.people || 2 };
@@ -1925,19 +2346,21 @@
     applyUserShell();
     const av = $("#appVersion");
     if (av) av.textContent = APP_VERSION;
+    const wv = $("#welcomeVersion");
+    if (wv) wv.textContent = APP_VERSION;
+    const sv = $("#splashVersion");
+    if (sv) sv.textContent = APP_VERSION;
     if (!localStorage.getItem(LS_FIRST)) {
-      // 首次进入：先到品牌欢迎页
+      // 首次进入：标记后仍先看品牌启动页
       localStorage.setItem(LS_FIRST, "1");
-      showView("welcome");
       if (window.__freshReset) toast("已重置为全新用户状态 · 数据已清空");
-      return;
     }
-    // 老用户 / 游客：直接进主页；没有口味档案时用大众口味兜底
+    // 没有口味档案时用大众口味兜底
     if (!prefs) {
       prefs = { region: "other", people: 2, cooker: "newbie", spicy: 1, avoid: ["none"], health: "none" };
     }
-    enterApp();
-    if (window.__freshReset) toast("已重置为全新用户状态 · 数据已清空");
+    // 每次进入：先展示品牌启动页
+    showView("splash");
   }
   init();
 })();
