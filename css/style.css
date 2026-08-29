@@ -1203,7 +1203,7 @@ body[data-theme="glass"] .tab {
   padding: 8px 4px;
   border-radius: 18px;
   cursor: pointer;
-  transition: all .32s cubic-bezier(.22, .61, .36, 1);
+  transition: all .45s cubic-bezier(.22, .61, .36, 1);
   font-family: inherit;
   white-space: nowrap;
 }
