@@ -1998,11 +1998,11 @@ body[data-theme="glass"] .stage { padding-bottom: 96px; }
 }
 
 
-/* ============ 全局强制：主菜单tab无任何背景色（最高优先级，不被任何主题覆盖） ============ */
+/* ============ 全局强制：主菜单tab样式（最高优先级，不被任何主题覆盖） ============ */
+/* 非选中状态：完全透明 */
 #tabs .tab,
 #tabs .tab:hover,
 #tabs .tab:active,
-#tabs .tab.active,
 #tabs .tab.swipe-hover {
   background: transparent !important;
   background-color: transparent !important;
@@ -2012,15 +2012,24 @@ body[data-theme="glass"] .stage { padding-bottom: 96px; }
   border: none !important;
   outline: none !important;
 }
-#tabs .tab.active .tab-ico {
-  transform: scale(1.15) !important;
-}
+/* 选中状态：保留玻璃质感（淡色毛玻璃背景） */
 #tabs .tab.active {
+  background: rgba(255, 255, 255, 0.15) !important;
+  background-color: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(10px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(10px) saturate(1.5) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+  border: 1px solid rgba(255, 255, 255, 0.3) !important;
   color: var(--accent) !important;
   font-weight: 600 !important;
 }
-/* 菜单栏容器：完全透明背景，只保留毛玻璃效果 */
+#tabs .tab.active .tab-ico {
+  transform: scale(1.15) !important;
+}
+/* 菜单栏容器：淡色毛玻璃背景（不是完全透明，避免看到页面底部的色差） */
 #tabs.tabs {
-  background: transparent !important;
-  background-color: transparent !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  background-color: rgba(255, 255, 255, 0.12) !important;
+  backdrop-filter: blur(40px) saturate(1.8) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(1.8) !important;
 }
