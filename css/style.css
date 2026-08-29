@@ -166,6 +166,45 @@ body.hide-shell { padding-top: 0; }
 }
 .tab.swipe-hover .tab-ico { transform: scale(1.15); }
 
+/* ============ 底部导航放大镜 ============ */
+.magnifier {
+  position: fixed;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .32);
+  backdrop-filter: blur(14px) saturate(1.4);
+  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  border: 2.5px solid rgba(255, 255, 255, .85);
+  box-shadow:
+    0 8px 28px rgba(0, 0, 0, .28),
+    inset 0 2px 0 rgba(255, 255, 255, .95),
+    inset 0 -3px 6px rgba(0, 0, 0, .12);
+  pointer-events: none;
+  z-index: 300;
+  display: none;
+  transform: translate(-50%, -50%);
+  overflow: hidden;
+}
+.magnifier.active { display: block; animation: magPop .18s ease-out; }
+@keyframes magPop {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(.6); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+.magnifier .mag-inner {
+  width: 100%; height: 100%;
+  display: flex; align-items: center; justify-content: center;
+}
+.magnifier .mag-img {
+  width: 46px; height: 46px;
+  object-fit: contain;
+  transform: scale(1.5);
+  filter: drop-shadow(0 2px 6px rgba(0, 0, 0, .25));
+}
+/* 放大镜下方的tab：图标放大 */
+.tab.mag-hover { transform: scale(1.12); }
+.tab.mag-hover .tab-ico { transform: scale(1.35); }
+
 /* ============ 主舞台 ============ */
 .stage { max-width: 560px; margin: 0 auto; padding: 20px 20px 108px; }
 
