@@ -1524,15 +1524,15 @@
       result.classList.remove("thinking-mode");
     }
   }
-  // 开始推算：设置取消模式，把返回按钮改为"取消"
+  // 开始推算：设置取消模式，把返回按钮改为取消按钮（✕图标）
   function startCalculation() {
     calcCancelled = false;
     const tb = $("#btnTopBack");
     if (tb) {
       // 保存原始状态
       _origBackBtnText = tb.innerHTML;
-      // 改为取消按钮
-      tb.innerHTML = '<span class="tb-arrow">✕</span><span>取消</span>';
+      // 改为取消按钮（✕图标，圆形按钮样式）
+      tb.innerHTML = '<svg class="tb-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
       tb.classList.add("cancel-mode");
     }
   }
