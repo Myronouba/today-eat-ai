@@ -1813,11 +1813,23 @@
 
   /* 感情任务 + 纪念卡（跳转到单独页面） */
   $("#btnMakeCard").addEventListener("click", async () => {
-    if (!coupleState || !coupleState.dishes.length) return;
+    try {
+    if (!coupleState || !coupleState.dishes || !coupleState.dishes.length) {
+      toast("请先推算情侣菜单哦");
+      return;
+    }
     const occasion = chipVal($("#cpOccasion")) || "daily";
     let task = Engine.loveTask(occasion);
-    const aiTask = await window.AI.enhanceLoveTask(occasion, coupleState.dishes);
-    if (aiTask) task = aiTask;
+    // AI增强任务（有保护，AI不存在时用本地任务）
+    try {
+      if (window.AI && typeof window.AI.enhanceLoveTask === "function") {
+        const aiTask = await Promise.race([
+          window.AI.enhanceLoveTask(occasion, coupleState.dishes),
+          new Promise(r => setTimeout(() => r(null), 2000))
+        ]);
+        if (aiTask) task = aiTask;
+      }
+    } catch(e) { console.warn("AI任务增强失败:", e); }
 
     const roles = coupleState.roles || Engine.drawRoles();
     const mem = Engine.buildMemorial(coupleState.dishes, roles, task);
@@ -1830,12 +1842,16 @@
     // 填充到单独纪念卡页面
     const taskEl = $("#loveTaskPage");
     const cardEl = $("#memorialCardPage");
-    if (taskEl) taskEl.innerHTML = `
+    if (!taskEl || !cardEl) {
+      toast("纪念卡页面元素缺失");
+      return;
+    }
+    taskEl.innerHTML = `
       <div class="task-card">
         <div class="tk-label">💝 感情任务</div>
         <div class="tk-text">${task}</div>
       </div>`;
-    if (cardEl) cardEl.innerHTML = `
+    cardEl.innerHTML = `
       <div class="memorial-card-full">
         <div class="m-date">${mem.date}</div>
         <div class="m-title serif">${mem.title}</div>
@@ -1857,6 +1873,10 @@
     // 跳转到纪念卡页面
     showView("couple-memorial");
     toast("纪念卡已生成");
+    } catch(e) {
+      console.error("生成纪念卡失败:", e);
+      toast("生成失败: " + (e.message || "未知错误"));
+    }
   });
 
   /* ============================================================
