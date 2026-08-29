@@ -761,6 +761,7 @@ body.hide-shell { padding-top: 0; }
 /* ============ 欢迎页（首次进入） ============ */
 body.hide-shell .topbar, body.hide-shell .tabs { display: none; }
 body.hide-shell .stage { padding: 0; }
+html { background: var(--bg); min-height: 100%; }
 html, body { height: 100%; }
 body.hide-shell { overflow: hidden; }
 #view-welcome.active { height: 100vh; height: 100dvh; overflow: hidden; }
