@@ -1302,7 +1302,8 @@
     } catch (e) {
       console.error("generateHome error:", e);
       setThinkingVisible("home", false);
-      toast("推算出错，请重试");
+      const errMsg = e && e.message ? e.message : String(e);
+      toast("推算出错: " + errMsg.slice(0, 50));
     }
   }
 
@@ -1311,33 +1312,37 @@
 
   /* ---------- 菜单卡片渲染 ---------- */
   function renderMenuList(el, dishes, mode) {
+    try {
     el.innerHTML = dishes.map((d, i) => {
-      const t = TYPE_META[d.type];
+      if (!d) return "";
+      const t = TYPE_META[d.type] || { cls: "ghost", emoji: "🍽️", label: "其他" };
+      const diffText = DIFF_TEXT[d.diff] || "普通";
       const tags = [
-        { text: d.cuisine + "菜", cls: "ghost" },
-        { text: d.time + " 分钟", cls: "ghost" },
-        { text: DIFF_TEXT[d.diff], cls: d.diff === 1 ? "green" : "accent" },
-        { text: d.kcal + " 千卡", cls: "ghost" }
+        { text: (d.cuisine || "家常") + "菜", cls: "ghost" },
+        { text: (d.time || 20) + " 分钟", cls: "ghost" },
+        { text: diffText, cls: d.diff === 1 ? "green" : "accent" },
+        { text: (d.kcal || 300) + " 千卡", cls: "ghost" }
       ];
       if (d.protein >= 25) tags.push({ text: "高蛋白 " + d.protein + "g", cls: "green" });
       if (d.coop >= 2) tags.push({ text: "协作 " + "★".repeat(d.coop), cls: "accent" });
       const coopLine = mode === "couple" && d.coop > 0
         ? `<div class="coop">协作强度 <span class="stars">${"★".repeat(d.coop)}${"☆".repeat(3 - d.coop)}</span> 两人配合更出彩</div>` : "";
-      const nh = Engine.assessNutrition(d);
+      let nh = { summary: "营养均衡" };
+      try { nh = Engine.assessNutrition(d); } catch(e) { console.warn("assessNutrition error:", d.name, e); }
       const swapBtn = (mode === "home" || mode === "couple")
         ? `<button class="mc-swap" data-idx="${i}" data-mode="${mode}">↻ 换一换</button>` : "";
       return `
-        <div class="menu-card" data-id="${d.id}" data-mode="${mode}">
+        <div class="menu-card" data-id="${d.id || 0}" data-mode="${mode}">
           <div class="mc-top">
             <div>
-              <div class="mc-name">${d.name}</div>
-              <div class="mc-sub">${d.desc}</div>
+              <div class="mc-name">${d.name || "神秘菜品"}</div>
+              <div class="mc-sub">${d.desc || "AI精选"}</div>
             </div>
             <span class="mc-type ${t.cls}">${t.emoji} ${t.label}</span>
           </div>
           <div class="mc-tags">${tags.map(x => `<span class="tag ${x.cls}">${x.text}</span>`).join("")}</div>
           ${coopLine}
-          <div class="mc-health" title="点开菜名查看完整健康档案">🌿 ${nh.summary}</div>
+          <div class="mc-health" title="点开菜名查看完整健康档案">🌿 ${nh.summary || "营养均衡"}</div>
           ${swapBtn}
         </div>`;
     }).join("");
@@ -1350,6 +1355,10 @@
         swapDish(btn.dataset.mode, Number(btn.dataset.idx));
       });
     });
+    } catch (e) {
+      console.error("renderMenuList error:", e);
+      el.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">菜单渲染出错，请重试</div>';
+    }
   }
 
   /* ---------- 单菜换一换 ---------- */
