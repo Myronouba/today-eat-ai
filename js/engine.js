@@ -36,6 +36,86 @@ window.Engine = (function () {
   function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
   function rand(min, max) { return Math.random() * (max - min) + min; }
 
+  /* ---------- 季节感知 ---------- */
+  function getSeason() {
+    const m = new Date().getMonth() + 1;
+    if (m >= 3 && m <= 5) return "spring";
+    if (m >= 6 && m <= 8) return "summer";
+    if (m >= 9 && m <= 11) return "autumn";
+    return "winter";
+  }
+  const SEASON_INFO = {
+    spring: { name: "春", tip: "万物复苏，适合吃点鲜爽开胃、养肝护肝的菜", bonus: /春笋|韭菜|菠菜|香椿|荠菜|豆芽|豌豆|芦笋|莴笋|茼蒿|马兰头|蒲公英|蕨菜|槐花|榆钱/, penalty: /火锅|炖菜|红烧|麻辣|干锅/ },
+    summer: { name: "夏", tip: "天气炎热，推荐清淡解暑、补充水分和电解质的菜", bonus: /冬瓜|苦瓜|黄瓜|丝瓜|茄子|番茄|绿豆|莲子|百合|银耳|秋葵|空心菜|苋菜|茭白|莲藕|薄荷|紫苏/, penalty: /火锅|红烧|麻辣|干锅|油炸|肥肉|五花肉/ },
+    autumn: { name: "秋", tip: "秋高气爽，适合滋阴润燥、贴秋膘的菜", bonus: /南瓜|山药|莲藕|百合|银耳|梨|板栗|核桃|芝麻|蜂蜜|萝卜|白菜|菠菜|西兰花|胡萝卜|红薯/, penalty: /生冷|凉拌|冰|刺身/ },
+    winter: { name: "冬", tip: "天寒地冻，来道暖身暖胃、补充能量的菜", bonus: /羊肉|牛肉|萝卜|白菜|土豆|红薯|山药|板栗|核桃|芝麻|火锅|炖菜|红烧|煲汤|砂锅/, penalty: /生冷|凉拌|冰|刺身|苦瓜|冬瓜|黄瓜/ }
+  };
+
+  /* ---------- 历史学习：记录用户不喜欢的菜，降低评分 ---------- */
+  function getDislikeHistory() {
+    try { return JSON.parse(localStorage.getItem("eat-ai-dislikes") || "[]"); } catch(e) { return []; }
+  }
+  function addDislike(dishId) {
+    const list = getDislikeHistory();
+    if (!list.includes(dishId)) {
+      list.push(dishId);
+      localStorage.setItem("eat-ai-dislikes", JSON.stringify(list.slice(-50)));
+    }
+  }
+  function isDisliked(dishId) {
+    return getDislikeHistory().includes(dishId);
+  }
+
+  /* ---------- 今日运势菜：趣味推荐 ---------- */
+  const LUCKY_DISHES = [
+    { name: "麻婆豆腐", fortune: "今天会遇到让你心跳加速的事", emoji: "🌶️" },
+    { name: "番茄炒蛋", fortune: "平凡的一天里藏着小确幸", emoji: "🍅" },
+    { name: "红烧肉", fortune: "财运亨通，想吃的都能吃到", emoji: "🥩" },
+    { name: "酸菜鱼", fortune: "酸酸甜甜就是今天的你", emoji: "🐟" },
+    { name: "宫保鸡丁", fortune: "工作学习效率爆表，事半功倍", emoji: "🍗" },
+    { name: "蒜蓉西兰花", fortune: "健康运up，身体轻盈有活力", emoji: "🥦" },
+    { name: "可乐鸡翅", fortune: "快乐值拉满，烦恼全飞走", emoji: "🍗" },
+    { name: "蛋炒饭", fortune: "简单即幸福，一碗饭治愈一切", emoji: "🍚" },
+    { name: "水煮肉片", fortune: "热情似火，魅力值MAX", emoji: "🌶️" },
+    { name: "清炒时蔬", fortune: "心静自然凉，万事顺意", emoji: "🥬" },
+    { name: "糖醋排骨", fortune: "甜甜蜜蜜，人缘爆棚", emoji: "🍖" },
+    { name: "紫菜蛋花汤", fortune: "温暖治愈，被爱包围", emoji: "🍲" }
+  ];
+  function getLuckyDish() {
+    const today = new Date().toDateString();
+    const seed = today.split("").reduce((a, c) => a + c.charCodeAt(0), 0);
+    return LUCKY_DISHES[seed % LUCKY_DISHES.length];
+  }
+
+  /* ---------- 营养搭配分析：整桌菜的营养均衡度 ---------- */
+  function analyzeMenuNutrition(dishes) {
+    const totalKcal = dishes.reduce((s, d) => s + (d.kcal || 0), 0);
+    const totalProtein = dishes.reduce((s, d) => s + (d.protein || 0), 0);
+    const hasVeg = dishes.some(d => d.type === "veg");
+    const hasSoup = dishes.some(d => d.type === "soup");
+    const hasHot = dishes.some(d => d.type === "hot");
+    const allBenefits = new Set();
+    dishes.forEach(d => {
+      const n = assessNutrition(d);
+      n.benefits.forEach(b => allBenefits.add(b.split("，")[0].split("、")[0]));
+    });
+    let score = 60;
+    if (hasVeg) score += 10;
+    if (hasSoup) score += 8;
+    if (hasHot) score += 5;
+    if (totalProtein >= 40) score += 8;
+    if (totalKcal <= 1200 && dishes.length <= 3) score += 5;
+    if (totalKcal > 1800) score -= 8;
+    score = Math.max(55, Math.min(98, score));
+    const level = score >= 85 ? "营养很均衡" : score >= 75 ? "搭配比较合理" : score >= 65 ? "还可以更均衡" : "建议加点蔬菜";
+    const tips = [];
+    if (!hasVeg) tips.push("建议加一道绿叶菜，补充膳食纤维和维生素");
+    if (!hasSoup) tips.push("配碗汤，用餐更滋润");
+    if (totalKcal > 1800) tips.push("今天热量偏高，注意适量哦");
+    if (totalProtein >= 50) tips.push("蛋白质充足，很适合健身塑形");
+    return { score, level, tips, totalKcal, totalProtein, benefits: [...allBenefits].slice(0, 3) };
+  }
+
   /* 忌口过滤 */
   function passesAvoid(dish, avoid) {
     if (!avoid || avoid.length === 0 || avoid.includes("none")) return true;
@@ -110,6 +190,14 @@ window.Engine = (function () {
     if (ctx.mood === "light" && dish.spicy === 0 && dish.flavor !== "sweet") s += 8;
     if (ctx.mood === "comfort" && ["soup", "staple"].includes(dish.type)) s += 6;
     if (ctx.scene && dish.scene.includes(ctx.scene)) s += 6;
+    // 季节感知：应季菜品加分，反季菜品减分
+    const season = getSeason();
+    const si = SEASON_INFO[season];
+    const dishText = d.name + (d.ing || []).map(i => i[0]).join(" ");
+    if (si.bonus.test(dishText)) s += 8;
+    if (si.penalty.test(dishText)) s -= 5;
+    // 历史学习：用户之前不喜欢的菜大幅降分
+    if (isDisliked(d.id)) s -= 25;
     // 随机扰动（保证换一批有变化）
     s += rand(-6, 6);
     return s;
@@ -235,28 +323,55 @@ window.Engine = (function () {
     };
   }
 
-  /* ---------- 推荐理由（AI 推算文案） ---------- */
+  /* ---------- 推荐理由（AI 推算文案 · 升级版） ---------- */
   function buildReason(dishes, ctx, mode, opts, prefs) {
     const people = ctx.people;
-    const cookerText = ctx.cooker === "lazy" ? "你是懒人党，推荐都控制在 20 分钟左右" :
-      ctx.cooker === "newbie" ? "家里是新手掌勺，选的都是不易翻车的菜" : "老手上阵，给你上了几道硬菜";
-    const regionText = regionDesc(prefs.region);
-    const spicyText = ctx.spicyTarget === 0 ? "你不太吃辣" : ctx.spicyTarget === 1 ? "微辣适合你" : ctx.spicyTarget === 2 ? "够味的辣度给你安排上" : "无辣不欢，爽";
+    const season = getSeason();
+    const si = SEASON_INFO[season];
+    const nutrition = analyzeMenuNutrition(dishes);
+    const lucky = getLuckyDish();
 
+    const cookerText = ctx.cooker === "lazy" ? "懒人友好，都控制在 20 分钟左右" :
+      ctx.cooker === "newbie" ? "新手掌勺，选的都是不易翻车的菜" : "老手上阵，给你上了几道有底气的硬菜";
+    const regionText = regionDesc(prefs.region);
+    const spicyText = ctx.spicyTarget === 0 ? "你不太吃辣" : ctx.spicyTarget === 1 ? "微辣刚刚好" : ctx.spicyTarget === 2 ? "够味的辣度安排上" : "无辣不欢，爽";
+
+    /* 开场：更有温度的AI语气 */
     let head;
+    const greetings = ["我帮你想好了", "今天就这么吃", "为你精心挑选了", "AI推算结果出炉"];
+    const greet = pick(greetings);
     if (mode === "couple") {
-      const occText = opts.occasion === "anniversary" ? "今天是你们的纪念日" :
-        opts.occasion === "weekend" ? "周末啦" : "日常的二人食";
-      head = `${occText}，我根据你俩的口味（${spicyText}）和协作强度，为你挑了这几道适合一起动手的菜。`;
+      const occText = opts.occasion === "anniversary" ? "今天是你们的纪念日，要有点仪式感" :
+        opts.occasion === "weekend" ? "周末啦，一起做饭增进感情" : "日常的二人食，也要吃得开心";
+      head = `${occText}。${greet}：结合你俩的口味（${spicyText}）、协作强度和${si.name}季养生，这几道菜很适合一起动手。`;
     } else {
-      head = `为你${people}人推算的今日菜单：${cookerText}，${regionText}，${spicyText}。`;
+      head = `${greet}，${people}人份：${cookerText}，${regionText}，${spicyText}。现在是${si.name}天，${si.tip}。`;
     }
-    const tips = dishes.map(d => {
-      if (d.coop >= 2) return `${d.name}（协作度 ${"★".repeat(d.coop)}，两人配合更出彩）`;
-      if (d.type === "soup") return `${d.name}（暖胃收尾）`;
-      return d.name;
+
+    /* 菜品亮点：每道菜的特色 */
+    const dishTips = dishes.map(d => {
+      const n = assessNutrition(d);
+      let tag = "";
+      if (d.coop >= 2) tag = `协作度${"★".repeat(d.coop)}，两人配合更出彩`;
+      else if (d.type === "soup") tag = "暖胃收尾，汤汤水水最舒服";
+      else if (d.type === "veg") tag = n.benefits[0] ? n.benefits[0].split("，")[0] : "清爽解腻";
+      else if (n.score >= 85) tag = "营养满分，健康首选";
+      else if (d.kcal <= 350) tag = "低卡轻负担";
+      return tag ? `${d.name}（${tag}）` : d.name;
     }).join(" · ");
-    return `${head} 今晚主打：${tips}。`;
+
+    /* 营养搭配总结 */
+    let nutritionText = "";
+    if (nutrition.tips.length > 0) {
+      nutritionText = ` 小建议：${nutrition.tips[0]}。`;
+    } else {
+      nutritionText = ` 整桌${nutrition.level}，约${nutrition.totalKcal}千卡，蛋白质${nutrition.totalProtein}g。`;
+    }
+
+    /* 今日运势菜（趣味彩蛋） */
+    const luckyText = ` 对了，今日运势菜是${lucky.emoji}${lucky.name}——${lucky.fortune}。`;
+
+    return `${head} 今晚主打：${dishTips}。${nutritionText}${luckyText}`;
   }
 
   /* ---------- 买菜清单 ---------- */
@@ -540,6 +655,8 @@ window.Engine = (function () {
     drawRoles, loveTask, buildMemorial,
     assessNutrition, altDish,
     priceOf, PRICE_MAP,
-    QUIZES
+    QUIZES,
+    getSeason, SEASON_INFO, getLuckyDish,
+    analyzeMenuNutrition, addDislike, getDislikeHistory, isDisliked
   };
 })();

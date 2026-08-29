@@ -1240,6 +1240,17 @@
       mood: chipVal($("#hmMood")) || "balance",
       spicyTarget: prefs.spicy
     };
+    // 显示AI纠结中动效
+    if (showToast) {
+      showView("home-result");
+      $("#homeThinking").classList.add("show");
+      $("#homeResult").querySelector(".result-head").style.display = "none";
+      $("#homeMenuList").style.display = "none";
+      $("#btnGoList").style.display = "none";
+      $("#btnShareHome").style.display = "none";
+      window.scrollTo({ top: 0 });
+      await new Promise(r => setTimeout(r, 1200)); // 模拟AI思考时间
+    }
     const res = Engine.genHomeMenu(opts, prefs);
     homeState = res;
     let reason = Engine.buildReason(res.dishes, res.ctx, "home", opts, prefs);
@@ -1253,6 +1264,12 @@
 
     $("#homeReason").textContent = reason;
     renderMenuList($("#homeMenuList"), res.dishes, "home");
+    // 隐藏加载状态，显示结果
+    $("#homeThinking").classList.remove("show");
+    $("#homeResult").querySelector(".result-head").style.display = "";
+    $("#homeMenuList").style.display = "";
+    $("#btnGoList").style.display = "";
+    $("#btnShareHome").style.display = "";
     showView("home-result");
     window.scrollTo({ top: 0 });
     if (showToast) toast("已为你推算今日菜单");
@@ -1318,11 +1335,14 @@
       opts = { occasion: chipVal($("#cpOccasion")) || "daily", spicy: Number(chipVal($("#cpSpicy")) || 0), people: 2 };
       el = $("#coupleMenuList");
     } else return;
+    const oldDish = dishes[index];
+    // 记录用户不喜欢的菜，AI后续会降低推荐概率
+    if (oldDish && oldDish.id) Engine.addDislike(oldDish.id);
     const nd = Engine.altDish(dishes, index, opts, prefs, mode);
     if (!nd) { toast("同类菜都换过了，试试「换一批」"); return; }
     dishes[index] = nd;
     renderMenuList(el, dishes, mode);
-    toast("已换一道：" + nd.name);
+    toast("已换一道：" + nd.name + "（AI记住了你不喜欢" + oldDish.name + "）");
   }
 
   /* ============================================================
@@ -1532,6 +1552,15 @@
       spicy: Number(chipVal($("#cpSpicy")) || 0),
       people: 2
     };
+    // 显示AI纠结中动效
+    if (showToast) {
+      showView("couple-result");
+      $("#coupleThinking").classList.add("show");
+      $("#coupleResult").querySelector(".result-head").style.display = "none";
+      $("#coupleMenuList").style.display = "none";
+      window.scrollTo({ top: 0 });
+      await new Promise(r => setTimeout(r, 1200));
+    }
     const res = Engine.genCoupleMenu(opts, prefs);
     coupleState = res;
     let reason = Engine.buildReason(res.dishes, res.ctx, "couple", opts, prefs);
@@ -1545,8 +1574,12 @@
 
     $("#coupleReason").textContent = reason;
     renderMenuList($("#coupleMenuList"), res.dishes, "couple");
+    // 隐藏加载状态，显示结果
+    $("#coupleThinking").classList.remove("show");
+    $("#coupleResult").querySelector(".result-head").style.display = "";
+    $("#coupleMenuList").style.display = "";
     if (showToast) {
-      showView("couple-result");               // 首次生成 → 跳转独立结果页
+      showView("couple-result");
       window.scrollTo({ top: 0, behavior: "smooth" });
     }
     if (showToast) toast("为你们挑了适合一起做的菜");

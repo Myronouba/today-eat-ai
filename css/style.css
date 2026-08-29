@@ -299,6 +299,26 @@ body.hide-shell { padding-top: 0; }
 
 /* ============ 结果区 ============ */
 .result { margin-top: 8px; animation: fadeUp .5s var(--ease); }
+/* AI纠结中加载动效 */
+.ai-thinking {
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  padding: 40px 20px; text-align: center; margin-bottom: 20px;
+  background: var(--card); border-radius: var(--radius);
+  box-shadow: var(--shadow); border: 1px solid rgba(237,230,219,.6);
+}
+.ai-thinking.show { display: flex; animation: fadeUp .4s var(--ease); }
+.at-icon { font-size: 42px; margin-bottom: 14px; animation: atBounce 1.2s ease-in-out infinite; }
+.at-text { font-size: 15px; color: var(--ink-soft); font-weight: 500; margin-bottom: 12px; }
+.at-dots { display: flex; gap: 6px; }
+.at-dots span {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent); opacity: .3;
+  animation: atPulse 1.4s ease-in-out infinite;
+}
+.at-dots span:nth-child(2) { animation-delay: .2s; }
+.at-dots span:nth-child(3) { animation-delay: .4s; }
+@keyframes atBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes atPulse { 0%,100% { opacity: .3; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.1); } }
 .result-head {
   display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
   margin-bottom: 16px;
