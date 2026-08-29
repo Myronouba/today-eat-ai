@@ -196,7 +196,7 @@ body.hide-shell { padding-top: 0; }
 .tab:not(.active):hover .tab-ico { transform: scale(1.05); }
 /* 手势滑动高亮：拖拽时手指停留的按钮即时反馈 */
 .tab.swipe-hover {
-  background: rgba(225, 77, 42, .08) !important;
+  background: transparent !important;
   transform: scale(1.06);
   box-shadow: none !important;
   border: none !important;
@@ -1413,12 +1413,12 @@ body[data-theme="glass"] .tabs {
 }
 
 /* 玻璃主题：只覆盖颜色/质感，布局由默认 .tab 统一控制 */
-body[data-theme="glass"] .tab { color: rgba(60, 55, 50, .55); }
+body[data-theme="glass"] .tab { color: rgba(60, 55, 50, .55); background: transparent; }
 body[data-theme="glass"] .tab-ico img { opacity: .65; }
-body[data-theme="glass"] .tab.active { background: rgba(60, 55, 50, .1); }
+body[data-theme="glass"] .tab.active { background: transparent; }
 body[data-theme="glass"] .tab.active .tab-ico img { opacity: 1; }
-body[data-theme="glass"] .tab:not(.active):hover { background: rgba(60, 55, 50, .05); }
-body[data-theme="glass"] .tab.swipe-hover { background: rgba(60, 55, 50, .12); }
+body[data-theme="glass"] .tab:not(.active):hover { background: transparent; }
+body[data-theme="glass"] .tab.swipe-hover { background: transparent; }
 
 /* 内容区底部留白，避免被浮起胶囊遮挡 */
 body[data-theme="glass"] .stage { padding-bottom: 96px; }
