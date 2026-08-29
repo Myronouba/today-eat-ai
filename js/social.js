@@ -165,7 +165,7 @@
           <div class="profile-stat-label">动态</div>
         </div>
         <div class="profile-stat">
-          <div class="profile-stat-num">${friends.length || 0}</div>
+          <div class="profile-stat-num">${getFriends().length || 0}</div>
           <div class="profile-stat-label">菜友</div>
         </div>
         <div class="profile-stat">
