@@ -1595,10 +1595,16 @@
       el.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">菜单渲染出错，请重试</div>';
     }
     
-    // 食物相克知识总结（在菜品列表下方单独显示）
+    // 食物相克知识总结（只在当前视图可见时渲染，避免跑到其他页面）
     try {
-      const conflictEl = document.getElementById(mode + "ConflictInfo");
-      if (conflictEl) {
+      // 相对于el的父容器查找，而不是全局查找
+      const parentEl = el.closest(".view") || el.parentElement;
+      const conflictEl = parentEl ? parentEl.querySelector("#" + mode + "ConflictInfo") : null;
+      // 额外检查：当前视图必须是可见的
+      const currentView = document.querySelector(".view.active");
+      const isVisible = currentView && (currentView.contains(el) || currentView.contains(conflictEl));
+      
+      if (conflictEl && isVisible) {
         const conflictInfo = Engine.analyzeFoodConflict(dishes);
         if (conflictInfo && conflictInfo.conflicts.length > 0) {
           conflictEl.innerHTML = `
@@ -1629,6 +1635,9 @@
             </div>`;
           conflictEl.style.display = "block";
         }
+      } else if (conflictEl) {
+        // 当前视图不可见时，隐藏相克提示
+        conflictEl.style.display = "none";
       }
     } catch(e) { console.warn("食物相克分析失败:", e); }
   }
