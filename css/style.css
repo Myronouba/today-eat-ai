@@ -139,11 +139,11 @@ body.hide-shell { padding-top: 0; }
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr !important;
   gap: 0px;
   padding: 10px 8px calc(12px + env(safe-area-inset-bottom));
-  background: rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(40px) saturate(1.8); -webkit-backdrop-filter: blur(40px) saturate(1.8);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(250, 246, 240, 0.55);
+  backdrop-filter: blur(40px) saturate(1.5); -webkit-backdrop-filter: blur(40px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, 0.4);
   border-radius: 24px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 12px rgba(32, 30, 26, 0.04);
   text-align: center;
 }
 .tab {
@@ -2013,24 +2013,24 @@ body[data-theme="glass"] .stage { padding-bottom: 96px; }
   border: none !important;
   outline: none !important;
 }
-/* 选中状态：保留玻璃质感（淡色毛玻璃背景） */
+/* 选中状态：保留玻璃质感（和页面协调的淡色毛玻璃背景） */
 #tabs .tab.active {
-  background: rgba(255, 255, 255, 0.15) !important;
-  background-color: rgba(255, 255, 255, 0.15) !important;
+  background: rgba(255, 255, 255, 0.5) !important;
+  background-color: rgba(255, 255, 255, 0.5) !important;
   backdrop-filter: blur(10px) saturate(1.5) !important;
   -webkit-backdrop-filter: blur(10px) saturate(1.5) !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
+  box-shadow: 0 2px 8px rgba(32, 30, 26, 0.05) !important;
+  border: 1px solid rgba(255, 255, 255, 0.5) !important;
   color: var(--accent) !important;
   font-weight: 600 !important;
 }
 #tabs .tab.active .tab-ico {
   transform: scale(1.15) !important;
 }
-/* 菜单栏容器：淡色毛玻璃背景（不是完全透明，避免看到页面底部的色差） */
+/* 菜单栏容器：和页面背景色协调的米白色毛玻璃 */
 #tabs.tabs {
-  background: rgba(255, 255, 255, 0.12) !important;
-  background-color: rgba(255, 255, 255, 0.12) !important;
-  backdrop-filter: blur(40px) saturate(1.8) !important;
-  -webkit-backdrop-filter: blur(40px) saturate(1.8) !important;
+  background: rgba(250, 246, 240, 0.55) !important;
+  background-color: rgba(250, 246, 240, 0.55) !important;
+  backdrop-filter: blur(40px) saturate(1.5) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(1.5) !important;
 }
