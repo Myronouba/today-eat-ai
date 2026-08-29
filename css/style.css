@@ -133,16 +133,18 @@ body.hide-shell { padding-top: 0; }
 
 /* ============ 底部导航栏 ============ */
 .tabs {
-  position: fixed; left: 50%; transform: translateX(-50%); bottom: 12px; z-index: 50;
-  width: calc(100% - 32px); max-width: 520px;
+  position: fixed; left: 50%; transform: translateX(-50%); bottom: 0; z-index: 50;
+  width: calc(100% - 24px); max-width: 520px;
   display: grid !important;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr !important;
   gap: 0px;
-  padding: 12px 8px calc(12px + env(safe-area-inset-bottom));
-  background: transparent;
+  padding: 10px 8px calc(16px + env(safe-area-inset-bottom));
+  background: rgba(255, 255, 255, 0.12);
   backdrop-filter: blur(40px) saturate(1.8); -webkit-backdrop-filter: blur(40px) saturate(1.8);
-  border: 1px solid rgba(255, 255, 255, .2); border-radius: 30px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-bottom: none;
+  border-radius: 24px 24px 0 0;
+  box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.08);
   text-align: center;
 }
 .tab {
