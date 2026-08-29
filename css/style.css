@@ -98,7 +98,7 @@ body.hide-shell { padding-top: 0; }
 .topbar-inner .topbar-back .tb-arrow { font-size: 16px; line-height: 1; color: var(--accent); font-weight: 500; transform: translateY(-.5px); transition: transform .2s var(--ease); }
 .topbar-inner .topbar-back:hover { background: rgba(255, 255, 255, .75); border-color: rgba(255, 255, 255, .85); color: var(--ink); box-shadow: 0 6px 20px rgba(80, 50, 20, .16), inset 0 1px 0 rgba(255, 255, 255, .9); }
 .topbar-inner .topbar-back:hover .tb-arrow { color: #fff; transform: translateX(-2px) translateY(-.5px); }
-.topbar-inner .topbar-back:active { transform: scale(.95); }
+.topbar-inner .topbar-back:active { transform: scale(.92) translateY(1px); background: rgba(255,255,255,.85); box-shadow: 0 2px 8px rgba(80,50,20,.1), inset 0 2px 4px rgba(0,0,0,.08); }
 .brand-mark { color: var(--accent); display: inline-flex; }
 .brand-mark svg { width: 24px; height: 24px; }
 .brand-name {
@@ -160,6 +160,8 @@ body.hide-shell { padding-top: 0; }
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, .05);
 }
 .tab.active .tab-ico { transform: scale(1.1); }
+.tab:active { transform: scale(.92); }
+.tab:active .tab-ico { transform: scale(.95); }
 .tab:not(.active):hover { color: var(--ink); }
 .tab:not(.active):hover .tab-ico { transform: scale(1.05); }
 /* 手势滑动高亮：拖拽时手指停留的按钮即时反馈 */
@@ -258,10 +260,10 @@ body.hide-shell { padding-top: 0; }
   font-size: 15px; font-weight: 600; font-family: inherit;
   padding: 15px 20px; border-radius: 999px;
   box-shadow: 0 8px 24px rgba(225, 77, 42, .32), inset 0 1px 0 rgba(255, 255, 255, .35);
-  transition: all .25s cubic-bezier(.22, .61, .36, 1);
+  transition: transform .12s ease-out, box-shadow .2s, background .2s;
 }
 .btn-primary svg { width: 18px; height: 18px; }
-.btn-primary:active { transform: scale(.97); }
+.btn-primary:active { transform: scale(.94) translateY(1px); box-shadow: 0 3px 12px rgba(225, 77, 42, .28), inset 0 2px 4px rgba(0,0,0,.15); }
 .btn-primary:hover { background: var(--accent-deep); box-shadow: 0 12px 28px rgba(225, 77, 42, .4); }
 .btn-block { width: 100%; margin-top: 8px; }
 
@@ -291,6 +293,7 @@ body.hide-shell { padding-top: 0; }
 .ghost-btn svg { width: 15px; height: 15px; }
 .ghost-btn:hover { background: rgba(255, 255, 255, .75); border-color: rgba(255, 255, 255, .85); color: var(--ink); box-shadow: 0 6px 20px rgba(80, 50, 20, .16), inset 0 1px 0 rgba(255, 255, 255, .9); }
 .ghost-btn.danger:hover { border-color: #C0392B; color: #C0392B; }
+.ghost-btn:active { transform: scale(.93) translateY(1px); background: rgba(255,255,255,.85); box-shadow: 0 2px 8px rgba(80,50,20,.1), inset 0 2px 4px rgba(0,0,0,.08); }
 
 .link { border: none; background: none; color: var(--accent); font-size: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
 
@@ -357,7 +360,7 @@ body.hide-shell { padding-top: 0; }
 .back-btn svg { width: 15px; height: 15px; transition: transform .25s var(--ease); }
 .back-btn:hover { background: rgba(255, 255, 255, .75); border-color: rgba(255, 255, 255, .85); color: var(--ink); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(80, 50, 20, .16), inset 0 1px 0 rgba(255, 255, 255, .9); }
 .back-btn:hover svg { transform: translateX(-2px); }
-.back-btn:active { transform: scale(.96); }
+.back-btn:active { transform: scale(.93) translateY(1px); background: rgba(255,255,255,.85); box-shadow: 0 2px 8px rgba(80,50,20,.1), inset 0 2px 4px rgba(0,0,0,.08); }
 .recipe-hero {
   background: var(--card); border-radius: var(--radius); padding: 24px 20px;
   box-shadow: var(--shadow); border: 1px solid rgba(237, 230, 219, .6);
