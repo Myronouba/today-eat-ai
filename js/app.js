@@ -450,6 +450,7 @@
     "couple-memorial": { e: "💝", t: "我们的纪念卡" },
     "out-result": { e: "🍽️", t: "出去吃" }, welcome: { e: "", t: "今天吃啥" }
   };
+  let _viewSwitchTimer = null;
   function showView(id, fromBack) {
     let v = $("#view-" + id);
     if (!v) { id = "home"; v = $("#view-home"); }  // 视图不存在 → 安全回退首页，避免空白
@@ -470,15 +471,34 @@
     }
     const tb = $("#btnTopBack");
     if (tb) tb.hidden = !isSub;   // 仅子页面显示固定返回按钮
-    $$(".view").forEach(x => x.classList.remove("active"));
-    v.classList.add("active");
-    /* 强制重播进入动画：子元素依次柔和浮现（返回菜单更细腻） */
-    v.querySelectorAll(":scope > *").forEach((el, i) => {
-      el.classList.remove("view-enter");
-      void el.offsetWidth;  // 强制 reflow，确保动画重播
-      el.style.animationDelay = Math.min(i * 0.05, 0.45) + "s";
-      el.classList.add("view-enter");
-    });
+    /* 页面切换：先淡出当前页，再淡入新页，避免闪跳 */
+    const NO_ANIM = ["splash", "welcome", "onboard", "login"];
+    const needAnim = prevEl && prevEl !== v && !NO_ANIM.includes(prevId) && !NO_ANIM.includes(id);
+    
+    const doSwitch = () => {
+      if (_viewSwitchTimer) { clearTimeout(_viewSwitchTimer); _viewSwitchTimer = null; }
+      $$(".view").forEach(x => { x.classList.remove("active"); x.classList.remove("view-leave"); });
+      v.classList.add("active");
+      /* 强制重播进入动画：子元素依次柔和浮现（返回菜单更细腻） */
+      v.querySelectorAll(":scope > *").forEach((el, i) => {
+        el.classList.remove("view-enter");
+        void el.offsetWidth;  // 强制 reflow，确保动画重播
+        el.style.animationDelay = Math.min(i * 0.05, 0.45) + "s";
+        el.classList.add("view-enter");
+      });
+    };
+    
+    if (needAnim) {
+      // 清除之前的切换定时器（处理快速切换）
+      if (_viewSwitchTimer) { clearTimeout(_viewSwitchTimer); _viewSwitchTimer = null; }
+      // 当前页淡出
+      prevEl.classList.add("view-leave");
+      // 150ms后切换到新页（淡出动画时长）
+      _viewSwitchTimer = setTimeout(doSwitch, 150);
+    } else {
+      // 不需要动画的页面直接切换
+      doSwitch();
+    }
     $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.view === id || (id === "history" && t.dataset.view === "me")));
     document.body.classList.toggle("hide-shell", id === "splash" || id === "welcome" || id === "login");
     if (id !== "splash" && id !== "welcome" && id !== "login") window.scrollTo({ top: 0, behavior: "smooth" });

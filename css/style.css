@@ -207,10 +207,15 @@ body.hide-shell { padding-top: 0; }
 .stage { max-width: 560px; margin: 0 auto; padding: 20px 20px 90px; background: var(--bg); min-height: calc(100vh - 57px); }
 
 .view { display: none; }
-.view.active { display: block; animation: viewFadeIn .35s var(--ease) both; }
+.view.active { display: block; animation: viewFadeIn .3s var(--ease) both; }
+.view-leave { display: block !important; animation: viewFadeOut .15s ease both; pointer-events: none; }
 @keyframes viewFadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
+}
+@keyframes viewFadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-6px); }
 }
 /* 视图内容错落渐入：JS 在切换视图时给子元素加 .view-enter，实现层层柔和浮现 */
 .view-enter { animation: fadeUp .5s var(--ease); }
