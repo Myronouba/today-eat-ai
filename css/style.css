@@ -1274,16 +1274,20 @@ body[data-theme="glass"] .stage { padding-bottom: 96px; }
   width: 100%;
   max-width: 560px;
   margin-top: 0;
-  padding: 20px 28px;
+  padding: 16px 24px;
+  box-sizing: border-box;
 }
-.memorial-page-wrap .memorial .m-title { font-size: 22px; margin: 8px 0 4px; }
-.memorial-page-wrap .memorial .m-dishes { margin: 8px 0 4px; }
-.memorial-page-wrap .memorial .m-roles { margin-bottom: 4px; }
-.memorial-page-wrap .memorial .m-foot { margin-top: 8px; }
-.memorial-page-wrap .memorial .m-heart { margin-top: 4px; font-size: 20px; }
+.memorial-page-wrap .memorial .m-date { font-size: 11px; letter-spacing: .18em; }
+.memorial-page-wrap .memorial .m-title { font-size: 20px; margin: 6px 0 6px; letter-spacing: .04em; }
+.memorial-page-wrap .memorial .m-dishes { font-size: 14px; margin: 6px 0; line-height: 1.7; }
+.memorial-page-wrap .memorial .m-roles { font-size: 13px; margin: 4px 0; letter-spacing: .03em; }
+.memorial-page-wrap .memorial .m-foot { font-size: 11px; margin-top: 6px; letter-spacing: .05em; }
+.memorial-page-wrap .memorial .m-heart { margin-top: 4px; font-size: 18px; }
+.memorial-page-wrap .memorial .m-btn-row { margin-top: 10px; }
 .memorial-page-wrap .task-card {
   width: 100%;
   max-width: 560px;
   margin: 0;
   padding: 16px 20px;
+  box-sizing: border-box;
 }
