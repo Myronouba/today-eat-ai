@@ -1238,8 +1238,11 @@
   function updateThinking(prefix, step, text) {
     const bar = $("#" + prefix + "ThinkingBar");
     const txt = $("#" + prefix + "ThinkingText");
+    const tomato = $("#" + prefix + "ThinkingTomato");
     const steps = document.querySelectorAll("#" + prefix + "Thinking .at-step");
-    if (bar) bar.style.setProperty("--progress", ((step + 1) / 4 * 100) + "%");
+    const progress = ((step + 1) / 4 * 100);
+    if (bar) bar.style.setProperty("--progress", progress + "%");
+    if (tomato) tomato.style.left = progress + "%";
     if (txt && text) txt.textContent = text;
     steps.forEach((s, i) => {
       s.classList.remove("active", "done");
@@ -1283,17 +1286,24 @@
       homeState = res;
       updateThinking("home", 2, "智能选菜中，避免食材重复，搭配营养均衡...");
       await new Promise(r => setTimeout(r, 1200));
-      let reason = Engine.buildReason(res.dishes, res.ctx, "home", opts, prefs);
       updateThinking("home", 3, "生成AI推荐理由...");
+      let reason = Engine.buildReason(res.dishes, res.ctx, "home", opts, prefs);
       try {
         const aiReason = await Promise.race([
           window.AI.enhanceReason(res.dishes, res.ctx, "home", opts, prefs),
-          new Promise(r => setTimeout(() => r(null), 2500))   // AI 挂起 2.5 秒超时兜底
+          new Promise(r => setTimeout(() => r(null), 2000))   // AI 挂起 2 秒超时兜底
         ]);
         if (aiReason) reason = aiReason;
       } catch (e) { /* AI 异常 → 用本地文案 */ }
+      await new Promise(r => setTimeout(r, 600));  // 让用户看到第3步完成
 
       $("#homeReason").textContent = reason;
+      // 填充营养信息
+      try {
+        const nutrition = Engine.analyzeMenuNutrition(res.dishes);
+        const infoEl = $("#homeReasonInfo");
+        if (infoEl) infoEl.textContent = `${res.dishes.length}道菜 · ${nutrition.totalKcal}千卡 · ${nutrition.level}`;
+      } catch(e) {}
       renderMenuList($("#homeMenuList"), res.dishes, "home");
       // 隐藏加载状态，显示结果
       setThinkingVisible("home", false);
@@ -1330,8 +1340,25 @@
         ? `<div class="coop">协作强度 <span class="stars">${"★".repeat(d.coop)}${"☆".repeat(3 - d.coop)}</span> 两人配合更出彩</div>` : "";
       let nh = { summary: "营养均衡" };
       try { nh = Engine.assessNutrition(d); } catch(e) { console.warn("assessNutrition error:", d.name, e); }
-      const swapBtn = (mode === "home" || mode === "couple")
-        ? `<button class="mc-swap" data-idx="${i}" data-mode="${mode}">↻ 换一换</button>` : "";
+      const actionBar = (mode === "home" || mode === "couple")
+        ? `<div class="mc-actions">
+            <button class="mc-action mc-swap" data-idx="${i}" data-mode="${mode}" title="换一换">
+              <span class="mc-action-icon">🔄</span>
+              <span class="mc-action-text">换一换</span>
+            </button>
+            <button class="mc-action mc-fav" data-idx="${i}" data-mode="${mode}" data-id="${d.id || 0}" title="加收藏">
+              <span class="mc-action-icon">⭐</span>
+              <span class="mc-action-text">收藏</span>
+            </button>
+            <button class="mc-action mc-dislike" data-idx="${i}" data-mode="${mode}" data-id="${d.id || 0}" title="不喜欢">
+              <span class="mc-action-icon">👎</span>
+              <span class="mc-action-text">不喜欢</span>
+            </button>
+            <button class="mc-action mc-cook" data-idx="${i}" data-mode="${mode}" data-id="${d.id || 0}" title="开始做">
+              <span class="mc-action-icon">👨‍🍳</span>
+              <span class="mc-action-text">开始做</span>
+            </button>
+          </div>` : "";
       return `
         <div class="menu-card" data-id="${d.id || 0}" data-mode="${mode}">
           <div class="mc-top">
@@ -1344,16 +1371,58 @@
           <div class="mc-tags">${tags.map(x => `<span class="tag ${x.cls}">${x.text}</span>`).join("")}</div>
           ${coopLine}
           <div class="mc-health" title="点开菜名查看完整健康档案">🌿 ${nh.summary || "营养均衡"}</div>
-          ${swapBtn}
+          ${actionBar}
         </div>`;
     }).join("");
     el.querySelectorAll(".menu-card").forEach(card => {
       card.addEventListener("click", () => openRecipe(Number(card.dataset.id), card.dataset.mode));
     });
+    // 换一换
     el.querySelectorAll(".mc-swap").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         swapDish(btn.dataset.mode, Number(btn.dataset.idx));
+      });
+    });
+    // 加收藏
+    el.querySelectorAll(".mc-fav").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const dishId = Number(btn.dataset.id);
+        const favs = JSON.parse(localStorage.getItem("eat-ai-favorites") || "[]");
+        if (!favs.includes(dishId)) {
+          favs.push(dishId);
+          localStorage.setItem("eat-ai-favorites", JSON.stringify(favs));
+          toast("已加入收藏 ⭐");
+          btn.classList.add("active");
+        } else {
+          toast("已经收藏过了");
+        }
+      });
+    });
+    // 不喜欢
+    el.querySelectorAll(".mc-dislike").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const dishId = Number(btn.dataset.id);
+        const dislikes = JSON.parse(localStorage.getItem("eat-ai-dislikes") || "[]");
+        if (!dislikes.includes(dishId)) {
+          dislikes.push(dishId);
+          localStorage.setItem("eat-ai-dislikes", JSON.stringify(dislikes));
+          toast("已记录，以后少推荐这道菜");
+          // 自动换一道
+          swapDish(btn.dataset.mode, Number(btn.dataset.idx));
+        }
+      });
+    });
+    // 开始做
+    el.querySelectorAll(".mc-cook").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const dishId = Number(btn.dataset.id);
+        const mode = btn.dataset.mode;
+        toast("进入菜谱详情，开始做饭吧 👨‍🍳");
+        setTimeout(() => openRecipe(dishId, mode), 300);
       });
     });
     } catch (e) {
@@ -1608,17 +1677,24 @@
       coupleState = res;
       updateThinking("couple", 2, "智能选菜中，搭配协作分工和仪式感...");
       await new Promise(r => setTimeout(r, 1200));
-      let reason = Engine.buildReason(res.dishes, res.ctx, "couple", opts, prefs);
       updateThinking("couple", 3, "生成AI推荐理由...");
+      let reason = Engine.buildReason(res.dishes, res.ctx, "couple", opts, prefs);
       try {
         const aiReason = await Promise.race([
           window.AI.enhanceReason(res.dishes, res.ctx, "couple", opts, prefs),
-          new Promise(r => setTimeout(() => r(null), 2500))
+          new Promise(r => setTimeout(() => r(null), 2000))
         ]);
         if (aiReason) reason = aiReason;
       } catch (e) { /* AI 异常 → 用本地文案 */ }
+      await new Promise(r => setTimeout(r, 600));  // 让用户看到第3步完成
 
       $("#coupleReason").textContent = reason;
+      // 填充营养信息
+      try {
+        const nutrition = Engine.analyzeMenuNutrition(res.dishes);
+        const infoEl = $("#coupleReasonInfo");
+        if (infoEl) infoEl.textContent = `${res.dishes.length}道菜 · ${nutrition.totalKcal}千卡 · ${nutrition.level}`;
+      } catch(e) {}
       renderMenuList($("#coupleMenuList"), res.dishes, "couple");
       // 隐藏加载状态，显示结果
       setThinkingVisible("couple", false);

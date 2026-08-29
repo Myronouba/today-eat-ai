@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260829r">
+<link rel="stylesheet" href="css/style.css?v=20260830a">
 </head>
 <body>
 
@@ -389,6 +389,7 @@
         <div class="at-dots"><span></span><span></span><span></span></div>
         <div class="at-progress">
           <div class="at-bar" id="homeThinkingBar"></div>
+          <div class="at-tomato" id="homeThinkingTomato">🍅</div>
           <div class="at-steps">
             <span class="at-step" data-step="0">过滤忌口</span>
             <span class="at-step" data-step="1">多因子评分</span>
@@ -398,10 +399,16 @@
         </div>
       </div>
       <div class="result-head">
-        <p class="reason" id="homeReason"></p>
-        <button class="ghost-btn" id="btnShuffleHome">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
-          换一批
+        <div class="reason-card">
+          <div class="reason-meta">
+            <span class="ai-badge">🤖 AI 推算</span>
+            <span class="reason-info" id="homeReasonInfo"></span>
+          </div>
+          <p class="reason" id="homeReason"></p>
+        </div>
+        <button class="shuffle-btn" id="btnShuffleHome">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+          <span>换一批</span>
         </button>
       </div>
       <div class="menu-list" id="homeMenuList"></div>
@@ -530,6 +537,7 @@
         <div class="at-dots"><span></span><span></span><span></span></div>
         <div class="at-progress">
           <div class="at-bar" id="coupleThinkingBar"></div>
+          <div class="at-tomato" id="coupleThinkingTomato">🍅</div>
           <div class="at-steps">
             <span class="at-step" data-step="0">过滤忌口</span>
             <span class="at-step" data-step="1">协作评分</span>
@@ -539,10 +547,16 @@
         </div>
       </div>
       <div class="result-head">
-        <p class="reason" id="coupleReason"></p>
-        <button class="ghost-btn" id="btnShuffleCouple">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
-          换一批
+        <div class="reason-card">
+          <div class="reason-meta">
+            <span class="ai-badge">💕 情侣推荐</span>
+            <span class="reason-info" id="coupleReasonInfo"></span>
+          </div>
+          <p class="reason" id="coupleReason"></p>
+        </div>
+        <button class="shuffle-btn" id="btnShuffleCouple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+          <span>换一批</span>
         </button>
       </div>
       <div class="menu-list" id="coupleMenuList"></div>
@@ -663,13 +677,13 @@
 <!-- 全局提示 -->
 <div class="toast" id="toast"></div>
 
-<script src="js/recipes.js?v=20260829r"></script>
-<script src="js/recipes2.js?v=20260829r"></script>
-<script src="js/recipes3.js?v=20260829r"></script>
-<script src="js/recipes4.js?v=20260829r"></script>
-<script src="js/engine.js?v=20260829r"></script>
-<script src="js/llm.js?v=20260829r"></script>
-<script src="js/data/china.js?v=20260829r"></script>
-<script src="js/app.js?v=20260829r"></script>
+<script src="js/recipes.js?v=20260830a"></script>
+<script src="js/recipes2.js?v=20260830a"></script>
+<script src="js/recipes3.js?v=20260830a"></script>
+<script src="js/recipes4.js?v=20260830a"></script>
+<script src="js/engine.js?v=20260830a"></script>
+<script src="js/llm.js?v=20260830a"></script>
+<script src="js/data/china.js?v=20260830a"></script>
+<script src="js/app.js?v=20260830a"></script>
 </body>
 </html>
