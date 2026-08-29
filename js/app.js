@@ -499,7 +499,16 @@
       // 不需要动画的页面直接切换
       doSwitch();
     }
-    $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.view === id || (id === "history" && t.dataset.view === "me")));
+    // tab激活逻辑：子页面也要激活对应的主菜单tab
+    const tabViewMap = {
+      "home": "home", "home-result": "home", "list": "home",
+      "couple": "couple", "couple-result": "couple", "couple-tasks": "couple", "couple-card": "couple",
+      "out": "out",
+      "discover": "discover",
+      "me": "me", "history": "me", "profile": "me", "settings": "me", "record": "me", "theme": "me"
+    };
+    const activeTabView = tabViewMap[id] || id;
+    $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.view === activeTabView));
     document.body.classList.toggle("hide-shell", id === "splash" || id === "welcome" || id === "login");
     if (id !== "splash" && id !== "welcome" && id !== "login") window.scrollTo({ top: 0, behavior: "smooth" });
     if (id === "couple") renderCoupleProgress();
