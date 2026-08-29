@@ -1770,8 +1770,59 @@
   $("#tabs").addEventListener("click", (e) => {
     const tab = e.target.closest(".tab");
     if (!tab) return;
+    if (tabSwipeMoved) { tabSwipeMoved = false; return; }  // 拖拽结束的 click 忽略，由 touchend 处理
     showView(tab.dataset.view);
   });
+  /* 底部导航手势滑动切换：一根手指滑动，停留位置即当前菜单（触摸+鼠标） */
+  let tabSwipeMoved = false;
+  (function initTabSwipe() {
+    const tabsEl = document.getElementById("tabs");
+    if (!tabsEl) return;
+    let isDown = false, startX = 0, startY = 0, hoverIdx = -1;
+    const tabEls = () => tabsEl.querySelectorAll(".tab");
+    function idxAtX(x) {
+      const list = tabEls();
+      for (let i = 0; i < list.length; i++) {
+        const r = list[i].getBoundingClientRect();
+        if (x >= r.left && x <= r.right) return i;
+      }
+      return -1;
+    }
+    function setHover(i) {
+      tabEls().forEach((t, k) => t.classList.toggle("swipe-hover", k === i));
+    }
+    function onDown(e) {
+      const p = e.touches ? e.touches[0] : e;
+      isDown = true; tabSwipeMoved = false;
+      startX = p.clientX; startY = p.clientY;
+      hoverIdx = idxAtX(startX);
+      if (hoverIdx >= 0) setHover(hoverIdx);
+    }
+    function onMove(e) {
+      if (!isDown) return;
+      const p = e.touches ? e.touches[0] : e;
+      if (Math.abs(p.clientX - startX) > 6 || Math.abs(p.clientY - startY) > 6) tabSwipeMoved = true;
+      if (tabSwipeMoved && e.cancelable) e.preventDefault();
+      const i = idxAtX(p.clientX);
+      if (i >= 0 && i !== hoverIdx) { hoverIdx = i; setHover(i); }
+    }
+    function onUp(e) {
+      if (!isDown) return;
+      isDown = false;
+      const p = e.changedTouches ? e.changedTouches[0] : e;
+      setHover(-1);
+      if (tabSwipeMoved) {
+        const i = idxAtX(p.clientX);
+        if (i >= 0) showView(tabEls()[i].dataset.view);
+      }
+    }
+    tabsEl.addEventListener("touchstart", onDown, { passive: true });
+    tabsEl.addEventListener("touchmove", onMove, { passive: false });
+    tabsEl.addEventListener("touchend", onUp);
+    tabsEl.addEventListener("mousedown", onDown);
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("mouseup", onUp);
+  })();
   /* 顶部固定返回按钮：弹出返回栈回到上一个视图 */
   $("#btnTopBack").addEventListener("click", () => {
     const target = backStack.pop() || "home";
