@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260830e">
+<link rel="stylesheet" href="css/style.css?v=20260830f">
 </head>
 <body>
 
@@ -682,12 +682,13 @@
       </button>
       <div>
         <p class="eyebrow">自动录入</p>
-        <h2 class="serif view-title">今日菜单记录</h2>
+        <h2 class="serif view-title">菜单记录</h2>
       </div>
       <button class="icon-btn" id="btnClearRecord" title="清空记录">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
       </button>
     </div>
+    <!-- 统计卡片 -->
     <div class="record-stats">
       <div class="stat-item">
         <span class="stat-num" id="recordTotal">0</span>
@@ -701,7 +702,24 @@
         <span class="stat-num" id="recordWeek">0</span>
         <span class="stat-label">本周</span>
       </div>
+      <div class="stat-item">
+        <span class="stat-num" id="recordUnique">0</span>
+        <span class="stat-label">不重样</span>
+      </div>
     </div>
+    <!-- 搜索框 -->
+    <div class="record-search">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+      <input type="text" id="recordSearch" placeholder="搜索菜品名称..." />
+    </div>
+    <!-- 筛选标签 -->
+    <div class="record-filters" id="recordFilters">
+      <button class="filter-tag active" data-filter="all">全部</button>
+      <button class="filter-tag" data-filter="home">在家吃</button>
+      <button class="filter-tag" data-filter="couple">情侣一起做</button>
+      <button class="filter-tag" data-filter="out">出去吃</button>
+    </div>
+    <!-- 记录列表 -->
     <div class="record-list" id="recordList">
       <div class="record-empty">
         <div class="empty-icon">📝</div>
@@ -740,13 +758,13 @@
 <!-- 全局提示 -->
 <div class="toast" id="toast"></div>
 
-<script src="js/recipes.js?v=20260830e"></script>
-<script src="js/recipes2.js?v=20260830e"></script>
-<script src="js/recipes3.js?v=20260830e"></script>
-<script src="js/recipes4.js?v=20260830e"></script>
-<script src="js/engine.js?v=20260830e"></script>
-<script src="js/llm.js?v=20260830e"></script>
-<script src="js/data/china.js?v=20260830e"></script>
-<script src="js/app.js?v=20260830e"></script>
+<script src="js/recipes.js?v=20260830f"></script>
+<script src="js/recipes2.js?v=20260830f"></script>
+<script src="js/recipes3.js?v=20260830f"></script>
+<script src="js/recipes4.js?v=20260830f"></script>
+<script src="js/engine.js?v=20260830f"></script>
+<script src="js/llm.js?v=20260830f"></script>
+<script src="js/data/china.js?v=20260830f"></script>
+<script src="js/app.js?v=20260830f"></script>
 </body>
 </html>

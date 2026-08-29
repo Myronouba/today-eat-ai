@@ -489,10 +489,13 @@
     if (id === "history") renderHistory();
     if (id === "home") renderHomeHello();
     if (id === "welcome") renderWelcomeSlogan();
-    if (id === "record") renderRecordPage();
+    if (id === "record") { renderRecordPage(); initRecordPage(); }
   }
 
   /* ---------- 自动录入历史记录页面 ---------- */
+  let recordFilter = "all";
+  let recordSearchKeyword = "";
+
   function renderRecordPage() {
     const history = JSON.parse(localStorage.getItem("eat-ai-history") || "[]");
     const today = new Date().toISOString().split("T")[0];
@@ -502,38 +505,55 @@
     $("#recordTotal").textContent = history.length;
     $("#recordToday").textContent = history.filter(h => h.date === today).length;
     $("#recordWeek").textContent = history.filter(h => h.date >= weekAgo).length;
+    $("#recordUnique").textContent = new Set(history.map(h => h.name)).size;
+
+    // 筛选和搜索
+    let filtered = history;
+    if (recordFilter !== "all") {
+      filtered = filtered.filter(h => h.mode === recordFilter);
+    }
+    if (recordSearchKeyword) {
+      filtered = filtered.filter(h => h.name.includes(recordSearchKeyword));
+    }
 
     // 渲染列表
     const listEl = $("#recordList");
-    if (history.length === 0) {
+    if (filtered.length === 0) {
+      const emptyText = history.length === 0 ? "还没有记录哦" : "没有找到匹配的记录";
+      const subText = history.length === 0 ? "在菜品卡片点击「自动录入」即可记录今日菜单" : "试试其他关键词或筛选条件";
       listEl.innerHTML = `<div class="record-empty">
         <div class="empty-icon">📝</div>
-        <p>还没有记录哦</p>
-        <p class="empty-sub">在菜品卡片点击「自动录入」即可记录今日菜单</p>
+        <p>${emptyText}</p>
+        <p class="empty-sub">${subText}</p>
       </div>`;
       return;
     }
 
     // 按日期分组
     const groups = {};
-    history.forEach(h => {
+    filtered.forEach(h => {
       if (!groups[h.date]) groups[h.date] = [];
       groups[h.date].push(h);
     });
 
     const modeMap = { home: "在家吃", couple: "情侣一起做", out: "出去吃" };
+    const modeColor = { home: "#E14D2A", couple: "#E91E63", out: "#3498DB" };
     let html = "";
     Object.keys(groups).sort((a, b) => b.localeCompare(a)).forEach(date => {
       const dateLabel = date === today ? "今天" : date;
       html += `<div class="record-date-group">
         <div class="record-date-label">${dateLabel} · ${groups[date].length}道</div>`;
       groups[date].forEach(item => {
-        html += `<div class="record-item" data-id="${item.id}">
+        const modeColorVal = modeColor[item.mode] || "#999";
+        html += `<div class="record-item" data-id="${item.id}" data-name="${item.name}">
+          <div class="record-item-icon" style="background: ${modeColorVal}15; color: ${modeColorVal};">
+            ${item.mode === "home" ? "🏠" : item.mode === "couple" ? "💕" : "🍽️"}
+          </div>
           <div class="record-item-info">
             <div class="record-item-name">${item.name}</div>
             <div class="record-item-meta">
               <span class="record-time">${item.time || ""}</span>
-              <span class="record-mode">${modeMap[item.mode] || item.mode || ""}</span>
+              <span class="record-mode" style="background: ${modeColorVal}15; color: ${modeColorVal};">${modeMap[item.mode] || item.mode || ""}</span>
             </div>
           </div>
           <button class="record-delete" data-id="${item.id}" title="删除">
@@ -557,6 +577,37 @@
         renderRecordPage();
       });
     });
+
+    // 绑定点击查看详情
+    listEl.querySelectorAll(".record-item").forEach(item => {
+      item.addEventListener("click", () => {
+        const name = item.dataset.name;
+        toast(`查看「${name}」详情`);
+      });
+    });
+  }
+
+  // 初始化记录页面的筛选和搜索
+  function initRecordPage() {
+    // 筛选标签
+    const filterBtns = document.querySelectorAll("#recordFilters .filter-tag");
+    filterBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        filterBtns.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        recordFilter = btn.dataset.filter;
+        renderRecordPage();
+      });
+    });
+
+    // 搜索
+    const searchInput = document.getElementById("recordSearch");
+    if (searchInput) {
+      searchInput.addEventListener("input", (e) => {
+        recordSearchKeyword = e.target.value.trim();
+        renderRecordPage();
+      });
+    }
   }
 
   // 清空记录
