@@ -96,9 +96,11 @@ window.Engine = (function () {
     const hasSoup = dishes.some(d => d.type === "soup");
     const hasHot = dishes.some(d => d.type === "hot");
     const allBenefits = new Set();
-    dishes.forEach(d => {
-      const n = assessNutrition(d);
-      n.benefits.forEach(b => allBenefits.add(b.split("，")[0].split("、")[0]));
+    (dishes || []).filter(d => d).forEach(d => {
+      try {
+        const n = assessNutrition(d);
+        (n.benefits || []).forEach(b => allBenefits.add(String(b || "").split("，")[0].split("、")[0]));
+      } catch(e) { console.warn("analyze dish error:", d && d.name, e); }
     });
     let score = 60;
     if (hasVeg) score += 10;
@@ -124,11 +126,13 @@ window.Engine = (function () {
   /* 忌口过滤 */
   function passesAvoid(dish, avoid) {
     if (!avoid || avoid.length === 0 || avoid.includes("none")) return true;
-    const ingText = dish.ing.map(i => i[0]).join(" ");
+    if (!dish || !Array.isArray(dish.ing)) return true;
+    const ingList = dish.ing.map(i => Array.isArray(i) ? String(i[0] || "") : String(i || ""));
+    const ingText = ingList.join(" ");
     for (const a of avoid) {
       if (a === "vegetarian") {
         if (dish.type === "hot") {
-          const isPorkFreeHot = !dish.ing.some(i => /猪|肉|牛|鸡|鸭|羊|虾|鱼|蟹/.test(i[0]) && !/肉末|鸡蛋/.test(i[0]));
+          const isPorkFreeHot = !ingList.some(x => /猪|肉|牛|鸡|鸭|羊|虾|鱼|蟹/.test(x) && !/肉末|鸡蛋/.test(x));
           if (!isPorkFreeHot) return false;
         }
         continue;
@@ -139,7 +143,7 @@ window.Engine = (function () {
       if (a === "lowSugar") { if (dish.flavor === "sweet" || /糖|冰糖|蜂蜜|可乐|白糖|炼乳/.test(ingText)) return false; continue; }
       const keys = AVOID_MAP[a] || [];
       for (const k of keys) {
-        if (dish.ing.some(i => i[0].includes(k))) return false;
+        if (ingList.some(x => x.includes(k))) return false;
       }
     }
     return true;
@@ -147,8 +151,9 @@ window.Engine = (function () {
 
   /* 食材重复检测（防止一桌菜都是茄子土豆） */
   function overlap(d1, d2) {
-    const set = new Set(d1.ing.map(i => i[0]));
-    return d2.ing.some(i => set.has(i[0]));
+    if (!d1 || !d2 || !Array.isArray(d1.ing) || !Array.isArray(d2.ing)) return false;
+    const set = new Set(d1.ing.map(i => Array.isArray(i) ? String(i[0] || "") : String(i || "")));
+    return d2.ing.some(i => set.has(Array.isArray(i) ? String(i[0] || "") : String(i || "")));
   }
 
   /* ---------- 多因子评分 ---------- */
@@ -198,11 +203,11 @@ window.Engine = (function () {
     // 季节感知：应季菜品加分，反季菜品减分
     const season = getSeason();
     const si = SEASON_INFO[season];
-    const dishText = d.name + (d.ing || []).map(i => i[0]).join(" ");
+    const dishText = dish.name + (Array.isArray(dish.ing) ? dish.ing.map(i => Array.isArray(i) ? String(i[0] || "") : String(i || "")).join(" ") : "");
     if (si.bonus.test(dishText)) s += 8;
     if (si.penalty.test(dishText)) s -= 5;
     // 历史学习：用户之前不喜欢的菜大幅降分
-    if (isDisliked(d.id)) s -= 25;
+    if (isDisliked(dish.id)) s -= 25;
     // 随机扰动（保证换一批有变化）
     s += rand(-6, 6);
     return s;
@@ -356,12 +361,12 @@ window.Engine = (function () {
     }
 
     /* 菜品亮点：每道菜的特色 */
-    const dishTips = dishes.map(d => {
+    const dishTips = (dishes || []).filter(d => d && d.name).map(d => {
       const n = assessNutrition(d);
       let tag = "";
       if (d.coop >= 2) tag = `协作度${"★".repeat(d.coop)}，两人配合更出彩`;
       else if (d.type === "soup") tag = "暖胃收尾，汤汤水水最舒服";
-      else if (d.type === "veg") tag = n.benefits[0] ? n.benefits[0].split("，")[0] : "清爽解腻";
+      else if (d.type === "veg") tag = (n.benefits && n.benefits[0]) ? n.benefits[0].split("，")[0] : "清爽解腻";
       else if (n.score >= 85) tag = "营养满分，健康首选";
       else if (d.kcal <= 350) tag = "低卡轻负担";
       return tag ? `${d.name}（${tag}）` : d.name;
@@ -405,16 +410,19 @@ window.Engine = (function () {
 
     const seen = {};
     const NON_ITEM = /温水|冷水|清水|开水|热水|^水$|蛋液|油\(|高汤|面糊水/;
-    dishes.forEach(d => {
-      d.ing.forEach(([name, qty]) => {
-        if (seen[name]) return;
+    (dishes || []).filter(d => d && Array.isArray(d.ing)).forEach(d => {
+      d.ing.forEach(item => {
+        if (!Array.isArray(item)) return;
+        const name = String(item[0] || "");
+        const qty = item[1];
+        if (!name || seen[name]) return;
         if (NON_ITEM.test(name)) return;
         seen[name] = true;
         const g = classify(name);
         const scaled = scaleQty(qty, scale);
-        const item = { name, qty, scaled, price: priceOf(name, scaled) };
-        if (g === "调料") { pantry.push(item); return; }
-        groups[g].push(item);
+        const itemObj = { name, qty, scaled, price: priceOf(name, scaled) };
+        if (g === "调料") { pantry.push(itemObj); return; }
+        groups[g].push(itemObj);
       });
     });
     // 去掉空组，并计算每类小计与总计
