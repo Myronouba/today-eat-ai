@@ -511,6 +511,9 @@
 
   /* ---------- 视图切换 ---------- */
   let backStack = [];   // 子页面返回栈（顶部固定返回按钮使用）
+  let calcCancelled = false;  // 推算取消标记
+  let _origBackBtnText = null;  // 保存原始返回按钮文字
+  let _origBackBtnHandler = null;  // 保存原始返回按钮事件
   const VIEW_TITLES = {
     home: { e: "🍳", t: "在家吃" }, couple: { e: "💞", t: "情侣一起做" },
     out: { e: "🍽️", t: "出去吃" }, discover: { e: "🧭", t: "发现" },
@@ -1521,9 +1524,50 @@
       result.classList.remove("thinking-mode");
     }
   }
+  // 开始推算：设置取消模式，把返回按钮改为"取消"
+  function startCalculation() {
+    calcCancelled = false;
+    const tb = $("#btnTopBack");
+    if (tb) {
+      // 保存原始状态
+      _origBackBtnText = tb.innerHTML;
+      // 改为取消按钮
+      tb.innerHTML = '<span class="tb-arrow">✕</span><span>取消</span>';
+      tb.classList.add("cancel-mode");
+    }
+  }
+  // 结束推算：恢复返回按钮正常状态
+  function endCalculation() {
+    const tb = $("#btnTopBack");
+    if (tb && _origBackBtnText) {
+      tb.innerHTML = _origBackBtnText;
+      tb.classList.remove("cancel-mode");
+      _origBackBtnText = null;
+    }
+  }
+  // 取消推算：终止当前推算，返回到主菜单
+  function cancelCalculation() {
+    calcCancelled = true;
+    // 隐藏加载状态
+    setThinkingVisible("home", false);
+    setThinkingVisible("couple", false);
+    // 恢复返回按钮
+    endCalculation();
+    // 返回到主菜单
+    backStack = [];
+    showView("home");
+    toast("已取消推算");
+  }
+  // 检查推算是否被取消，如果被取消则抛出异常终止推算
+  function checkCalcCancelled() {
+    if (calcCancelled) {
+      throw new Error("CALC_CANCELLED");
+    }
+  }
 
   async function generateHome(showToast) {
     try {
+      startCalculation();  // 开始推算，设置取消模式
       const opts = {
         people: Number(chipVal($("#hmPeople")) || prefs.people || 2),
         cooker: chipVal($("#hmCooker")) || prefs.cooker || "newbie",
@@ -1539,12 +1583,15 @@
       window.scrollTo({ top: 0 });
       updateThinking("home", 0, "正在从168道菜谱中过滤忌口...");
       await new Promise(r => setTimeout(r, 1400));
+      checkCalcCancelled();  // 检查是否被取消
       updateThinking("home", 1, "多因子评分中（辣度/口味/难度/健康/季节/历史）...");
       await new Promise(r => setTimeout(r, 1400));
+      checkCalcCancelled();  // 检查是否被取消
       const res = Engine.genHomeMenu(opts, prefs);
       homeState = res;
       updateThinking("home", 2, "智能选菜中，避免食材重复，搭配营养均衡...");
       await new Promise(r => setTimeout(r, 1200));
+      checkCalcCancelled();  // 检查是否被取消
       updateThinking("home", 3, "生成AI推荐理由...");
       let reason = Engine.buildReason(res.dishes, res.ctx, "home", opts, prefs);
       try {
@@ -1554,7 +1601,9 @@
         ]);
         if (aiReason) reason = aiReason;
       } catch (e) { /* AI 异常 → 用本地文案 */ }
+      checkCalcCancelled();  // 检查是否被取消
       await new Promise(r => setTimeout(r, 600));  // 让用户看到第3步完成
+      checkCalcCancelled();  // 检查是否被取消
 
       $("#homeReason").textContent = reason;
       // 填充营养信息
@@ -1566,12 +1615,19 @@
       renderMenuList($("#homeMenuList"), res.dishes, "home");
       // 隐藏加载状态，显示结果
       setThinkingVisible("home", false);
+      endCalculation();  // 结束推算，恢复返回按钮
       showView("home-result");
       window.scrollTo({ top: 0 });
       if (showToast) toast("已为你推算今日菜单");
     } catch (e) {
+      // 如果是用户取消的，不显示错误提示
+      if (e && e.message === "CALC_CANCELLED") {
+        console.log("推算已被用户取消");
+        return;
+      }
       console.error("generateHome error:", e);
       setThinkingVisible("home", false);
+      endCalculation();  // 结束推算，恢复返回按钮
       const errMsg = e && e.message ? e.message : String(e);
       toast("推算出错: " + errMsg.slice(0, 50));
     }
@@ -1977,6 +2033,7 @@
 
   async function generateCouple(showToast) {
     try {
+      startCalculation();  // 开始推算，设置取消模式
       const opts = {
         occasion: chipVal($("#cpOccasion")) || "daily",
         spicy: Number(chipVal($("#cpSpicy")) || 0),
@@ -1991,12 +2048,15 @@
       window.scrollTo({ top: 0 });
       updateThinking("couple", 0, "正在从168道菜谱中过滤忌口...");
       await new Promise(r => setTimeout(r, 1400));
+      checkCalcCancelled();  // 检查是否被取消
       updateThinking("couple", 1, "协作强度评分中，挑选适合两人配合的菜...");
       await new Promise(r => setTimeout(r, 1400));
+      checkCalcCancelled();  // 检查是否被取消
       const res = Engine.genCoupleMenu(opts, prefs);
       coupleState = res;
       updateThinking("couple", 2, "智能选菜中，搭配协作分工和仪式感...");
       await new Promise(r => setTimeout(r, 1200));
+      checkCalcCancelled();  // 检查是否被取消
       updateThinking("couple", 3, "生成AI推荐理由...");
       let reason = Engine.buildReason(res.dishes, res.ctx, "couple", opts, prefs);
       try {
@@ -2006,7 +2066,9 @@
         ]);
         if (aiReason) reason = aiReason;
       } catch (e) { /* AI 异常 → 用本地文案 */ }
+      checkCalcCancelled();  // 检查是否被取消
       await new Promise(r => setTimeout(r, 600));  // 让用户看到第3步完成
+      checkCalcCancelled();  // 检查是否被取消
 
       $("#coupleReason").textContent = reason;
       // 填充营养信息
@@ -2018,14 +2080,21 @@
       renderMenuList($("#coupleMenuList"), res.dishes, "couple");
       // 隐藏加载状态，显示结果
       setThinkingVisible("couple", false);
+      endCalculation();  // 结束推算，恢复返回按钮
       if (showToast) {
         showView("couple-result");
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
       if (showToast) toast("为你们挑了适合一起做的菜");
     } catch (e) {
+      // 如果是用户取消的，不显示错误提示
+      if (e && e.message === "CALC_CANCELLED") {
+        console.log("推算已被用户取消");
+        return;
+      }
       console.error("generateCouple error:", e);
       setThinkingVisible("couple", false);
+      endCalculation();  // 结束推算，恢复返回按钮
       toast("推算出错，请重试");
     }
   }
@@ -2342,8 +2411,13 @@
     window.addEventListener("mousemove", onMove);
     window.addEventListener("mouseup", onUp);
   })();
-  /* 顶部固定返回按钮：弹出返回栈回到上一个视图 */
+  /* 顶部固定返回按钮：弹出返回栈回到上一个视图（推算过程中为取消按钮） */
   $("#btnTopBack").addEventListener("click", () => {
+    // 如果正在推算中，点击按钮则取消推算
+    if (calcCancelled === false && _origBackBtnText !== null) {
+      cancelCalculation();
+      return;
+    }
     const target = backStack.pop() || "home";
     showView(target, true);
   });

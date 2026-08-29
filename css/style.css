@@ -1894,6 +1894,21 @@ body.hide-shell { overflow: hidden; }
   transform: scale(0.95);
 }
 
+/* 推算过程中顶部返回按钮变为取消按钮的样式 */
+#btnTopBack.cancel-mode {
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(232, 115, 44, 0.3);
+  color: #E8732C;
+}
+#btnTopBack.cancel-mode:hover {
+  background: rgba(255, 240, 230, 0.95);
+  border-color: rgba(232, 115, 44, 0.5);
+}
+#btnTopBack.cancel-mode .tb-arrow {
+  font-size: 14px;
+  font-weight: bold;
+}
+
 .login-wrap { max-width: 520px; margin: 0 auto; position: relative; }
 .text-input {
   width: 100%; padding: 13px 16px; border-radius: 14px; border: 1px solid var(--line);
