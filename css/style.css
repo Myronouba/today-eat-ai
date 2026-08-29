@@ -1144,14 +1144,14 @@ body.hide-shell { overflow: hidden; }
 }
 
 /* ============================================================
-   玻璃质感主题 · 圆形玻璃按钮（我的 → 主题 → 玻璃质感）
-   参考视频：每个主菜单按钮的图标为圆形毛玻璃按钮，高光边缘 + 浮起阴影
+   玻璃质感主题 · 毛玻璃浮起胶囊底部导航（我的 → 主题 → 玻璃质感）
+   参考视频前半段：整体毛玻璃浮起胶囊 + 选中态浅灰圆角 + 平滑切换动画
    —— 作用域完全隔离在 body[data-theme="glass"]，不影响其他主题
    ============================================================ */
 body[data-theme="glass"] {
   background:
-    radial-gradient(120% 80% at 85% -10%, rgba(225, 77, 42, .12), transparent 55%),
-    radial-gradient(100% 70% at -5% 40%, rgba(185, 150, 79, .10), transparent 55%),
+    radial-gradient(120% 80% at 85% -10%, rgba(225, 77, 42, .10), transparent 55%),
+    radial-gradient(100% 70% at -5% 40%, rgba(185, 150, 79, .08), transparent 55%),
     linear-gradient(180deg, #FCF7F0 0%, #F0E8DE 100%);
   background-attachment: fixed;
 }
@@ -1164,85 +1164,92 @@ body[data-theme="glass"] .topbar {
   border-bottom-color: rgba(255, 255, 255, .6);
 }
 
-/* 底部主菜单栏：半透明毛玻璃底，给圆形按钮留足空间 */
+/* 底部主菜单栏：毛玻璃浮起胶囊 —— 参考视频前半段 */
 body[data-theme="glass"] .tabs {
-  background: rgba(245, 240, 232, .55);
-  backdrop-filter: blur(24px) saturate(1.4);
-  -webkit-backdrop-filter: blur(24px) saturate(1.4);
-  border-top: 1px solid rgba(255, 255, 255, .6);
-  box-shadow: 0 -8px 28px rgba(80, 50, 20, .10);
-  padding: 12px 8px calc(14px + env(safe-area-inset-bottom));
-  gap: 4px;
-}
-
-/* 主菜单按钮：列布局，圆形玻璃图标 + 下方文字 */
-body[data-theme="glass"] .tab {
-  color: rgba(60, 55, 50, .5);
-  font-size: 10px;
-  font-weight: 500;
-  gap: 6px;
-  padding: 4px 0;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-/* 圆形玻璃按钮（图标容器）—— 核心质感：参考视频后半段 */
-body[data-theme="glass"] .tab-ico {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  background: rgba(255, 255, 255, .38);
-  backdrop-filter: blur(16px) saturate(1.4);
-  -webkit-backdrop-filter: blur(16px) saturate(1.4);
-  border: 1.5px solid rgba(255, 255, 255, .65);
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 12px;
+  width: calc(100% - 32px);
+  max-width: 520px;
+  background: rgba(255, 255, 255, .55);
+  backdrop-filter: blur(28px) saturate(1.5);
+  -webkit-backdrop-filter: blur(28px) saturate(1.5);
+  border: 1px solid rgba(255, 255, 255, .7);
+  border-radius: 28px;
   box-shadow:
-    0 6px 16px rgba(60, 40, 20, .14),
-    inset 0 2px 0 rgba(255, 255, 255, .9),
-    inset 0 -2px 4px rgba(0, 0, 0, .08);
-  transition: all .28s var(--ease);
+    0 12px 32px rgba(80, 50, 20, .14),
+    inset 0 1px 0 rgba(255, 255, 255, .85),
+    inset 0 -1px 0 rgba(0, 0, 0, .04);
+  padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+  gap: 2px;
+  z-index: 50;
+}
+
+/* 主菜单按钮：图标+文字，透明背景，平滑过渡 */
+body[data-theme="glass"] .tab {
+  flex: 1;
+  min-width: 0;
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: none;
+  background: transparent;
+  color: rgba(60, 55, 50, .5);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 8px 4px;
+  border-radius: 18px;
+  cursor: pointer;
+  transition: all .32s cubic-bezier(.22, .61, .36, 1);
+  font-family: inherit;
+  white-space: nowrap;
+}
+body[data-theme="glass"] .tab-ico {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform .32s cubic-bezier(.22, .61, .36, 1);
 }
 body[data-theme="glass"] .tab-ico img {
-  width: 26px;
-  height: 26px;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
   opacity: .6;
-  transition: all .28s var(--ease);
-  filter: none;
+  transition: opacity .32s cubic-bezier(.22, .61, .36, 1), transform .32s cubic-bezier(.22, .61, .36, 1);
 }
 
-/* 选中态：玻璃按钮高亮 —— 更亮、更凸、图标着色 */
+/* 选中态：浅灰圆角背景 —— 参考视频里"我"的选中效果 */
 body[data-theme="glass"] .tab.active {
-  color: var(--accent);
+  background: rgba(60, 55, 50, .08);
+  color: var(--ink);
   font-weight: 600;
-  background: transparent;
-  border: none;
-  box-shadow: none;
-  border-radius: 0;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .06);
 }
 body[data-theme="glass"] .tab.active .tab-ico {
-  background: rgba(255, 255, 255, .65);
-  border-color: rgba(255, 255, 255, .9);
-  box-shadow:
-    0 8px 24px rgba(60, 40, 20, .20),
-    inset 0 2px 0 rgba(255, 255, 255, .98),
-    inset 0 -2px 4px rgba(0, 0, 0, .10);
-  transform: scale(1.08);
+  transform: scale(1.1);
 }
 body[data-theme="glass"] .tab.active .tab-ico img {
   opacity: 1;
-  filter: drop-shadow(0 1px 3px rgba(225, 77, 42, .4));
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .15));
 }
 
 /* hover：非选中按钮微亮 */
-body[data-theme="glass"] .tab:not(.active):hover { color: var(--ink); }
-body[data-theme="glass"] .tab:not(.active):hover .tab-ico {
-  background: rgba(255, 255, 255, .5);
-  transform: scale(1.04);
+body[data-theme="glass"] .tab:not(.active):hover {
+  color: var(--ink);
+  background: rgba(60, 55, 50, .04);
+}
+body[data-theme="glass"] .tab:not(.active):hover .tab-ico img {
+  opacity: .85;
+}
+
+/* 内容区底部留白，避免被浮起胶囊遮挡 */
+body[data-theme="glass"] .stage {
+  padding-bottom: 120px;
 }
 body[data-theme="glass"] .tab:not(.active):hover .tab-ico img { opacity: .85; }
 
