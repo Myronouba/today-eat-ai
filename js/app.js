@@ -2203,10 +2203,9 @@
     const tab = e.target.closest(".tab");
     if (!tab) return;
     if (tabSwipeMoved) { tabSwipeMoved = false; return; }  // 拖拽结束的 click 忽略，由 touchend 处理
-    // 切换到该主菜单的最后访问页面，保留之前的操作状态
+    // 点击主菜单总是显示主菜单页面，不恢复上次访问的子页面
     const tabView = tab.dataset.view;
-    const targetView = lastViewByTab[tabView] || tabView;
-    showView(targetView);
+    showView(tabView);
   });
   /* 底部导航手势滑动切换：一根手指滑动，停留位置即当前菜单（触摸+鼠标） */
   let tabSwipeMoved = false;
