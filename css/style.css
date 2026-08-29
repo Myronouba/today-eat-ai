@@ -1972,3 +1972,11 @@ body[data-theme="glass"] .stage { padding-bottom: 96px; }
   color: #27AE60;
   font-weight: 500;
 }
+
+/* 换一批按钮 - 卡片右上角绝对定位 */
+.shuffle-top-right {
+  position: absolute !important;
+  top: 16px !important;
+  right: 16px !important;
+  z-index: 10;
+}
