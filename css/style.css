@@ -85,17 +85,18 @@ body.hide-shell { padding-top: 0; }
 /* 返回按钮：精致浅色胶囊 · 固定在顶部栏左侧 */
 .topbar-inner .topbar-back {
   padding: 7px 14px 7px 9px; margin: 0; flex-shrink: 0;
-  border: 1px solid rgba(227, 217, 200, .85); background: rgba(255, 255, 255, .6);
+  border: 1px solid rgba(255, 255, 255, .65); background: rgba(255, 255, 255, .55);
+  backdrop-filter: blur(20px) saturate(1.4); -webkit-backdrop-filter: blur(20px) saturate(1.4);
   border-radius: 999px;
   display: inline-flex; align-items: center; justify-content: center; gap: 3px;
   font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
   font-size: 15px; font-weight: 500; color: var(--ink-soft);
   cursor: pointer; line-height: 1;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
-  transition: all .2s var(--ease);
+  box-shadow: 0 4px 16px rgba(80, 50, 20, .12), inset 0 1px 0 rgba(255, 255, 255, .8);
+  transition: all .25s cubic-bezier(.22, .61, .36, 1);
 }
 .topbar-inner .topbar-back .tb-arrow { font-size: 16px; line-height: 1; color: var(--accent); font-weight: 500; transform: translateY(-.5px); transition: transform .2s var(--ease); }
-.topbar-inner .topbar-back:hover { background: var(--accent); border-color: var(--accent); color: #fff; box-shadow: 0 4px 14px rgba(225, 77, 42, .28); }
+.topbar-inner .topbar-back:hover { background: rgba(255, 255, 255, .75); border-color: rgba(255, 255, 255, .85); color: var(--ink); box-shadow: 0 6px 20px rgba(80, 50, 20, .16), inset 0 1px 0 rgba(255, 255, 255, .9); }
 .topbar-inner .topbar-back:hover .tb-arrow { color: #fff; transform: translateX(-2px) translateY(-.5px); }
 .topbar-inner .topbar-back:active { transform: scale(.95); }
 .brand-mark { color: var(--accent); display: inline-flex; }
@@ -252,12 +253,12 @@ body.hide-shell { padding-top: 0; }
 /* 按钮 */
 .btn-primary {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-  width: 100%; border: none; cursor: pointer;
+  width: 100%; border: 1px solid rgba(255, 255, 255, .25); cursor: pointer;
   background: var(--accent); color: #fff;
   font-size: 15px; font-weight: 600; font-family: inherit;
   padding: 15px 20px; border-radius: 999px;
-  box-shadow: 0 10px 24px rgba(225, 77, 42, .32);
-  transition: transform .15s var(--ease), box-shadow .2s, background .2s;
+  box-shadow: 0 8px 24px rgba(225, 77, 42, .32), inset 0 1px 0 rgba(255, 255, 255, .35);
+  transition: all .25s cubic-bezier(.22, .61, .36, 1);
 }
 .btn-primary svg { width: 18px; height: 18px; }
 .btn-primary:active { transform: scale(.97); }
@@ -279,13 +280,16 @@ body.hide-shell { padding-top: 0; }
 
 .ghost-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
-  border: 1px solid var(--line); background: var(--card); color: var(--ink-soft);
+  border: 1px solid rgba(255, 255, 255, .65); background: rgba(255, 255, 255, .55);
+  backdrop-filter: blur(20px) saturate(1.4); -webkit-backdrop-filter: blur(20px) saturate(1.4);
+  color: var(--ink-soft);
   font-size: 13px; font-weight: 500; font-family: inherit;
   padding: 10px 16px; border-radius: 999px; cursor: pointer;
-  transition: all .2s var(--ease);
+  box-shadow: 0 4px 16px rgba(80, 50, 20, .12), inset 0 1px 0 rgba(255, 255, 255, .8);
+  transition: all .25s cubic-bezier(.22, .61, .36, 1);
 }
 .ghost-btn svg { width: 15px; height: 15px; }
-.ghost-btn:hover { border-color: var(--accent); color: var(--accent); }
+.ghost-btn:hover { background: rgba(255, 255, 255, .75); border-color: rgba(255, 255, 255, .85); color: var(--ink); box-shadow: 0 6px 20px rgba(80, 50, 20, .16), inset 0 1px 0 rgba(255, 255, 255, .9); }
 .ghost-btn.danger:hover { border-color: #C0392B; color: #C0392B; }
 
 .link { border: none; background: none; color: var(--accent); font-size: inherit; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
@@ -342,15 +346,16 @@ body.hide-shell { padding-top: 0; }
 .back-btn {
   display: inline-flex; align-items: center; gap: 7px;
   padding: 8px 16px 8px 12px; border-radius: 999px;
-  border: 1px solid var(--line); background: var(--card);
+  border: 1px solid rgba(255, 255, 255, .65); background: rgba(255, 255, 255, .55);
+  backdrop-filter: blur(20px) saturate(1.4); -webkit-backdrop-filter: blur(20px) saturate(1.4);
   color: var(--ink-soft); cursor: pointer;
   font-size: 13px; font-weight: 500; font-family: inherit;
   margin-bottom: 18px;
-  box-shadow: 0 1px 3px rgba(0,0,0,.04);
-  transition: all .25s var(--ease);
+  box-shadow: 0 4px 16px rgba(80, 50, 20, .12), inset 0 1px 0 rgba(255, 255, 255, .8);
+  transition: all .25s cubic-bezier(.22, .61, .36, 1);
 }
 .back-btn svg { width: 15px; height: 15px; transition: transform .25s var(--ease); }
-.back-btn:hover { background: var(--accent-soft); border-color: var(--accent); color: var(--accent-deep); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(225,77,42,.12); }
+.back-btn:hover { background: rgba(255, 255, 255, .75); border-color: rgba(255, 255, 255, .85); color: var(--ink); transform: translateY(-1px); box-shadow: 0 6px 20px rgba(80, 50, 20, .16), inset 0 1px 0 rgba(255, 255, 255, .9); }
 .back-btn:hover svg { transform: translateX(-2px); }
 .back-btn:active { transform: scale(.96); }
 .recipe-hero {
