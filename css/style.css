@@ -134,7 +134,7 @@ body.hide-shell { padding-top: 0; }
 /* ============ 底部导航栏 ============ */
 .tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
-  width: calc(100% - 32px); max-width: 520px; margin: 0 auto 14px;
+  width: calc(100% - 32px); max-width: 520px; margin: 0 auto 7px;
   display: flex; align-items: center; gap: 2px;
   padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
   background: rgba(255, 255, 255, .65);
@@ -920,7 +920,7 @@ body.hide-shell { overflow: hidden; }
   #view-splash.active .splash-brand { font-size: 32px; }
   #view-splash.active .splash-brandline {
   position: absolute;
-  bottom: 28px;
+  bottom: 14px;
   left: 0;
   right: 0;
   display: flex;
