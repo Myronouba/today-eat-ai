@@ -451,6 +451,8 @@
     "out-result": { e: "🍽️", t: "出去吃" }, welcome: { e: "", t: "今天吃啥" }
   };
   let _viewSwitchTimer = null;
+  // 记录每个主菜单的最后访问页面，用于点击底部菜单栏时恢复操作状态
+  const lastViewByTab = { "home": "home", "couple": "couple", "out": "out", "discover": "discover", "me": "me" };
   function showView(id, fromBack) {
     let v = $("#view-" + id);
     if (!v) { id = "home"; v = $("#view-home"); }  // 视图不存在 → 安全回退首页，避免空白
@@ -509,6 +511,10 @@
     };
     const activeTabView = tabViewMap[id] || id;
     $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.view === activeTabView));
+    // 记录每个主菜单的最后访问页面，用于点击底部菜单栏时恢复状态
+    if (activeTabView && !["splash", "welcome", "login"].includes(id)) {
+      lastViewByTab[activeTabView] = id;
+    }
     document.body.classList.toggle("hide-shell", id === "splash" || id === "welcome" || id === "login");
     if (id !== "splash" && id !== "welcome" && id !== "login") window.scrollTo({ top: 0, behavior: "smooth" });
     if (id === "couple") renderCoupleProgress();
@@ -2186,7 +2192,10 @@
     const tab = e.target.closest(".tab");
     if (!tab) return;
     if (tabSwipeMoved) { tabSwipeMoved = false; return; }  // 拖拽结束的 click 忽略，由 touchend 处理
-    showView(tab.dataset.view);
+    // 切换到该主菜单的最后访问页面，保留之前的操作状态
+    const tabView = tab.dataset.view;
+    const targetView = lastViewByTab[tabView] || tabView;
+    showView(targetView);
   });
   /* 底部导航手势滑动切换：一根手指滑动，停留位置即当前菜单（触摸+鼠标） */
   let tabSwipeMoved = false;
