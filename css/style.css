@@ -795,7 +795,7 @@ body.hide-shell { overflow: hidden; }
   #view-splash.active .splash-logo { width: 80px; height: 80px; border-radius: 25px; margin-bottom: 18px; }
   #view-splash.active .splash-logo svg { width: 36px; height: 36px; }
   #view-splash.active .splash-brand { font-size: 32px; }
-  #view-splash.active .splash-brandline { bottom: 18px; }
+  #view-splash.active .splash-brandline { bottom: 10px; }
 }
 /* 顶部柔光氛围：极简留白里的一抹暖调 */
 .welcome-wrap::before {
@@ -879,7 +879,7 @@ body.hide-shell { overflow: hidden; }
 .w30-txt { font-size: 12.5px; color: var(--ink-soft); letter-spacing: .02em; }
 /* 启动页底部品牌信息栏 */
 .splash-brandline {
-  position: absolute; left: 0; right: 0; bottom: 24px;
+  position: absolute; left: 0; right: 0; bottom: 14px;
   display: flex; flex-direction: column; align-items: center; gap: 5px;
   padding-top: 14px; border-top: 1px solid rgba(120, 70, 30, .1);
   text-align: center;
