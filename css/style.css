@@ -180,7 +180,12 @@ body.hide-shell { padding-top: 0; }
 .tab svg { width: 21px; height: 21px; }
 /* 图标容器：无底色无边框，贴纸图标透明呈现 */
 .tab-ico { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; transition: transform .2s var(--ease); }
-.tab-ico img { width: 100%; height: 100%; object-fit: contain; }
+.tab-ico img {
+  width: 100%; height: 100%; object-fit: contain;
+  mix-blend-mode: multiply;
+  filter: brightness(1.05) saturate(1.05);
+  display: block;
+}
 .tab.active {
   background: transparent !important;
   backdrop-filter: none !important;
