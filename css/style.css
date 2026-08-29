@@ -374,7 +374,7 @@ body.hide-shell { padding-top: 0; }
 .at-bar::after {
   content: ""; display: block; height: 100%; width: 0%;
   background: linear-gradient(90deg, var(--accent), #FF8A5C);
-  border-radius: 3px; transition: width .3s ease;
+  border-radius: 3px; transition: width 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 .ai-thinking .at-bar::after { width: var(--progress, 0%); }
 .at-steps { display: flex; justify-content: space-between; gap: 4px; }
