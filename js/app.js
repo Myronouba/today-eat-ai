@@ -442,6 +442,9 @@
     out: { e: "🍽️", t: "出去吃" }, discover: { e: "🧭", t: "发现" },
     history: { e: "📖", t: "历史" },
     moments: { e: "🍜", t: "菜友圈" },
+    contacts: { e: "👥", t: "通讯录" },
+    profile: { e: "👤", t: "个人资料" },
+    chat: { e: "💬", t: "聊天" },
     me: { e: "🙂", t: "我的" }, settings: { e: "⚙️", t: "设置" },
     profile: { e: "👤", t: "个人信息" },
     login: { e: "", t: "登录" }, onboard: { e: "✨", t: "口味问答" },
@@ -482,6 +485,9 @@
       if (_viewSwitchTimer) { clearTimeout(_viewSwitchTimer); _viewSwitchTimer = null; }
       $$(".view").forEach(x => { x.classList.remove("active"); x.classList.remove("view-leave"); });
       v.classList.add("active");
+      /* 根据页面id给body添加类，用于隐藏/显示菜单栏等 */
+      document.body.className = document.body.className.replace(/view-\w+/g, "").trim();
+      if (id === "moments") document.body.classList.add("view-moments");
       /* 强制重播进入动画：子元素依次柔和浮现（返回菜单更细腻） */
       v.querySelectorAll(":scope > *").forEach((el, i) => {
         el.classList.remove("view-enter");
@@ -509,7 +515,10 @@
       "out": "out",
       "discover": "discover",
       "me": "me", "history": "me", "profile": "me", "settings": "me", "record": "me", "theme": "me",
-      "moments": "discover"
+      "moments": "discover",
+      "contacts": "discover",
+      "profile": "discover",
+      "chat": "discover"
     };
     const activeTabView = tabViewMap[id] || id;
     $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.view === activeTabView));
@@ -2357,6 +2366,7 @@
     if (!it) return;
     const act = it.dataset.act;
     if (act === "moments") { if (window.renderMoments) window.renderMoments(); showView("moments"); return; }
+    if (act === "contacts") { if (window.renderContacts) window.renderContacts(); showView("contacts"); return; }
     if (act === "achieve") { renderMeView(); showView("me"); return; }
     if (act === "near") { showView("out"); return; }
     showDisc(act);
