@@ -265,7 +265,7 @@ body.hide-shell { padding-top: 0; }
 .btn-primary svg { width: 18px; height: 18px; }
 .btn-primary:active { transform: scale(.94) translateY(1px); box-shadow: 0 3px 12px rgba(225, 77, 42, .28), inset 0 2px 4px rgba(0,0,0,.15); }
 .btn-primary:hover { background: var(--accent-deep); box-shadow: 0 12px 28px rgba(225, 77, 42, .4); }
-.btn-block { width: 100%; margin-top: 8px; }
+.btn-block { width: 100%; margin-top: 16px; }
 
 /* AI 生成按钮：渐变 + 顶部高光，强化 AI 推算入口 */
 .ai-gen-btn {
