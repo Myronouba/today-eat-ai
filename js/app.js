@@ -447,6 +447,7 @@
     "home-result": { e: "🍽️", t: "今天吃这些" }, list: { e: "🧺", t: "买菜清单" },
     recipe: { e: "📜", t: "菜谱详情" }, "couple-result": { e: "💞", t: "约会菜单" },
     "couple-play": { e: "💑", t: "默契分工" },
+    "couple-memorial": { e: "💝", t: "我们的纪念卡" },
     "out-result": { e: "🍽️", t: "出去吃" }, welcome: { e: "", t: "今天吃啥" }
   };
   function showView(id, fromBack) {
@@ -1810,7 +1811,7 @@
     renderCoupleProgress();
   });
 
-  /* 感情任务 + 纪念卡 */
+  /* 感情任务 + 纪念卡（跳转到单独页面） */
   $("#btnMakeCard").addEventListener("click", async () => {
     if (!coupleState || !coupleState.dishes.length) return;
     const occasion = chipVal($("#cpOccasion")) || "daily";
@@ -1825,24 +1826,37 @@
     const rolesHTML = (nm || mn)
       ? `${roles.a.name}（${nm ? `<span class="grad-name">${nm}</span>` : roles.a.label}）& ${roles.b.name}（${mn ? `<span class="grad-name">${mn}</span>` : roles.b.label}）`
       : mem.roles;
-    $("#loveTask").innerHTML = `
+
+    // 填充到单独纪念卡页面
+    const taskEl = $("#loveTaskPage");
+    const cardEl = $("#memorialCardPage");
+    if (taskEl) taskEl.innerHTML = `
       <div class="task-card">
         <div class="tk-label">💝 感情任务</div>
         <div class="tk-text">${task}</div>
       </div>`;
-    $("#memorial").innerHTML = `
-      <div class="m-date">${mem.date}</div>
-      <div class="m-title serif">${mem.title}</div>
-      <div class="m-dishes">${mem.dishes}</div>
-      <div class="m-roles">${rolesHTML}</div>
-      <div class="m-foot">${mem.foot}</div>
-      <div class="m-heart">♥</div>
-      <button class="btn-primary btn-block" id="btnSaveMemorial">保存图片 · 发朋友圈</button>`;
-    $("#memorial").classList.remove("hidden");
-    $("#btnSaveMemorial").addEventListener("click", () => {
-      if (coupleState.memorial) drawMemorialCard(coupleState.memorial, coupleState.dishes, coupleState.roles);
-    });
-    toast("纪念卡已生成，可保存为图片");
+    if (cardEl) cardEl.innerHTML = `
+      <div class="memorial-card-full">
+        <div class="m-date">${mem.date}</div>
+        <div class="m-title serif">${mem.title}</div>
+        <div class="m-dishes">${mem.dishes}</div>
+        <div class="m-roles">${rolesHTML}</div>
+        <div class="m-foot">${mem.foot}</div>
+        <div class="m-heart">♥</div>
+        <button class="btn-primary btn-block" id="btnSaveMemorialPage">保存图片 · 发朋友圈</button>
+      </div>`;
+
+    // 绑定保存按钮
+    setTimeout(() => {
+      const saveBtn = $("#btnSaveMemorialPage");
+      if (saveBtn) saveBtn.addEventListener("click", () => {
+        if (coupleState.memorial) drawMemorialCard(coupleState.memorial, coupleState.dishes, coupleState.roles);
+      });
+    }, 50);
+
+    // 跳转到纪念卡页面
+    showView("couple-memorial");
+    toast("纪念卡已生成");
   });
 
   /* ============================================================
