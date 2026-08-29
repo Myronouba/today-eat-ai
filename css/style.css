@@ -1142,3 +1142,66 @@ body.hide-shell { overflow: hidden; }
 @media (min-width: 600px) {
   .stage { padding-top: 28px; }
 }
+
+/* ============================================================
+   玻璃质感主题 · iOS 毛玻璃主菜单（我的 → 主题 → 玻璃质感）
+   参考《下厨房》与 iOS 原生 dock：整栏毛玻璃 + 选中项玻璃胶囊
+   —— 作用域完全隔离在 body[data-theme="glass"]，不影响其他主题
+   ============================================================ */
+body[data-theme="glass"] {
+  background:
+    radial-gradient(120% 80% at 85% -10%, rgba(225, 77, 42, .14), transparent 55%),
+    radial-gradient(100% 70% at -5% 40%, rgba(185, 150, 79, .12), transparent 55%),
+    linear-gradient(180deg, #FCF7F0 0%, #F2EAE0 100%);
+  background-attachment: fixed;
+}
+
+/* 顶部品牌栏：毛玻璃（与底部呼应） */
+body[data-theme="glass"] .topbar {
+  background: rgba(255, 255, 255, .5);
+  backdrop-filter: blur(24px) saturate(1.5);
+  -webkit-backdrop-filter: blur(24px) saturate(1.5);
+  border-bottom-color: rgba(255, 255, 255, .72);
+}
+
+/* 底部主菜单：毛玻璃 dock */
+body[data-theme="glass"] .tabs {
+  background: rgba(255, 255, 255, .48);
+  backdrop-filter: blur(28px) saturate(1.6);
+  -webkit-backdrop-filter: blur(28px) saturate(1.6);
+  border-top: 1px solid rgba(255, 255, 255, .78);
+  box-shadow: 0 -10px 30px rgba(80, 50, 20, .10), inset 0 1px 0 rgba(255, 255, 255, .65);
+}
+
+/* 主菜单按钮：未选中为半透明浅字 */
+body[data-theme="glass"] .tab { color: rgba(60, 55, 50, .58); }
+body[data-theme="glass"] .tab:not(.active):hover { color: var(--ink); }
+body[data-theme="glass"] .tab:not(.active):hover .tab-ico { transform: scale(1.06); }
+
+/* 选中按钮：玻璃胶囊（半透明毛玻璃 + 白色高光描边 + 浮起阴影） */
+body[data-theme="glass"] .tab.active {
+  background: rgba(255, 255, 255, .55);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, .85);
+  box-shadow: 0 6px 18px rgba(80, 50, 20, .14), inset 0 1px 0 rgba(255, 255, 255, .8);
+  color: var(--accent);
+  border-radius: 16px;
+}
+body[data-theme="glass"] .tab.active .tab-ico {
+  transform: scale(1.12);
+  filter: drop-shadow(0 2px 5px rgba(225, 77, 42, .35));
+}
+
+/* 主题圆点：玻璃质感选项的玻璃样态（任何主题下都可辨识） */
+.theme-dot[data-theme="glass"] {
+  background: linear-gradient(135deg, rgba(255, 255, 255, .95), rgba(255, 255, 255, .3));
+  border: 2px solid rgba(255, 255, 255, .9);
+  box-shadow: 0 4px 14px rgba(80, 50, 20, .16), inset 0 1px 0 rgba(255, 255, 255, .95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+.theme-dot[data-theme="glass"].active {
+  border-color: var(--ink);
+  box-shadow: 0 0 0 3px var(--card), 0 0 0 5px rgba(255, 255, 255, .7);
+}
