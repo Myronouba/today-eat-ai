@@ -1173,21 +1173,22 @@ body[data-theme="glass"] .topbar {
 /* 底部主菜单栏：毛玻璃浮起胶囊 —— 参考视频前半段 */
 body[data-theme="glass"] .tabs {
   position: fixed;
-  left: 50%;
-  transform: translateX(-50%);
-  bottom: 12px;
-  width: calc(100% - 32px);
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: 0 auto 10px;
+  width: calc(100% - 24px);
   max-width: 520px;
   background: rgba(255, 255, 255, .55);
   backdrop-filter: blur(28px) saturate(1.5);
   -webkit-backdrop-filter: blur(28px) saturate(1.5);
   border: 1px solid rgba(255, 255, 255, .7);
-  border-radius: 28px;
+  border-radius: 24px;
   box-shadow:
-    0 12px 32px rgba(80, 50, 20, .14),
+    0 8px 24px rgba(80, 50, 20, .12),
     inset 0 1px 0 rgba(255, 255, 255, .85),
     inset 0 -1px 0 rgba(0, 0, 0, .04);
-  padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
+  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
   gap: 2px;
   z-index: 50;
 }
