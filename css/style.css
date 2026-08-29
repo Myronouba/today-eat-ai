@@ -2613,3 +2613,186 @@ body[data-theme="glass"] .stage { padding-bottom: 96px; }
   backdrop-filter: blur(40px) saturate(1.5) !important;
   -webkit-backdrop-filter: blur(40px) saturate(1.5) !important;
 }
+
+
+/* ========== 干饭成就页面 ========== */
+.achieve-container {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* 当前等级卡片 */
+.achieve-current {
+  background: linear-gradient(135deg, var(--accent-light, #fff5e6) 0%, #fff 100%);
+  border-radius: 20px;
+  padding: 24px;
+  text-align: center;
+  box-shadow: 0 4px 16px rgba(32, 30, 26, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.achieve-level-icon {
+  font-size: 56px;
+  margin-bottom: 12px;
+  animation: achieveBounce 2s ease-in-out infinite;
+}
+
+@keyframes achieveBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+.achieve-level-name {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--text, #201e1a);
+  margin-bottom: 4px;
+}
+
+.achieve-level-desc {
+  font-size: 14px;
+  color: var(--text-light, #8a8680);
+  margin-bottom: 16px;
+}
+
+.achieve-progress-bar {
+  width: 100%;
+  height: 10px;
+  background: rgba(32, 30, 26, 0.08);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.achieve-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent, #e8732c), #f5a623);
+  border-radius: 5px;
+  transition: width 0.6s ease;
+}
+
+.achieve-progress-text {
+  font-size: 13px;
+  color: var(--text-light, #8a8680);
+}
+
+/* 等级列表 */
+.achieve-section-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text, #201e1a);
+  margin-bottom: 12px;
+  padding-left: 4px;
+}
+
+.achieve-levels-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.achieve-level-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid rgba(32, 30, 26, 0.06);
+  transition: all 0.3s ease;
+}
+
+.achieve-level-item.unlocked {
+  border-color: var(--accent-light, #ffe0c2);
+  background: linear-gradient(135deg, #fffaf5 0%, #fff 100%);
+}
+
+.achieve-level-item.locked {
+  opacity: 0.5;
+  filter: grayscale(0.5);
+}
+
+.achieve-level-item.current {
+  border-color: var(--accent, #e8732c);
+  box-shadow: 0 2px 12px rgba(232, 115, 44, 0.15);
+}
+
+.achieve-item-icon {
+  font-size: 32px;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(232, 115, 44, 0.08);
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.achieve-item-info {
+  flex: 1;
+}
+
+.achieve-item-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--text, #201e1a);
+  margin-bottom: 2px;
+}
+
+.achieve-item-desc {
+  font-size: 12px;
+  color: var(--text-light, #8a8680);
+}
+
+.achieve-item-status {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.achieve-item-status.unlocked {
+  background: rgba(76, 175, 80, 0.1);
+  color: #4caf50;
+}
+
+.achieve-item-status.current {
+  background: rgba(232, 115, 44, 0.1);
+  color: var(--accent, #e8732c);
+}
+
+.achieve-item-status.locked {
+  background: rgba(32, 30, 26, 0.06);
+  color: var(--text-light, #8a8680);
+}
+
+/* 统计数据 */
+.achieve-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.achieve-stat-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 16px;
+  text-align: center;
+  border: 1px solid rgba(32, 30, 26, 0.06);
+}
+
+.achieve-stat-num {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--accent, #e8732c);
+  margin-bottom: 4px;
+}
+
+.achieve-stat-label {
+  font-size: 12px;
+  color: var(--text-light, #8a8680);
+}

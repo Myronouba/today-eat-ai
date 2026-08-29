@@ -155,6 +155,80 @@
     const hs = $("#meHistSub2");
     if (hs) hs.textContent = "已存 " + n + " 顿";
   }
+  /* 渲染成就页面（独立页面） */
+  function renderAchievePage() {
+    const hist = loadHistory();
+    const n = hist && hist.length ? hist.length : 0;
+    const lv = foodieLevel(n);
+    const container = $("#achieveContainer");
+    if (!container) return;
+
+    // 计算进度
+    const prevLevel = FOODIE_LEVELS.find(l => l.to <= n) || FOODIE_LEVELS[0];
+    const progress = lv.to === Infinity ? 100 : Math.min(100, Math.round((n - lv.min) / (lv.to - lv.min) * 100));
+
+    // 统计数据
+    const allNames = hist.flatMap(r => r.names || []);
+    const doneCnt = hist.filter(r => r.checkedIn).length;
+
+    // 等级列表HTML
+    const levelsHTML = FOODIE_LEVELS.map((l, idx) => {
+      const unlocked = n >= l.min;
+      const isCurrent = lv.name === l.name;
+      const statusClass = isCurrent ? "current" : (unlocked ? "unlocked" : "locked");
+      const statusText = isCurrent ? "进行中" : (unlocked ? "已解锁" : "未解锁");
+      const toText = l.to === Infinity ? "∞" : l.to;
+      return `
+        <div class="achieve-level-item ${statusClass}">
+          <div class="achieve-item-icon">${l.icon}</div>
+          <div class="achieve-item-info">
+            <div class="achieve-item-name">${l.name}</div>
+            <div class="achieve-item-desc">累计 ${l.min} - ${toText} 顿</div>
+          </div>
+          <div class="achieve-item-status ${statusClass}">${statusText}</div>
+        </div>`;
+    }).join("");
+
+    container.innerHTML = `
+      <!-- 当前等级卡片 -->
+      <div class="achieve-current">
+        <div class="achieve-level-icon">${lv.icon}</div>
+        <div class="achieve-level-name">${lv.name}</div>
+        <div class="achieve-level-desc">已累计干饭 ${n} 顿</div>
+        <div class="achieve-progress-bar">
+          <div class="achieve-progress-fill" style="width: ${progress}%"></div>
+        </div>
+        <div class="achieve-progress-text">${n}/${lv.to === Infinity ? "∞" : lv.to} 顿 · ${progress}%</div>
+      </div>
+
+      <!-- 统计数据 -->
+      <div class="achieve-section-title">📊 干饭数据</div>
+      <div class="achieve-stats">
+        <div class="achieve-stat-card">
+          <div class="achieve-stat-num">${n}</div>
+          <div class="achieve-stat-label">顿好饭</div>
+        </div>
+        <div class="achieve-stat-card">
+          <div class="achieve-stat-num">${allNames.length}</div>
+          <div class="achieve-stat-label">道菜</div>
+        </div>
+        <div class="achieve-stat-card">
+          <div class="achieve-stat-num">${doneCnt}</div>
+          <div class="achieve-stat-label">已打卡</div>
+        </div>
+        <div class="achieve-stat-card">
+          <div class="achieve-stat-num">${FOODIE_LEVELS.findIndex(l => l.name === lv.name) + 1}/${FOODIE_LEVELS.length}</div>
+          <div class="achieve-stat-label">等级进度</div>
+        </div>
+      </div>
+
+      <!-- 等级列表 -->
+      <div class="achieve-section-title">🏆 等级之路</div>
+      <div class="achieve-levels-list">
+        ${levelsHTML}
+      </div>
+    `;
+  }
 
   /* ---------- 发现页 ---------- */
   const LUCK_DISHES = [
@@ -441,6 +515,7 @@
     home: { e: "🍳", t: "在家吃" }, couple: { e: "💞", t: "情侣一起做" },
     out: { e: "🍽️", t: "出去吃" }, discover: { e: "🧭", t: "发现" },
     history: { e: "📖", t: "历史" },
+    achieve: { e: "🏆", t: "干饭成就" },
     moments: { e: "🍜", t: "菜友圈" },
     contacts: { e: "👥", t: "通讯录" },
     "user-profile": { e: "👤", t: "个人资料" },
@@ -514,7 +589,7 @@
       "couple": "couple", "couple-result": "couple", "couple-tasks": "couple", "couple-card": "couple",
       "out": "out",
       "discover": "discover",
-      "me": "me", "history": "me", "profile": "me", "settings": "me", "record": "me", "theme": "me",
+      "me": "me", "history": "me", "achieve": "me", "profile": "me", "settings": "me", "record": "me", "theme": "me",
       "moments": "discover",
       "contacts": "discover",
       "user-profile": "discover",
@@ -2348,10 +2423,10 @@
     showView("login");
   });
   $("#btnLogoutMe").addEventListener("click", logoutUser);
-  /* 干饭成就：点击进入历史记录回顾 */
+  /* 干饭成就：点击进入成就页面 */
   $("#btnMeAchieve").addEventListener("click", () => {
-    renderHistory();
-    showView("history");
+    renderAchievePage();
+    showView("achieve");
     window.scrollTo({ top: 0 });
   });
   /* 主题：展开 / 收起主题色选择 */
@@ -2366,7 +2441,7 @@
     const act = it.dataset.act;
     if (act === "moments") { if (window.renderMoments) window.renderMoments(); showView("moments"); return; }
     if (act === "contacts") { if (window.renderContacts) window.renderContacts(); showView("contacts"); return; }
-    if (act === "achieve") { renderMeView(); showView("me"); return; }
+    if (act === "achieve") { renderAchievePage(); showView("achieve"); return; }
     if (act === "near") { showView("out"); return; }
     showDisc(act);
   });
