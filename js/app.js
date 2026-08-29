@@ -1348,15 +1348,15 @@
             </button>
             <button class="mc-action mc-fav" data-idx="${i}" data-mode="${mode}" data-id="${d.id || 0}" title="加收藏">
               <span class="mc-action-icon">⭐</span>
-              <span class="mc-action-text">收藏</span>
+              <span class="mc-action-text">加收藏</span>
             </button>
             <button class="mc-action mc-dislike" data-idx="${i}" data-mode="${mode}" data-id="${d.id || 0}" title="不喜欢">
               <span class="mc-action-icon">👎</span>
               <span class="mc-action-text">不喜欢</span>
             </button>
-            <button class="mc-action mc-cook" data-idx="${i}" data-mode="${mode}" data-id="${d.id || 0}" title="开始做">
-              <span class="mc-action-icon">👨‍🍳</span>
-              <span class="mc-action-text">开始做</span>
+            <button class="mc-action mc-cook" data-idx="${i}" data-mode="${mode}" data-id="${d.id || 0}" title="自动录入">
+              <span class="mc-action-icon">📝</span>
+              <span class="mc-action-text">自动录入</span>
             </button>
           </div>` : "";
       return `
@@ -1415,14 +1415,26 @@
         }
       });
     });
-    // 开始做
+    // 自动录入
     el.querySelectorAll(".mc-cook").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
         const dishId = Number(btn.dataset.id);
-        const mode = btn.dataset.mode;
-        toast("进入菜谱详情，开始做饭吧 👨‍🍳");
-        setTimeout(() => openRecipe(dishId, mode), 300);
+        const dishName = btn.closest(".menu-card").querySelector(".mc-name").textContent;
+        // 自动录入到历史记录
+        const history = JSON.parse(localStorage.getItem("eat-ai-history") || "[]");
+        const today = new Date().toISOString().split("T")[0];
+        history.unshift({
+          id: Date.now(),
+          dishId: dishId,
+          name: dishName,
+          date: today,
+          time: new Date().toLocaleTimeString("zh-CN", {hour: "2-digit", minute: "2-digit"}),
+          mode: btn.dataset.mode
+        });
+        localStorage.setItem("eat-ai-history", JSON.stringify(history.slice(0, 100)));
+        toast("已自动录入今日菜单 📝");
+        btn.classList.add("active");
       });
     });
     } catch (e) {

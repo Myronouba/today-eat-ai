@@ -1353,21 +1353,39 @@ body[data-theme="glass"] .stage { padding-bottom: 96px; }
 .memorial-page-wrap .memorial .m-btn-row { margin-top: 10px; }
 
 
-/* Q版AI番茄进度图标 */
+/* Q版AI番茄进度图标 - 在进度条上 */
 .at-tomato {
   position: absolute;
-  top: 50%;
+  bottom: 100%;
   left: 0;
-  transform: translate(-50%, -50%);
-  font-size: 22px;
-  z-index: 2;
-  transition: left 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
-  filter: drop-shadow(0 2px 4px rgba(225, 77, 42, 0.3));
-  animation: tomatoBounce 1.2s ease-in-out infinite;
+  transform: translateX(-50%);
+  font-size: 20px;
+  z-index: 3;
+  transition: left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  filter: drop-shadow(0 2px 6px rgba(225, 77, 42, 0.4));
+  animation: tomatoFloat 1s ease-in-out infinite;
+  margin-bottom: 4px;
 }
-@keyframes tomatoBounce {
-  0%, 100% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-50%, -60%) scale(1.1); }
+@keyframes tomatoFloat {
+  0%, 100% { transform: translateX(-50%) translateY(0); }
+  50% { transform: translateX(-50%) translateY(-4px); }
+}
+/* AI特效图标跳动 */
+.ai-icon-bounce {
+  display: inline-block;
+  font-size: 42px;
+  animation: aiBounce 0.8s ease-in-out infinite;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.1));
+}
+@keyframes aiBounce {
+  0%, 100% { transform: translateY(0) scale(1); }
+  25% { transform: translateY(-6px) scale(1.05); }
+  50% { transform: translateY(0) scale(1); }
+  75% { transform: translateY(-3px) scale(1.02); }
+}
+/* 进度条流畅度优化 */
+.ai-thinking .at-bar {
+  transition: width 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 /* 菜品操作栏 - 4个功能按钮 */
@@ -1397,7 +1415,16 @@ body[data-theme="glass"] .stage { padding-bottom: 96px; }
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 .mc-action:active { transform: translateY(0) scale(0.95); }
-.mc-action-icon { font-size: 18px; line-height: 1; transition: transform 0.3s ease; }
+.mc-action-icon {
+  font-size: 20px;
+  line-height: 1;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.3s ease;
+}
 .mc-action:hover .mc-action-icon { transform: scale(1.15); }
 .mc-action-text { font-size: 11px; font-weight: 500; color: var(--ink-soft); letter-spacing: 0.02em; }
 .mc-swap { border-color: rgba(225, 77, 42, 0.15); background: linear-gradient(135deg, #FFF8F5 0%, #FFF3EE 100%); }
@@ -1413,3 +1440,44 @@ body[data-theme="glass"] .stage { padding-bottom: 96px; }
 .mc-cook { border-color: rgba(39, 174, 96, 0.15); background: linear-gradient(135deg, #F5FFF8 0%, #E8F8F0 100%); }
 .mc-cook:hover { border-color: rgba(39, 174, 96, 0.35); box-shadow: 0 4px 12px rgba(39, 174, 96, 0.12); }
 .mc-cook .mc-action-text { color: #27AE60; }
+
+
+/* 结果描述面板铺满 */
+.result-head { width: 100%; }
+.reason-card-full {
+  width: 100%;
+  position: relative;
+  padding-right: 80px;
+}
+/* 右上角换一批按钮 */
+.shuffle-inline {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(225, 77, 42, 0.25);
+  transition: all 0.25s ease;
+  font-family: inherit;
+  z-index: 2;
+}
+.shuffle-inline svg { width: 14px; height: 14px; transition: transform 0.4s ease; }
+.shuffle-inline span { font-size: 12px; font-weight: 600; }
+.shuffle-inline:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(225, 77, 42, 0.35);
+}
+.shuffle-inline:hover svg { transform: rotate(180deg); }
+.shuffle-inline:active { transform: scale(0.95); }
+
+.mc-cook.active {
+  background: linear-gradient(135deg, #D5F5E3 0%, #ABEBC6 100%);
+  border-color: rgba(39, 174, 96, 0.5);
+}
