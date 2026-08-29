@@ -2433,6 +2433,16 @@
   $("#btnMeTheme").addEventListener("click", () => {
     $("#meThemeBox").classList.toggle("hidden");
   });
+  /* 设置中心：点击进入设置页面 */
+  $("#btnMeSettings").addEventListener("click", () => {
+    showView("settings");
+  });
+  /* 历史记录：点击进入历史记录页面 */
+  $("#btnMeHistory").addEventListener("click", () => {
+    renderHistory();
+    showView("history");
+    window.scrollTo({ top: 0 });
+  });
 
   /* ---------- 发现页：列表项交互 + 弹层 ---------- */
   $("#view-discover .me-panel").addEventListener("click", (e) => {
