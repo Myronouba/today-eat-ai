@@ -307,6 +307,11 @@ body.hide-shell { padding-top: 0; }
   box-shadow: var(--shadow); border: 1px solid rgba(237,230,219,.6);
 }
 .ai-thinking.show { display: flex; animation: fadeUp .4s var(--ease); }
+/* 加载状态下隐藏结果内容 */
+.result.thinking-mode .result-head,
+.result.thinking-mode .menu-list,
+.result.thinking-mode .btn-primary,
+.result.thinking-mode .btn-sub { display: none !important; }
 .at-icon { font-size: 42px; margin-bottom: 14px; animation: atBounce 1.2s ease-in-out infinite; }
 .at-text { font-size: 15px; color: var(--ink-soft); font-weight: 500; margin-bottom: 12px; }
 .at-dots { display: flex; gap: 6px; }
@@ -319,6 +324,26 @@ body.hide-shell { padding-top: 0; }
 .at-dots span:nth-child(3) { animation-delay: .4s; }
 @keyframes atBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 @keyframes atPulse { 0%,100% { opacity: .3; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.1); } }
+/* 试算进度条 */
+.at-progress { width: 100%; max-width: 280px; margin-top: 18px; }
+.at-bar {
+  height: 6px; border-radius: 3px; background: var(--bg);
+  overflow: hidden; margin-bottom: 10px;
+}
+.at-bar::after {
+  content: ""; display: block; height: 100%; width: 0%;
+  background: linear-gradient(90deg, var(--accent), #FF8A5C);
+  border-radius: 3px; transition: width .3s ease;
+}
+.at-thinking .at-bar::after { width: var(--progress, 0%); }
+.at-steps { display: flex; justify-content: space-between; gap: 4px; }
+.at-step {
+  font-size: 10px; color: var(--muted); flex: 1; text-align: center;
+  padding: 4px 2px; border-radius: 6px; transition: all .3s ease;
+  white-space: nowrap;
+}
+.at-step.active { color: var(--accent); font-weight: 600; background: var(--accent-soft); }
+.at-step.done { color: var(--green); }
 .result-head {
   display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
   margin-bottom: 16px;

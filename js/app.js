@@ -1233,46 +1233,77 @@
     $("#btnHmAdjust .hm-caret").textContent = open ? "▴" : "▾";
   });
 
-  async function generateHome(showToast) {
-    const opts = {
-      people: Number(chipVal($("#hmPeople")) || prefs.people || 2),
-      cooker: chipVal($("#hmCooker")) || prefs.cooker || "newbie",
-      mood: chipVal($("#hmMood")) || "balance",
-      spicyTarget: prefs.spicy
-    };
-    // 显示AI纠结中动效
-    if (showToast) {
-      showView("home-result");
-      $("#homeThinking").classList.add("show");
-      $("#homeResult").querySelector(".result-head").style.display = "none";
-      $("#homeMenuList").style.display = "none";
-      $("#btnGoList").style.display = "none";
-      $("#btnShareHome").style.display = "none";
-      window.scrollTo({ top: 0 });
-      await new Promise(r => setTimeout(r, 1200)); // 模拟AI思考时间
+  // 更新试算进度
+  function updateThinking(prefix, step, text) {
+    const bar = $("#" + prefix + "ThinkingBar");
+    const txt = $("#" + prefix + "ThinkingText");
+    const steps = document.querySelectorAll("#" + prefix + "Thinking .at-step");
+    if (bar) bar.style.setProperty("--progress", ((step + 1) / 4 * 100) + "%");
+    if (txt && text) txt.textContent = text;
+    steps.forEach((s, i) => {
+      s.classList.remove("active", "done");
+      if (i < step) s.classList.add("done");
+      else if (i === step) s.classList.add("active");
+    });
+  }
+  // 显示/隐藏加载状态（用class控制，避免style.display出错）
+  function setThinkingVisible(prefix, visible) {
+    const thinking = $("#" + prefix + "Thinking");
+    const result = prefix === "home" ? $("#homeResult") : $("#coupleResult");
+    if (!thinking || !result) return;
+    if (visible) {
+      thinking.classList.add("show");
+      result.classList.add("thinking-mode");
+    } else {
+      thinking.classList.remove("show");
+      result.classList.remove("thinking-mode");
     }
-    const res = Engine.genHomeMenu(opts, prefs);
-    homeState = res;
-    let reason = Engine.buildReason(res.dishes, res.ctx, "home", opts, prefs);
-    try {
-      const aiReason = await Promise.race([
-        window.AI.enhanceReason(res.dishes, res.ctx, "home", opts, prefs),
-        new Promise(r => setTimeout(() => r(null), 6000))   // AI 挂起 6 秒超时兜底
-      ]);
-      if (aiReason) reason = aiReason;
-    } catch (e) { /* AI 异常 → 用本地文案 */ }
+  }
 
-    $("#homeReason").textContent = reason;
-    renderMenuList($("#homeMenuList"), res.dishes, "home");
-    // 隐藏加载状态，显示结果
-    $("#homeThinking").classList.remove("show");
-    $("#homeResult").querySelector(".result-head").style.display = "";
-    $("#homeMenuList").style.display = "";
-    $("#btnGoList").style.display = "";
-    $("#btnShareHome").style.display = "";
-    showView("home-result");
-    window.scrollTo({ top: 0 });
-    if (showToast) toast("已为你推算今日菜单");
+  async function generateHome(showToast) {
+    try {
+      const opts = {
+        people: Number(chipVal($("#hmPeople")) || prefs.people || 2),
+        cooker: chipVal($("#hmCooker")) || prefs.cooker || "newbie",
+        mood: chipVal($("#hmMood")) || "balance",
+        spicyTarget: prefs.spicy
+      };
+      // 显示AI纠结中动效
+      if (showToast) {
+        showView("home-result");
+        setThinkingVisible("home", true);
+        window.scrollTo({ top: 0 });
+        updateThinking("home", 0, "正在过滤忌口菜品...");
+        await new Promise(r => setTimeout(r, 250));
+      }
+      updateThinking("home", 1, "多因子评分中（辣度/口味/难度/健康/季节）...");
+      await new Promise(r => setTimeout(r, 250));
+      const res = Engine.genHomeMenu(opts, prefs);
+      homeState = res;
+      updateThinking("home", 2, "智能选菜中，避免食材重复...");
+      await new Promise(r => setTimeout(r, 200));
+      let reason = Engine.buildReason(res.dishes, res.ctx, "home", opts, prefs);
+      updateThinking("home", 3, "生成AI推荐理由...");
+      try {
+        const aiReason = await Promise.race([
+          window.AI.enhanceReason(res.dishes, res.ctx, "home", opts, prefs),
+          new Promise(r => setTimeout(() => r(null), 2000))   // AI 挂起 2 秒超时兜底（从6秒缩短）
+        ]);
+        if (aiReason) reason = aiReason;
+      } catch (e) { /* AI 异常 → 用本地文案 */ }
+
+      $("#homeReason").textContent = reason;
+      renderMenuList($("#homeMenuList"), res.dishes, "home");
+      // 隐藏加载状态，显示结果
+      setThinkingVisible("home", false);
+      showView("home-result");
+      window.scrollTo({ top: 0 });
+      if (showToast) toast("已为你推算今日菜单");
+    } catch (e) {
+      console.error("generateHome error:", e);
+      setThinkingVisible("home", false);
+      toast("推算出错，请重试");
+    }
   }
 
   $("#btnGenHome").addEventListener("click", () => generateHome(true));
@@ -1547,42 +1578,50 @@
   bindChips($("#cpSpicy"));
 
   async function generateCouple(showToast) {
-    const opts = {
-      occasion: chipVal($("#cpOccasion")) || "daily",
-      spicy: Number(chipVal($("#cpSpicy")) || 0),
-      people: 2
-    };
-    // 显示AI纠结中动效
-    if (showToast) {
-      showView("couple-result");
-      $("#coupleThinking").classList.add("show");
-      $("#coupleResult").querySelector(".result-head").style.display = "none";
-      $("#coupleMenuList").style.display = "none";
-      window.scrollTo({ top: 0 });
-      await new Promise(r => setTimeout(r, 1200));
-    }
-    const res = Engine.genCoupleMenu(opts, prefs);
-    coupleState = res;
-    let reason = Engine.buildReason(res.dishes, res.ctx, "couple", opts, prefs);
     try {
-      const aiReason = await Promise.race([
-        window.AI.enhanceReason(res.dishes, res.ctx, "couple", opts, prefs),
-        new Promise(r => setTimeout(() => r(null), 6000))
-      ]);
-      if (aiReason) reason = aiReason;
-    } catch (e) { /* AI 异常 → 用本地文案 */ }
+      const opts = {
+        occasion: chipVal($("#cpOccasion")) || "daily",
+        spicy: Number(chipVal($("#cpSpicy")) || 0),
+        people: 2
+      };
+      // 显示AI纠结中动效
+      if (showToast) {
+        showView("couple-result");
+        setThinkingVisible("couple", true);
+        window.scrollTo({ top: 0 });
+        updateThinking("couple", 0, "正在过滤忌口菜品...");
+        await new Promise(r => setTimeout(r, 250));
+      }
+      updateThinking("couple", 1, "协作强度评分中...");
+      await new Promise(r => setTimeout(r, 250));
+      const res = Engine.genCoupleMenu(opts, prefs);
+      coupleState = res;
+      updateThinking("couple", 2, "智能选菜中，搭配协作分工...");
+      await new Promise(r => setTimeout(r, 200));
+      let reason = Engine.buildReason(res.dishes, res.ctx, "couple", opts, prefs);
+      updateThinking("couple", 3, "生成AI推荐理由...");
+      try {
+        const aiReason = await Promise.race([
+          window.AI.enhanceReason(res.dishes, res.ctx, "couple", opts, prefs),
+          new Promise(r => setTimeout(() => r(null), 2000))
+        ]);
+        if (aiReason) reason = aiReason;
+      } catch (e) { /* AI 异常 → 用本地文案 */ }
 
-    $("#coupleReason").textContent = reason;
-    renderMenuList($("#coupleMenuList"), res.dishes, "couple");
-    // 隐藏加载状态，显示结果
-    $("#coupleThinking").classList.remove("show");
-    $("#coupleResult").querySelector(".result-head").style.display = "";
-    $("#coupleMenuList").style.display = "";
-    if (showToast) {
-      showView("couple-result");
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      $("#coupleReason").textContent = reason;
+      renderMenuList($("#coupleMenuList"), res.dishes, "couple");
+      // 隐藏加载状态，显示结果
+      setThinkingVisible("couple", false);
+      if (showToast) {
+        showView("couple-result");
+        window.scrollTo({ top: 0, behavior: "smooth" });
+      }
+      if (showToast) toast("为你们挑了适合一起做的菜");
+    } catch (e) {
+      console.error("generateCouple error:", e);
+      setThinkingVisible("couple", false);
+      toast("推算出错，请重试");
     }
-    if (showToast) toast("为你们挑了适合一起做的菜");
   }
 
   $("#btnGenCouple").addEventListener("click", () => generateCouple(true));

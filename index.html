@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260829l">
+<link rel="stylesheet" href="css/style.css?v=20260829m">
 </head>
 <body>
 
@@ -385,8 +385,17 @@
     <div class="result" id="homeResult">
       <div class="ai-thinking" id="homeThinking">
         <div class="at-icon">🍳</div>
-        <div class="at-text">AI 正在纠结今天吃什么...</div>
+        <div class="at-text" id="homeThinkingText">AI 正在纠结今天吃什么...</div>
         <div class="at-dots"><span></span><span></span><span></span></div>
+        <div class="at-progress">
+          <div class="at-bar" id="homeThinkingBar"></div>
+          <div class="at-steps">
+            <span class="at-step" data-step="0">过滤忌口</span>
+            <span class="at-step" data-step="1">多因子评分</span>
+            <span class="at-step" data-step="2">智能选菜</span>
+            <span class="at-step" data-step="3">生成理由</span>
+          </div>
+        </div>
       </div>
       <div class="result-head">
         <p class="reason" id="homeReason"></p>
@@ -517,8 +526,17 @@
     <div class="result" id="coupleResult">
       <div class="ai-thinking" id="coupleThinking">
         <div class="at-icon">👩‍❤️‍👨</div>
-        <div class="at-text">AI 正在为你们挑选协作菜单...</div>
+        <div class="at-text" id="coupleThinkingText">AI 正在为你们挑选协作菜单...</div>
         <div class="at-dots"><span></span><span></span><span></span></div>
+        <div class="at-progress">
+          <div class="at-bar" id="coupleThinkingBar"></div>
+          <div class="at-steps">
+            <span class="at-step" data-step="0">过滤忌口</span>
+            <span class="at-step" data-step="1">协作评分</span>
+            <span class="at-step" data-step="2">智能选菜</span>
+            <span class="at-step" data-step="3">生成理由</span>
+          </div>
+        </div>
       </div>
       <div class="result-head">
         <p class="reason" id="coupleReason"></p>
@@ -637,13 +655,13 @@
 <!-- 全局提示 -->
 <div class="toast" id="toast"></div>
 
-<script src="js/recipes.js?v=20260829l"></script>
-<script src="js/recipes2.js?v=20260829l"></script>
-<script src="js/recipes3.js?v=20260829l"></script>
-<script src="js/recipes4.js?v=20260829l"></script>
-<script src="js/engine.js?v=20260829l"></script>
-<script src="js/llm.js?v=20260829l"></script>
-<script src="js/data/china.js?v=20260829l"></script>
-<script src="js/app.js?v=20260829l"></script>
+<script src="js/recipes.js?v=20260829m"></script>
+<script src="js/recipes2.js?v=20260829m"></script>
+<script src="js/recipes3.js?v=20260829m"></script>
+<script src="js/recipes4.js?v=20260829m"></script>
+<script src="js/engine.js?v=20260829m"></script>
+<script src="js/llm.js?v=20260829m"></script>
+<script src="js/data/china.js?v=20260829m"></script>
+<script src="js/app.js?v=20260829m"></script>
 </body>
 </html>
