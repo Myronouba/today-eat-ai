@@ -489,6 +489,88 @@
     if (id === "history") renderHistory();
     if (id === "home") renderHomeHello();
     if (id === "welcome") renderWelcomeSlogan();
+    if (id === "record") renderRecordPage();
+  }
+
+  /* ---------- 自动录入历史记录页面 ---------- */
+  function renderRecordPage() {
+    const history = JSON.parse(localStorage.getItem("eat-ai-history") || "[]");
+    const today = new Date().toISOString().split("T")[0];
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+
+    // 统计
+    $("#recordTotal").textContent = history.length;
+    $("#recordToday").textContent = history.filter(h => h.date === today).length;
+    $("#recordWeek").textContent = history.filter(h => h.date >= weekAgo).length;
+
+    // 渲染列表
+    const listEl = $("#recordList");
+    if (history.length === 0) {
+      listEl.innerHTML = `<div class="record-empty">
+        <div class="empty-icon">📝</div>
+        <p>还没有记录哦</p>
+        <p class="empty-sub">在菜品卡片点击「自动录入」即可记录今日菜单</p>
+      </div>`;
+      return;
+    }
+
+    // 按日期分组
+    const groups = {};
+    history.forEach(h => {
+      if (!groups[h.date]) groups[h.date] = [];
+      groups[h.date].push(h);
+    });
+
+    const modeMap = { home: "在家吃", couple: "情侣一起做", out: "出去吃" };
+    let html = "";
+    Object.keys(groups).sort((a, b) => b.localeCompare(a)).forEach(date => {
+      const dateLabel = date === today ? "今天" : date;
+      html += `<div class="record-date-group">
+        <div class="record-date-label">${dateLabel} · ${groups[date].length}道</div>`;
+      groups[date].forEach(item => {
+        html += `<div class="record-item" data-id="${item.id}">
+          <div class="record-item-info">
+            <div class="record-item-name">${item.name}</div>
+            <div class="record-item-meta">
+              <span class="record-time">${item.time || ""}</span>
+              <span class="record-mode">${modeMap[item.mode] || item.mode || ""}</span>
+            </div>
+          </div>
+          <button class="record-delete" data-id="${item.id}" title="删除">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6L6 18"/><path d="M6 6l12 12"/></svg>
+          </button>
+        </div>`;
+      });
+      html += `</div>`;
+    });
+    listEl.innerHTML = html;
+
+    // 绑定删除事件
+    listEl.querySelectorAll(".record-delete").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const id = Number(btn.dataset.id);
+        let history = JSON.parse(localStorage.getItem("eat-ai-history") || "[]");
+        history = history.filter(h => h.id !== id);
+        localStorage.setItem("eat-ai-history", JSON.stringify(history));
+        toast("已删除");
+        renderRecordPage();
+      });
+    });
+  }
+
+  // 清空记录
+  function clearRecord() {
+    const history = JSON.parse(localStorage.getItem("eat-ai-history") || "[]");
+    if (history.length === 0) {
+      toast("没有记录可清空");
+      return;
+    }
+    if (confirm("确定要清空所有记录吗？")) {
+      localStorage.removeItem("eat-ai-history");
+      toast("已清空所有记录");
+      renderRecordPage();
+    }
   }
 
   /* ---------- 登录页 slogan：100 句轮播（每次刷新同步换一句） ---------- */
@@ -1433,8 +1515,10 @@
           mode: btn.dataset.mode
         });
         localStorage.setItem("eat-ai-history", JSON.stringify(history.slice(0, 100)));
-        toast("已自动录入今日菜单 📝");
+        toast("已自动录入，查看记录 📝");
         btn.classList.add("active");
+        // 跳转到历史记录页面
+        setTimeout(() => showView("record"), 500);
       });
     });
     } catch (e) {
@@ -2035,6 +2119,22 @@
     if (btn.id === "btnTopBack") return;   // 顶部返回按钮单独处理
     btn.addEventListener("click", () => showView(btn.dataset.back, true));
   });
+  // 自动录入页面清空按钮
+  const btnClearRecord = document.getElementById("btnClearRecord");
+  if (btnClearRecord) {
+    btnClearRecord.addEventListener("click", function() {
+      const history = JSON.parse(localStorage.getItem("eat-ai-history") || "[]");
+      if (history.length === 0) {
+        toast("没有记录可清空");
+        return;
+      }
+      if (confirm("确定要清空所有记录吗？")) {
+        localStorage.removeItem("eat-ai-history");
+        toast("已清空所有记录");
+        if (typeof renderRecordPage === "function") renderRecordPage();
+      }
+    });
+  }
 
   /* 进入主流程：没做过口味问答 → 先走 30 秒问答；做过 → 直接进主页 */
   function enterWithOnboard() {
