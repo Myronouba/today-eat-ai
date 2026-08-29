@@ -133,12 +133,12 @@ body.hide-shell { padding-top: 0; }
 /* ============ 底部导航栏 ============ */
 .tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
-  max-width: 560px; margin: 0 auto;
-  display: flex; gap: 2px; padding: 8px 10px calc(10px + env(safe-area-inset-bottom));
-  background: #F1E9DC;                     /* 稍深的固定底色，不再随内容透出 */
+  width: calc(100% - 24px); max-width: 520px; margin: 0 auto 6px;
+  display: flex; gap: 2px; padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
+  background: #F1E9DC;
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
-  border-top: 1px solid #E3D9C8;
-  box-shadow: 0 -6px 20px rgba(120, 60, 20, .08);
+  border: 1px solid #E3D9C8; border-radius: 24px;
+  box-shadow: 0 6px 20px rgba(120, 60, 20, .12);
 }
 .tab {
   flex: 1; min-width: 0;
@@ -1172,25 +1172,14 @@ body[data-theme="glass"] .topbar {
 
 /* 底部主菜单栏：毛玻璃浮起胶囊 —— 参考视频前半段 */
 body[data-theme="glass"] .tabs {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  margin: 0 auto 10px;
-  width: calc(100% - 24px);
-  max-width: 520px;
   background: rgba(255, 255, 255, .55);
   backdrop-filter: blur(28px) saturate(1.5);
   -webkit-backdrop-filter: blur(28px) saturate(1.5);
   border: 1px solid rgba(255, 255, 255, .7);
-  border-radius: 24px;
   box-shadow:
     0 8px 24px rgba(80, 50, 20, .12),
     inset 0 1px 0 rgba(255, 255, 255, .85),
     inset 0 -1px 0 rgba(0, 0, 0, .04);
-  padding: 8px 6px calc(8px + env(safe-area-inset-bottom));
-  gap: 2px;
-  z-index: 50;
 }
 
 /* 主菜单按钮：图标+文字，透明背景，平滑过渡 */
