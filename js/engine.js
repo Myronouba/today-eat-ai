@@ -89,6 +89,7 @@ window.Engine = (function () {
 
   /* ---------- 营养搭配分析：整桌菜的营养均衡度 ---------- */
   function analyzeMenuNutrition(dishes) {
+    try {
     const totalKcal = dishes.reduce((s, d) => s + (d.kcal || 0), 0);
     const totalProtein = dishes.reduce((s, d) => s + (d.protein || 0), 0);
     const hasVeg = dishes.some(d => d.type === "veg");
@@ -114,6 +115,10 @@ window.Engine = (function () {
     if (totalKcal > 1800) tips.push("今天热量偏高，注意适量哦");
     if (totalProtein >= 50) tips.push("蛋白质充足，很适合健身塑形");
     return { score, level, tips, totalKcal, totalProtein, benefits: [...allBenefits].slice(0, 3) };
+    } catch (e) {
+      console.error("analyzeMenuNutrition error:", e);
+      return { score: 70, level: "搭配合理", tips: [], totalKcal: 0, totalProtein: 0, benefits: [] };
+    }
   }
 
   /* 忌口过滤 */
@@ -325,6 +330,7 @@ window.Engine = (function () {
 
   /* ---------- 推荐理由（AI 推算文案 · 升级版） ---------- */
   function buildReason(dishes, ctx, mode, opts, prefs) {
+    try {
     opts = opts || {};
     const people = ctx.people;
     const season = getSeason();
@@ -373,6 +379,12 @@ window.Engine = (function () {
     const luckyText = ` 对了，今日运势菜是${lucky.emoji}${lucky.name}——${lucky.fortune}。`;
 
     return `${head} 今晚主打：${dishTips}。${nutritionText}${luckyText}`;
+    } catch (e) {
+      console.error("buildReason error:", e);
+      const people = (ctx && ctx.people) || 2;
+      const names = Array.isArray(dishes) ? dishes.map(d => d && d.name ? d.name : "神秘菜品").join("、") : "今日特选";
+      return `为你${people}人推荐：${names}。AI精心搭配，营养均衡，祝你用餐愉快！`;
+    }
   }
 
   /* ---------- 买菜清单 ---------- */
@@ -578,7 +590,8 @@ window.Engine = (function () {
 
   /* ---------- 营养健康评估 ---------- */
   function assessNutrition(d) {
-    const ing = (d.ing || []).map(i => i[0]).join(" ");
+    if (!d) return { score: 70, level: "普通", benefits: [], cautions: ["数据缺失"], summary: "普通" };
+    const ing = Array.isArray(d.ing) ? d.ing.map(i => Array.isArray(i) ? String(i[0] || "") : String(i || "")).join(" ") : "";
     const benefits = [];
     const cautions = [];
     let score = 72;
