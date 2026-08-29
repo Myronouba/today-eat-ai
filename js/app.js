@@ -2284,6 +2284,8 @@
     if (tabSwipeMoved) { tabSwipeMoved = false; return; }  // 拖拽结束的 click 忽略，由 touchend 处理
     // 点击主菜单总是显示主菜单页面，不恢复上次访问的子页面
     const tabView = tab.dataset.view;
+    // 清空返回栈，避免从子页面切换主菜单后，返回按钮又跳回之前的子页面
+    backStack = [];
     showView(tabView);
   });
   /* 底部导航手势滑动切换：一根手指滑动，停留位置即当前菜单（触摸+鼠标） */
@@ -2326,7 +2328,11 @@
       setHover(-1);
       if (tabSwipeMoved) {
         const i = idxAtX(p.clientX);
-        if (i >= 0) showView(tabEls()[i].dataset.view);
+        if (i >= 0) {
+          // 清空返回栈，避免从子页面切换主菜单后，返回按钮又跳回之前的子页面
+          backStack = [];
+          showView(tabEls()[i].dataset.view);
+        }
       }
     }
     tabsEl.addEventListener("touchstart", onDown, { passive: true });
