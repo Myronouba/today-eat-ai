@@ -137,10 +137,10 @@ body.hide-shell { padding-top: 0; }
   width: calc(100% - 32px); max-width: 520px; margin: 0 auto 14px;
   display: flex; align-items: center; gap: 2px;
   padding: 10px 8px calc(10px + env(safe-area-inset-bottom));
-  background: rgba(255, 255, 255, .55);
+  background: rgba(255, 255, 255, .65);
   backdrop-filter: blur(20px) saturate(1.4); -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  border: 1px solid rgba(255, 255, 255, .65); border-radius: 28px;
-  box-shadow: 0 6px 24px rgba(80, 50, 20, .10), 0 2px 8px rgba(80, 50, 20, .06);
+  border: 1px solid rgba(255, 255, 255, .7); border-radius: 28px;
+  box-shadow: none;
 }
 .tab {
   flex: 1; min-width: 0;
@@ -156,8 +156,10 @@ body.hide-shell { padding-top: 0; }
 .tab-ico { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; transition: transform .2s var(--ease); }
 .tab-ico img { width: 100%; height: 100%; object-fit: contain; }
 .tab.active {
-  background: rgba(60, 55, 50, .08); color: var(--ink); font-weight: 600;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, .05);
+  background: transparent;
+  color: var(--ink);
+  font-weight: 600;
+  box-shadow: none;
 }
 .tab.active .tab-ico { transform: scale(1.1); }
 .tab:active { transform: scale(.92); }
@@ -916,7 +918,20 @@ body.hide-shell { overflow: hidden; }
   #view-splash.active .splash-logo { width: 80px; height: 80px; border-radius: 25px; margin-bottom: 18px; }
   #view-splash.active .splash-logo svg { width: 36px; height: 36px; }
   #view-splash.active .splash-brand { font-size: 32px; }
-  #view-splash.active .splash-brandline { bottom: 10px; }
+  #view-splash.active .splash-brandline {
+  position: absolute;
+  bottom: 28px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  color: var(--muted);
+  letter-spacing: 0.02em;
+  opacity: 0.8;
+}
 }
 /* 顶部柔光氛围：极简留白里的一抹暖调 */
 .welcome-wrap::before {
