@@ -335,7 +335,7 @@ body.hide-shell { padding-top: 0; }
   background: linear-gradient(90deg, var(--accent), #FF8A5C);
   border-radius: 3px; transition: width .3s ease;
 }
-.at-thinking .at-bar::after { width: var(--progress, 0%); }
+.ai-thinking .at-bar::after { width: var(--progress, 0%); }
 .at-steps { display: flex; justify-content: space-between; gap: 4px; }
 .at-step {
   font-size: 10px; color: var(--muted); flex: 1; text-align: center;

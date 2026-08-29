@@ -1273,21 +1273,21 @@
         showView("home-result");
         setThinkingVisible("home", true);
         window.scrollTo({ top: 0 });
-        updateThinking("home", 0, "正在过滤忌口菜品...");
-        await new Promise(r => setTimeout(r, 250));
+        updateThinking("home", 0, "正在从168道菜谱中过滤忌口...");
+        await new Promise(r => setTimeout(r, 1400));
       }
-      updateThinking("home", 1, "多因子评分中（辣度/口味/难度/健康/季节）...");
-      await new Promise(r => setTimeout(r, 250));
+      updateThinking("home", 1, "多因子评分中（辣度/口味/难度/健康/季节/历史）...");
+      await new Promise(r => setTimeout(r, 1400));
       const res = Engine.genHomeMenu(opts, prefs);
       homeState = res;
-      updateThinking("home", 2, "智能选菜中，避免食材重复...");
-      await new Promise(r => setTimeout(r, 200));
+      updateThinking("home", 2, "智能选菜中，避免食材重复，搭配营养均衡...");
+      await new Promise(r => setTimeout(r, 1200));
       let reason = Engine.buildReason(res.dishes, res.ctx, "home", opts, prefs);
       updateThinking("home", 3, "生成AI推荐理由...");
       try {
         const aiReason = await Promise.race([
           window.AI.enhanceReason(res.dishes, res.ctx, "home", opts, prefs),
-          new Promise(r => setTimeout(() => r(null), 2000))   // AI 挂起 2 秒超时兜底（从6秒缩短）
+          new Promise(r => setTimeout(() => r(null), 2500))   // AI 挂起 2.5 秒超时兜底
         ]);
         if (aiReason) reason = aiReason;
       } catch (e) { /* AI 异常 → 用本地文案 */ }
@@ -1589,21 +1589,21 @@
         showView("couple-result");
         setThinkingVisible("couple", true);
         window.scrollTo({ top: 0 });
-        updateThinking("couple", 0, "正在过滤忌口菜品...");
-        await new Promise(r => setTimeout(r, 250));
+        updateThinking("couple", 0, "正在从168道菜谱中过滤忌口...");
+        await new Promise(r => setTimeout(r, 1400));
       }
-      updateThinking("couple", 1, "协作强度评分中...");
-      await new Promise(r => setTimeout(r, 250));
+      updateThinking("couple", 1, "协作强度评分中，挑选适合两人配合的菜...");
+      await new Promise(r => setTimeout(r, 1400));
       const res = Engine.genCoupleMenu(opts, prefs);
       coupleState = res;
-      updateThinking("couple", 2, "智能选菜中，搭配协作分工...");
-      await new Promise(r => setTimeout(r, 200));
+      updateThinking("couple", 2, "智能选菜中，搭配协作分工和仪式感...");
+      await new Promise(r => setTimeout(r, 1200));
       let reason = Engine.buildReason(res.dishes, res.ctx, "couple", opts, prefs);
       updateThinking("couple", 3, "生成AI推荐理由...");
       try {
         const aiReason = await Promise.race([
           window.AI.enhanceReason(res.dishes, res.ctx, "couple", opts, prefs),
-          new Promise(r => setTimeout(() => r(null), 2000))
+          new Promise(r => setTimeout(() => r(null), 2500))
         ]);
         if (aiReason) reason = aiReason;
       } catch (e) { /* AI 异常 → 用本地文案 */ }

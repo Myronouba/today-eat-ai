@@ -325,6 +325,7 @@ window.Engine = (function () {
 
   /* ---------- 推荐理由（AI 推算文案 · 升级版） ---------- */
   function buildReason(dishes, ctx, mode, opts, prefs) {
+    opts = opts || {};
     const people = ctx.people;
     const season = getSeason();
     const si = SEASON_INFO[season];
