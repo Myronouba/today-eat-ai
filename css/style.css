@@ -329,7 +329,7 @@ body.hide-shell { padding-top: 0; }
 @keyframes atBounce { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
 @keyframes atPulse { 0%,100% { opacity: .3; transform: scale(.8); } 50% { opacity: 1; transform: scale(1.1); } }
 /* 试算进度条 */
-.at-progress { width: 100%; max-width: 280px; margin-top: 18px; }
+.at-progress { width: 100%; max-width: 280px; margin-top: 18px; position: relative; }
 .at-bar {
   height: 6px; border-radius: 3px; background: var(--bg);
   overflow: hidden; margin-bottom: 10px;
@@ -1356,7 +1356,7 @@ body[data-theme="glass"] .stage { padding-bottom: 96px; }
 /* Q版AI番茄进度图标 - 在进度条上 */
 .at-tomato {
   position: absolute;
-  top: 50%;
+  top: 3px;
   left: 0;
   transform: translate(-50%, -50%);
   font-size: 22px;
@@ -1364,10 +1364,11 @@ body[data-theme="glass"] .stage { padding-bottom: 96px; }
   transition: left 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   filter: drop-shadow(0 2px 6px rgba(225, 77, 42, 0.5));
   animation: tomatoBounce 0.8s ease-in-out infinite;
+  pointer-events: none;
 }
 @keyframes tomatoBounce {
   0%, 100% { transform: translate(-50%, -50%) scale(1); }
-  50% { transform: translate(-50%, -55%) scale(1.1); }
+  50% { transform: translate(-50%, -60%) scale(1.1); }
 }
 /* AI特效图标跳动 */
 .ai-icon-bounce {
