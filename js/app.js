@@ -1773,20 +1773,12 @@
     if (tabSwipeMoved) { tabSwipeMoved = false; return; }  // 拖拽结束的 click 忽略，由 touchend 处理
     showView(tab.dataset.view);
   });
-  /* 底部导航放大镜滑动切换：玻璃放大镜跟随手指，放大显示当前菜单图标，松开即切换 */
+  /* 底部导航手势滑动切换：一根手指滑动，停留位置即当前菜单（触摸+鼠标） */
   let tabSwipeMoved = false;
-  (function initTabMagnifier() {
+  (function initTabSwipe() {
     const tabsEl = document.getElementById("tabs");
     if (!tabsEl) return;
-    /* 创建放大镜元素 */
-    const mag = document.createElement("div");
-    mag.className = "magnifier";
-    mag.id = "magnifier";
-    mag.innerHTML = '<div class="mag-inner"><img class="mag-img" src="" alt=""></div>';
-    document.body.appendChild(mag);
-    const magImg = mag.querySelector(".mag-img");
-
-    let isDown = false, startX = 0, startY = 0, currentIdx = -1;
+    let isDown = false, startX = 0, startY = 0, hoverIdx = -1;
     const tabEls = () => tabsEl.querySelectorAll(".tab");
     function idxAtX(x) {
       const list = tabEls();
@@ -1796,41 +1788,32 @@
       }
       return -1;
     }
-    function updateMag(x, y, idx) {
-      mag.style.left = x + "px";
-      mag.style.top = (y - 64) + "px";  // 放大镜在手指上方
-      if (idx >= 0) {
-        const img = tabEls()[idx].querySelector(".tab-ico img");
-        if (img && img.src) { magImg.src = img.src; magImg.style.display = "block"; }
-      } else { magImg.style.display = "none"; }
-      tabEls().forEach((t, i) => t.classList.toggle("mag-hover", i === idx));
+    function setHover(i) {
+      tabEls().forEach((t, k) => t.classList.toggle("swipe-hover", k === i));
     }
     function onDown(e) {
       const p = e.touches ? e.touches[0] : e;
       isDown = true; tabSwipeMoved = false;
       startX = p.clientX; startY = p.clientY;
-      currentIdx = idxAtX(startX);
-      mag.classList.add("active");
-      updateMag(startX, startY, currentIdx);
+      hoverIdx = idxAtX(startX);
+      if (hoverIdx >= 0) setHover(hoverIdx);
     }
     function onMove(e) {
       if (!isDown) return;
       const p = e.touches ? e.touches[0] : e;
       if (Math.abs(p.clientX - startX) > 6 || Math.abs(p.clientY - startY) > 6) tabSwipeMoved = true;
       if (tabSwipeMoved && e.cancelable) e.preventDefault();
-      const idx = idxAtX(p.clientX);
-      if (idx !== currentIdx) currentIdx = idx;
-      updateMag(p.clientX, p.clientY, currentIdx);
+      const i = idxAtX(p.clientX);
+      if (i >= 0 && i !== hoverIdx) { hoverIdx = i; setHover(i); }
     }
     function onUp(e) {
       if (!isDown) return;
       isDown = false;
-      mag.classList.remove("active");
       const p = e.changedTouches ? e.changedTouches[0] : e;
-      tabEls().forEach(t => t.classList.remove("mag-hover"));
+      setHover(-1);
       if (tabSwipeMoved) {
-        const idx = idxAtX(p.clientX);
-        if (idx >= 0) showView(tabEls()[idx].dataset.view);
+        const i = idxAtX(p.clientX);
+        if (i >= 0) showView(tabEls()[i].dataset.view);
       }
     }
     tabsEl.addEventListener("touchstart", onDown, { passive: true });
