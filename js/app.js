@@ -2940,4 +2940,6 @@
     showView("splash");
   }
   init();
+  // 暴露showView到全局，供social.js等外部脚本调用
+  window.showView = showView;
 })();
