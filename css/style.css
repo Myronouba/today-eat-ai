@@ -372,7 +372,10 @@ body.hide-shell { padding-top: 0; }
 }
 .reason-meta {
   display: flex; align-items: center; gap: 8px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+}
+.reason-meta .shuffle-inline {
+  margin-left: auto;
 }
 .ai-badge {
   display: inline-flex; align-items: center; gap: 4px;
@@ -1446,18 +1449,13 @@ body[data-theme="glass"] .stage { padding-bottom: 96px; }
 .result-head { width: 100%; }
 .reason-card-full {
   width: 100%;
-  position: relative;
-  padding-right: 80px;
 }
 /* 右上角换一批按钮 */
 .shuffle-inline {
-  position: absolute;
-  top: 12px;
-  right: 12px;
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 6px 12px;
+  padding: 5px 12px;
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
   color: white;
   border: none;
@@ -1466,7 +1464,7 @@ body[data-theme="glass"] .stage { padding-bottom: 96px; }
   box-shadow: 0 2px 8px rgba(225, 77, 42, 0.25);
   transition: all 0.25s ease;
   font-family: inherit;
-  z-index: 2;
+  flex-shrink: 0;
 }
 .shuffle-inline svg { width: 14px; height: 14px; transition: transform 0.4s ease; }
 .shuffle-inline span { font-size: 12px; font-weight: 600; }
