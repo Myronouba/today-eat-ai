@@ -895,7 +895,7 @@ body.hide-shell { padding-top: 0; }
 }
 
 /* ============ 欢迎页（首次进入） ============ */
-body.hide-shell .topbar, body.hide-shell .tabs { display: none; }
+body.hide-shell .topbar, body.hide-shell .tabs { display: none !important; }
 body.hide-shell .stage { padding: 0; }
 html { background: var(--bg); min-height: 100%; }
 html, body { height: 100%; }
