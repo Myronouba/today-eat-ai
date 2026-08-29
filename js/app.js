@@ -1852,14 +1852,14 @@
         <div class="tk-text">${task}</div>
       </div>`;
     cardEl.innerHTML = `
-      <div class="memorial-card-full">
+      <div class="memorial">
         <div class="m-date">${mem.date}</div>
         <div class="m-title serif">${mem.title}</div>
         <div class="m-dishes">${mem.dishes}</div>
         <div class="m-roles">${rolesHTML}</div>
         <div class="m-foot">${mem.foot}</div>
         <div class="m-heart">♥</div>
-        <button class="btn-primary btn-block" id="btnSaveMemorialPage">保存图片 · 发朋友圈</button>
+        <div class="m-btn-row"><button class="btn-primary" id="btnSaveMemorialPage">保存图片 · 发朋友圈</button></div>
       </div>`;
 
     // 绑定保存按钮
