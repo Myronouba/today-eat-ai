@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260830q">
+<link rel="stylesheet" href="css/style.css?v=20260830r">
 </head>
 <body>
 
@@ -153,6 +153,12 @@
     </div>
 
     <div class="panel me-panel">
+      <button class="me-item" data-act="moments">
+        <span class="me-ic ic-red">🍜</span>
+        <span class="me-main">菜友圈<span class="me-sub" id="discMomentsSub">吃货们的朋友圈</span></span>
+        <span class="me-arrow">›</span>
+      </button>
+      <div class="me-divider"></div>
       <button class="me-item" data-act="luck">
         <span class="me-ic ic-orange">🍀</span>
         <span class="me-main">今日好运菜<span class="me-sub">随手一翻，今天吃它</span></span>
@@ -659,6 +665,36 @@
     <div class="history-list" id="historyList"></div>
   </section>
 
+  <!-- ======== 视图：菜友圈（吃货朋友圈） ======== -->
+  <section class="view" id="view-moments">
+    <div class="moments-cover">
+      <div class="moments-cover-bg"></div>
+      <div class="moments-user">
+        <div class="moments-avatar" id="momentsAvatar">🍅</div>
+        <div class="moments-name" id="momentsName">吃货</div>
+      </div>
+      <button class="moments-post-btn" id="btnMomentsPost">✏️ 发动态</button>
+    </div>
+    <div class="moments-list" id="momentsList"></div>
+  </section>
+
+  <!-- 发布动态弹层 -->
+  <div class="moments-post-modal hidden" id="momentsPostModal">
+    <div class="moments-post-card">
+      <h3 class="moments-post-title">发布菜友圈动态</h3>
+      <textarea class="moments-post-text" id="momentsPostText" placeholder="分享你今天吃了什么..."></textarea>
+      <div class="moments-post-dish" id="momentsPostDish">
+        <span class="mpd-label">关联菜品：</span>
+        <span class="mpd-name" id="momentsPostDishName">未关联</span>
+        <button class="mpd-change" id="btnMomentsPickDish">选择</button>
+      </div>
+      <div class="moments-post-actions">
+        <button class="ghost-btn" id="btnMomentsPostCancel">取消</button>
+        <button class="btn-primary" id="btnMomentsPostSubmit">发布</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ======== 视图：晒一晒（饭桌打卡） ======== -->
   <section class="view" id="view-share">
     <div class="view-head">
@@ -767,6 +803,7 @@
 <script src="js/engine.js?v=20260830i"></script>
 <script src="js/llm.js?v=20260830i"></script>
 <script src="js/data/china.js?v=20260830i"></script>
-<script src="js/app.js?v=20260830i"></script>
+<script src="js/moments.js?v=20260830j"></script>
+<script src="js/app.js?v=20260830j"></script>
 </body>
 </html>

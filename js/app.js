@@ -441,6 +441,7 @@
     home: { e: "🍳", t: "在家吃" }, couple: { e: "💞", t: "情侣一起做" },
     out: { e: "🍽️", t: "出去吃" }, discover: { e: "🧭", t: "发现" },
     history: { e: "📖", t: "历史" },
+    moments: { e: "🍜", t: "菜友圈" },
     me: { e: "🙂", t: "我的" }, settings: { e: "⚙️", t: "设置" },
     profile: { e: "👤", t: "个人信息" },
     login: { e: "", t: "登录" }, onboard: { e: "✨", t: "口味问答" },
@@ -507,7 +508,8 @@
       "couple": "couple", "couple-result": "couple", "couple-tasks": "couple", "couple-card": "couple",
       "out": "out",
       "discover": "discover",
-      "me": "me", "history": "me", "profile": "me", "settings": "me", "record": "me", "theme": "me"
+      "me": "me", "history": "me", "profile": "me", "settings": "me", "record": "me", "theme": "me",
+      "moments": "discover"
     };
     const activeTabView = tabViewMap[id] || id;
     $$(".tab").forEach(t => t.classList.toggle("active", t.dataset.view === activeTabView));
@@ -2354,6 +2356,7 @@
     const it = e.target.closest(".me-item");
     if (!it) return;
     const act = it.dataset.act;
+    if (act === "moments") { if (window.renderMoments) window.renderMoments(); showView("moments"); return; }
     if (act === "achieve") { renderMeView(); showView("me"); return; }
     if (act === "near") { showView("out"); return; }
     showDisc(act);

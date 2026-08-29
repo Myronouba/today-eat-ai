@@ -704,6 +704,127 @@ body.hide-shell { padding-top: 0; }
 .channel .ch-go { font-style: normal; color: var(--accent); font-size: 11px; }
 .channel .ch-sub { font-size: 11px; color: var(--muted); line-height: 1.4; }
 
+/* ============ 菜友圈（吃货朋友圈） ============ */
+.moments-cover {
+  position: relative; height: 220px; margin: -10px -16px 0; overflow: hidden;
+}
+.moments-cover-bg {
+  position: absolute; inset: 0;
+  background: linear-gradient(135deg, #FF8A5C 0%, #E14D2A 50%, #C5381B 100%);
+}
+.moments-cover-bg::before {
+  content: ""; position: absolute; inset: 0;
+  background: radial-gradient(circle at 30% 40%, rgba(255,255,255,.2), transparent 50%),
+              radial-gradient(circle at 70% 60%, rgba(255,200,100,.15), transparent 40%);
+}
+.moments-user {
+  position: absolute; right: 20px; bottom: 16px; display: flex; align-items: center; gap: 12px;
+}
+.moments-avatar {
+  width: 56px; height: 56px; border-radius: 14px; background: #fff;
+  display: flex; align-items: center; justify-content: center; font-size: 28px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.15);
+}
+.moments-name {
+  color: #fff; font-size: 17px; font-weight: 600; text-shadow: 0 1px 3px rgba(0,0,0,.2);
+}
+.moments-post-btn {
+  position: absolute; top: 16px; right: 16px;
+  background: rgba(255,255,255,.2); backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,.3); color: #fff;
+  padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 500;
+  cursor: pointer; transition: all .2s;
+}
+.moments-post-btn:active { transform: scale(.95); background: rgba(255,255,255,.3); }
+.moments-list { padding: 16px 0 100px; }
+.moment-item {
+  display: flex; gap: 12px; padding: 16px; border-bottom: 1px solid var(--line);
+}
+.moment-avatar {
+  width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center; font-size: 22px;
+  background: var(--accent-soft);
+}
+.moment-body { flex: 1; min-width: 0; }
+.moment-name { font-size: 14px; font-weight: 600; color: #576B95; margin-bottom: 4px; }
+.moment-text { font-size: 15px; color: var(--ink); line-height: 1.5; margin-bottom: 8px; word-break: break-word; }
+.moment-dish-tag {
+  display: inline-block; background: var(--accent-soft); color: var(--accent);
+  font-size: 12px; padding: 3px 10px; border-radius: 999px; margin-bottom: 8px;
+}
+.moment-images {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; margin-bottom: 8px;
+}
+.moment-img {
+  aspect-ratio: 1; border-radius: 6px; background: var(--accent-soft);
+  display: flex; align-items: center; justify-content: center; font-size: 32px;
+}
+.moment-footer {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.moment-time { font-size: 12px; color: var(--muted); }
+.moment-actions { display: flex; gap: 16px; }
+.moment-action-btn {
+  background: none; border: none; cursor: pointer; font-size: 13px;
+  color: var(--muted); display: flex; align-items: center; gap: 4px; padding: 4px 8px;
+  border-radius: 6px; transition: all .15s;
+}
+.moment-action-btn:active { background: var(--line); }
+.moment-action-btn.liked { color: var(--accent); }
+.moment-likes {
+  background: #F7F7F7; border-radius: 6px; padding: 8px 12px; margin-top: 8px;
+  font-size: 13px; color: #576B95; line-height: 1.6;
+}
+.moment-comments {
+  background: #F7F7F7; border-radius: 6px; padding: 8px 12px; margin-top: 4px;
+}
+.moment-comment { font-size: 13px; color: var(--ink); line-height: 1.6; margin-bottom: 4px; }
+.moment-comment:last-child { margin-bottom: 0; }
+.moment-comment b { color: #576B95; font-weight: 500; }
+.moment-comment-input {
+  display: flex; gap: 8px; margin-top: 8px;
+}
+.moment-comment-input input {
+  flex: 1; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px;
+  font-size: 13px; outline: none; background: #fff;
+}
+.moment-comment-input input:focus { border-color: var(--accent); }
+.moment-comment-input button {
+  padding: 8px 16px; background: var(--accent); color: #fff; border: none;
+  border-radius: 8px; font-size: 13px; cursor: pointer;
+}
+
+/* 发布动态弹层 */
+.moments-post-modal {
+  position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100;
+  display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.moments-post-modal.hidden { display: none; }
+.moments-post-card {
+  background: #fff; border-radius: 16px; padding: 20px; width: 100%; max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.2);
+}
+.moments-post-title { font-size: 17px; font-weight: 600; margin-bottom: 16px; text-align: center; }
+.moments-post-text {
+  width: 100%; min-height: 100px; padding: 12px; border: 1px solid var(--line);
+  border-radius: 10px; font-size: 14px; outline: none; resize: vertical;
+  font-family: inherit; margin-bottom: 12px;
+}
+.moments-post-text:focus { border-color: var(--accent); }
+.moments-post-dish {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 16px;
+  padding: 10px 12px; background: var(--accent-soft); border-radius: 8px;
+}
+.mpd-label { font-size: 13px; color: var(--muted); }
+.mpd-name { font-size: 13px; color: var(--accent); font-weight: 500; flex: 1; }
+.mpd-change {
+  background: none; border: none; color: var(--accent); font-size: 13px; cursor: pointer;
+}
+.moments-post-actions { display: flex; gap: 12px; }
+.moments-post-actions button { flex: 1; padding: 12px; border-radius: 10px; font-size: 15px; cursor: pointer; }
+.moments-post-actions .ghost-btn { background: var(--line); color: var(--ink); border: none; }
+.moments-post-actions .btn-primary { background: var(--accent); color: #fff; border: none; }
+
 /* ============ 晒一晒（饭桌打卡） ============ */
 .btn-sub {
   display: flex; align-items: center; justify-content: center; gap: 8px;
