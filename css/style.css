@@ -206,18 +206,17 @@ body.hide-shell { padding-top: 0; }
 /* ============ 主舞台 ============ */
 .stage {
   max-width: 560px; margin: 0 auto; padding: 20px 20px 120px;
-  background:
-    linear-gradient(180deg, var(--bg) 0%, var(--bg) 70%, rgba(225, 77, 42, 0.03) 85%, rgba(225, 77, 42, 0.06) 100%);
+  background: var(--bg);
   min-height: 100vh;
   position: relative;
 }
-/* 内容区域底部装饰渐变，增强菜单栏模糊层次感 */
+/* 极淡的底部渐变，增强菜单栏模糊效果，几乎看不出来 */
 .stage::after {
   content: '';
   position: absolute;
   bottom: 0; left: 0; right: 0;
-  height: 150px;
-  background: linear-gradient(180deg, transparent 0%, rgba(225, 77, 42, 0.04) 50%, rgba(225, 77, 42, 0.08) 100%);
+  height: 200px;
+  background: linear-gradient(180deg, transparent 0%, rgba(225, 77, 42, 0.015) 100%);
   pointer-events: none;
   z-index: 0;
 }
