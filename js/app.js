@@ -443,7 +443,7 @@
     history: { e: "📖", t: "历史" },
     moments: { e: "🍜", t: "菜友圈" },
     contacts: { e: "👥", t: "通讯录" },
-    profile: { e: "👤", t: "个人资料" },
+    user-profile: { e: "👤", t: "个人资料" },
     chat: { e: "💬", t: "聊天" },
     me: { e: "🙂", t: "我的" }, settings: { e: "⚙️", t: "设置" },
     profile: { e: "👤", t: "个人信息" },
@@ -517,7 +517,7 @@
       "me": "me", "history": "me", "profile": "me", "settings": "me", "record": "me", "theme": "me",
       "moments": "discover",
       "contacts": "discover",
-      "profile": "discover",
+      "user-profile": "discover",
       "chat": "discover"
     };
     const activeTabView = tabViewMap[id] || id;

@@ -1011,15 +1011,12 @@ body.hide-shell { padding-top: 0; }
 }
 
 /* ============ 聊天页面 ============ */
-#view-chat {
+#view-chat.active {
   display: flex !important;
   flex-direction: column;
   height: 100%;
   max-height: 100vh;
   overflow: hidden;
-}
-#view-chat.active {
-  display: flex !important;
 }
 .chat-messages {
   flex: 1;

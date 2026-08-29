@@ -193,7 +193,7 @@
       });
     }
 
-    if (window.showView) window.showView("profile");
+    if (window.showView) window.showView("user-profile");
   }
 
   // ========== 开始聊天 ==========
