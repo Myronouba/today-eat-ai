@@ -411,7 +411,7 @@ body.hide-shell { padding-top: 0; }
   display: flex; align-items: center; gap: 8px;
   margin-bottom: 10px;
 }
-.reason-meta .shuffle-inline {
+.reason-card .shuffle-inline {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -429,16 +429,16 @@ body.hide-shell { padding-top: 0; }
   flex-shrink: 0;
   box-shadow: 0 2px 8px rgba(225, 77, 42, 0.25);
 }
-.reason-meta .shuffle-inline:hover {
+.reason-card .shuffle-inline:hover {
   background: linear-gradient(135deg, #D43F1F 0%, #FF5A25 100%);
   border-color: rgba(225, 77, 42, 0.5);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(225, 77, 42, 0.35);
 }
-.reason-meta .shuffle-inline:hover svg { transform: rotate(180deg); }
-.reason-meta .shuffle-inline:active { transform: scale(0.95); }
-.reason-meta .shuffle-inline svg { width: 14px; height: 14px; transition: transform 0.4s ease; }
-.reason-meta .shuffle-inline span { font-size: 11px; font-weight: 700; }
+.reason-card .shuffle-inline:hover svg { transform: rotate(180deg); }
+.reason-card .shuffle-inline:active { transform: scale(0.95); }
+.reason-card .shuffle-inline svg { width: 14px; height: 14px; transition: transform 0.4s ease; }
+.reason-card .shuffle-inline span { font-size: 11px; font-weight: 700; }
 .ai-badge {
   display: inline-flex; align-items: center; gap: 4px;
   font-size: 11px; font-weight: 600;
