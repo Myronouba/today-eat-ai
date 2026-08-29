@@ -1879,3 +1879,71 @@ body[data-theme="glass"] .stage { padding-bottom: 96px; }
   width: 14px;
   height: 14px;
 }
+
+
+/* ============ 食物相克知识卡片 ============ */
+.conflict-info {
+  margin-top: 16px;
+  margin-bottom: 8px;
+}
+.conflict-card {
+  background: linear-gradient(135deg, #FFF8F5 0%, #FFF3EE 100%);
+  border: 1px solid rgba(225, 77, 42, 0.15);
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(225, 77, 42, 0.06);
+}
+.conflict-card.conflict-safe {
+  background: linear-gradient(135deg, #F5FFF8 0%, #E8F8F0 100%);
+  border-color: rgba(39, 174, 96, 0.15);
+  box-shadow: 0 2px 8px rgba(39, 174, 96, 0.06);
+}
+.conflict-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+}
+.conflict-icon {
+  font-size: 18px;
+}
+.conflict-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.conflict-item {
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(225, 77, 42, 0.08);
+}
+.conflict-pair {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #C0392B;
+  margin-bottom: 4px;
+}
+.conflict-desc {
+  display: block;
+  font-size: 12px;
+  color: var(--ink-soft);
+  line-height: 1.5;
+}
+.conflict-tip {
+  font-size: 12px;
+  color: var(--ink-soft);
+  padding-top: 10px;
+  border-top: 1px dashed rgba(225, 77, 42, 0.15);
+  line-height: 1.5;
+}
+.conflict-safe .conflict-tip {
+  border-top-color: rgba(39, 174, 96, 0.15);
+  color: #27AE60;
+  font-weight: 500;
+}

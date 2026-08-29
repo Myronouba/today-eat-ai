@@ -1425,14 +1425,12 @@
         mood: chipVal($("#hmMood")) || "balance",
         spicyTarget: prefs.spicy
       };
-      // 显示AI纠结中动效
-      if (showToast) {
-        showView("home-result");
-        setThinkingVisible("home", true);
-        window.scrollTo({ top: 0 });
-        updateThinking("home", 0, "正在从168道菜谱中过滤忌口...");
-        await new Promise(r => setTimeout(r, 1400));
-      }
+      // 显示AI纠结中动效（换一批时也显示加载状态，避免用户以为按钮坏掉）
+      showView("home-result");
+      setThinkingVisible("home", true);
+      window.scrollTo({ top: 0 });
+      updateThinking("home", 0, "正在从168道菜谱中过滤忌口...");
+      await new Promise(r => setTimeout(r, 1400));
       updateThinking("home", 1, "多因子评分中（辣度/口味/难度/健康/季节/历史）...");
       await new Promise(r => setTimeout(r, 1400));
       const res = Engine.genHomeMenu(opts, prefs);
@@ -1596,6 +1594,43 @@
       console.error("renderMenuList error:", e);
       el.innerHTML = '<div style="padding:20px;text-align:center;color:#999;">菜单渲染出错，请重试</div>';
     }
+    
+    // 食物相克知识总结（在菜品列表下方单独显示）
+    try {
+      const conflictEl = document.getElementById(mode + "ConflictInfo");
+      if (conflictEl) {
+        const conflictInfo = Engine.analyzeFoodConflict(dishes);
+        if (conflictInfo && conflictInfo.conflicts.length > 0) {
+          conflictEl.innerHTML = `
+            <div class="conflict-card">
+              <div class="conflict-title">
+                <span class="conflict-icon">⚠️</span>
+                <span>食物搭配提示</span>
+              </div>
+              <div class="conflict-list">
+                ${conflictInfo.conflicts.map(c => `
+                  <div class="conflict-item">
+                    <span class="conflict-pair">${c.pair}</span>
+                    <span class="conflict-desc">${c.desc}</span>
+                  </div>
+                `).join("")}
+              </div>
+              <div class="conflict-tip">💡 ${conflictInfo.tip || "建议错开食用时间，或调整搭配方式"}</div>
+            </div>`;
+          conflictEl.style.display = "block";
+        } else {
+          conflictEl.innerHTML = `
+            <div class="conflict-card conflict-safe">
+              <div class="conflict-title">
+                <span class="conflict-icon">✅</span>
+                <span>搭配安全</span>
+              </div>
+              <div class="conflict-tip">今日菜单食材搭配合理，无明显相克问题，放心享用～</div>
+            </div>`;
+          conflictEl.style.display = "block";
+        }
+      }
+    } catch(e) { console.warn("食物相克分析失败:", e); }
   }
 
   /* ---------- 单菜换一换 ---------- */

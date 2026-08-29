@@ -670,6 +670,98 @@ window.Engine = (function () {
     return pick(top).d;
   }
 
+  // 食物相克知识库（常见搭配禁忌）
+  const FOOD_CONFLICT_MAP = {
+    "菠菜": { "豆腐": "菠菜含草酸，豆腐含钙，同食易形成草酸钙结石，建议菠菜先焯水", "牛奶": "菠菜与牛奶同食影响钙吸收" },
+    "豆腐": { "菠菜": "豆腐含钙，菠菜含草酸，同食易形成草酸钙结石", "蜂蜜": "豆腐与蜂蜜同食易引起腹泻" },
+    "螃蟹": { "柿子": "螃蟹与柿子同食易引起腹痛、腹泻，建议错开2小时以上", "梨": "螃蟹与梨同食伤肠胃", "花生": "螃蟹与花生同食易引起腹泻" },
+    "柿子": { "螃蟹": "柿子与螃蟹同食易引起腹痛、腹泻", "红薯": "柿子与红薯同食易形成胃结石", "白酒": "柿子与白酒同食易形成结石" },
+    "红薯": { "柿子": "红薯与柿子同食易形成胃结石", "香蕉": "红薯与香蕉同食易引起腹胀" },
+    "牛奶": { "菠菜": "牛奶与菠菜同食影响钙吸收", "巧克力": "牛奶与巧克力同食影响钙吸收，易腹泻", "橘子": "牛奶与橘子同食影响蛋白质消化" },
+    "鸡蛋": { "豆浆": "鸡蛋与豆浆同食影响蛋白质吸收，建议鸡蛋煮熟", "白糖": "鸡蛋与白糖同煮易形成不易吸收的物质" },
+    "豆浆": { "鸡蛋": "豆浆与鸡蛋同食影响蛋白质吸收", "红糖": "豆浆与红糖同食影响营养吸收" },
+    "猪肉": { "菊花": "猪肉与菊花同食易引起中毒", "香菜": "猪肉与香菜同食耗气" },
+    "牛肉": { "栗子": "牛肉与栗子同食不易消化，易引起呕吐", "韭菜": "牛肉与韭菜同食易上火" },
+    "羊肉": { "西瓜": "羊肉与西瓜同食伤元气", "南瓜": "羊肉与南瓜同食易上火和黄疸" },
+    "鸡肉": { "芹菜": "鸡肉与芹菜同食伤元气", "芥末": "鸡肉与芥末同食伤元气" },
+    "鸭肉": { "甲鱼": "鸭肉与甲鱼同食易引起水肿、腹泻", "栗子": "鸭肉与栗子同食易中毒" },
+    "鲫鱼": { "芥菜": "鲫鱼与芥菜同食易引起水肿", "蜂蜜": "鲫鱼与蜂蜜同食易中毒" },
+    "虾": { "维生素C": "虾与大量维生素C同食易生成三价砷（砒霜），建议避免同时服用维C片", "南瓜": "虾与南瓜同食易引起痢疾" },
+    "黄瓜": { "花生": "黄瓜与花生同食易引起腹泻", "辣椒": "黄瓜与辣椒同食破坏维生素C" },
+    "萝卜": { "水果": "萝卜与水果同食易诱发甲状腺肿大", "木耳": "萝卜与木耳同食易引起皮炎" },
+    "土豆": { "香蕉": "土豆与香蕉同食易引起面部生斑", "柿子": "土豆与柿子同食易形成胃结石" },
+    "西红柿": { "黄瓜": "西红柿与黄瓜同食破坏维生素C", "鱼肉": "西红柿与鱼肉同食影响铜吸收" },
+    "茶": { "肉类": "茶与肉类同食影响铁吸收", "酒": "茶与酒同食伤肾", "药": "茶与药同食影响药效" },
+    "酒": { "茶": "酒与茶同食伤肾", "胡萝卜": "酒与胡萝卜同食易引起肝损伤", "柿子": "酒与柿子同食易形成结石" },
+    "胡萝卜": { "酒": "胡萝卜与酒同食易引起肝损伤", "白萝卜": "胡萝卜与白萝卜同食破坏维生素C" },
+    "白萝卜": { "胡萝卜": "白萝卜与胡萝卜同食破坏维生素C", "水果": "白萝卜与水果同食易诱发甲状腺肿大" },
+    "韭菜": { "牛肉": "韭菜与牛肉同食易上火", "蜂蜜": "韭菜与蜂蜜同食易引起腹泻" },
+    "芹菜": { "鸡肉": "芹菜与鸡肉同食伤元气", "黄瓜": "芹菜与黄瓜同食破坏维生素C" },
+    "花生": { "黄瓜": "花生与黄瓜同食易引起腹泻", "螃蟹": "花生与螃蟹同食易引起腹泻" },
+    "蜂蜜": { "豆腐": "蜂蜜与豆腐同食易引起腹泻", "韭菜": "蜂蜜与韭菜同食易引起腹泻", "鲫鱼": "蜂蜜与鲫鱼同食易中毒" },
+    "香蕉": { "红薯": "香蕉与红薯同食易引起腹胀", "土豆": "香蕉与土豆同食易引起面部生斑" },
+    "西瓜": { "羊肉": "西瓜与羊肉同食伤元气", "油果子": "西瓜与油果子同食易引起呕吐" },
+    "梨": { "螃蟹": "梨与螃蟹同食伤肠胃", "开水": "梨与开水同食易引起腹泻" },
+    "橘子": { "牛奶": "橘子与牛奶同食影响蛋白质消化", "萝卜": "橘子与萝卜同食易诱发甲状腺肿大" },
+    "巧克力": { "牛奶": "巧克力与牛奶同食影响钙吸收，易腹泻", "面包": "巧克力与面包同食易引起血糖升高" }
+  };
+
+  // 分析菜单中的食物相克
+  function analyzeFoodConflict(dishes) {
+    if (!dishes || !dishes.length) return { conflicts: [], tip: "" };
+    
+    // 收集所有菜品中的食材关键词
+    const allIngredients = [];
+    dishes.forEach(d => {
+      if (d.ing && Array.isArray(d.ing)) {
+        d.ing.forEach(([name, qty]) => {
+          allIngredients.push({ name: name, dish: d.name });
+        });
+      }
+      // 也检查菜名中是否包含相克食材
+      Object.keys(FOOD_CONFLICT_MAP).forEach(ing => {
+        if (d.name && d.name.includes(ing) && !allIngredients.find(i => i.name === ing)) {
+          allIngredients.push({ name: ing, dish: d.name });
+        }
+      });
+    });
+
+    const conflicts = [];
+    const seen = new Set();
+    
+    // 检查食材之间的相克关系
+    for (let i = 0; i < allIngredients.length; i++) {
+      for (let j = i + 1; j < allIngredients.length; j++) {
+        const a = allIngredients[i];
+        const b = allIngredients[j];
+        const conflict = FOOD_CONFLICT_MAP[a.name] && FOOD_CONFLICT_MAP[a.name][b.name];
+        const conflict2 = FOOD_CONFLICT_MAP[b.name] && FOOD_CONFLICT_MAP[b.name][a.name];
+        const desc = conflict || conflict2;
+        
+        if (desc) {
+          const key = [a.name, b.name].sort().join("+");
+          if (!seen.has(key)) {
+            seen.add(key);
+            conflicts.push({
+              pair: `${a.name} + ${b.name}`,
+              dishes: `${a.dish} / ${b.dish}`,
+              desc: desc
+            });
+          }
+        }
+      }
+    }
+
+    let tip = "";
+    if (conflicts.length > 0) {
+      tip = `检测到${conflicts.length}组需要注意的搭配，建议错开食用时间或调整做法`;
+    } else {
+      tip = "今日菜单食材搭配合理，无明显相克问题";
+    }
+
+    return { conflicts, tip };
+  }
+
   return {
     REGION_FLAVOR, AVOID_MAP,
     genHomeMenu, genCoupleMenu, buildCtx, score,
@@ -679,6 +771,7 @@ window.Engine = (function () {
     priceOf, PRICE_MAP,
     QUIZES,
     getSeason, SEASON_INFO, getLuckyDish,
-    analyzeMenuNutrition, addDislike, getDislikeHistory, isDisliked
+    analyzeMenuNutrition, addDislike, getDislikeHistory, isDisliked,
+    analyzeFoodConflict
   };
 })();
