@@ -2351,6 +2351,13 @@
     if (btn.id === "btnTopBack") return;   // 顶部返回按钮单独处理
     btn.addEventListener("click", () => showView(btn.dataset.back, true));
   });
+  // 页面返回按钮（登录等无顶部栏页面使用）
+  $$(".view-back-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const target = btn.dataset.backTo || "welcome";
+      showView(target, true);
+    });
+  });
   // 自动录入页面清空按钮
   const btnClearRecord = document.getElementById("btnClearRecord");
   if (btnClearRecord) {

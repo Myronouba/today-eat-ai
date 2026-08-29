@@ -1860,7 +1860,41 @@ body.hide-shell { overflow: hidden; }
 /* ============ 登录 ============ */
 .topbar-right { display: flex; align-items: center; gap: 10px; }
 .user-chip { font-size: 12px; color: var(--accent); font-weight: 600; background: var(--accent-soft); padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
-.login-wrap { max-width: 520px; margin: 0 auto; }
+/* ============ 页面返回按钮（登录等无顶部栏页面使用） ============ */
+.view-back-btn {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid rgba(232, 115, 44, 0.2);
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #E8732C;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(232, 115, 44, 0.1);
+  z-index: 10;
+}
+.view-back-btn svg {
+  width: 18px;
+  height: 18px;
+}
+.view-back-btn:hover {
+  background: rgba(255, 255, 255, 0.95);
+  transform: translateX(-2px);
+  box-shadow: 0 4px 12px rgba(232, 115, 44, 0.2);
+}
+.view-back-btn:active {
+  transform: scale(0.95);
+}
+
+.login-wrap { max-width: 520px; margin: 0 auto; position: relative; }
 .text-input {
   width: 100%; padding: 13px 16px; border-radius: 14px; border: 1px solid var(--line);
   background: var(--bg); font-size: 15px; font-family: inherit; color: var(--ink);
