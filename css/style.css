@@ -1011,13 +1011,24 @@ body.hide-shell { padding-top: 0; }
 }
 
 /* ============ 聊天页面 ============ */
+/* 聊天页面铺满整个移动端屏幕，不受.stage容器的padding和max-width限制 */
 #view-chat {
   display: none;
   flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
   height: 100%;
+  max-width: 100% !important;
   max-height: 100vh;
   overflow: hidden;
   background: linear-gradient(180deg, #FFF8F0 0%, #FFEFE0 100%);
+  z-index: 200;
+  margin: 0 !important;
+  padding: 0 !important;
 }
 #view-chat.active {
   display: flex !important;
