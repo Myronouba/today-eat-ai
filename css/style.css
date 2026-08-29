@@ -139,10 +139,10 @@ body.hide-shell { padding-top: 0; }
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr !important;
   gap: 0px;
   padding: 12px 8px calc(12px + env(safe-area-inset-bottom));
-  background: rgba(255, 255, 255, .78);
-  backdrop-filter: blur(30px) saturate(1.6); -webkit-backdrop-filter: blur(30px) saturate(1.6);
-  border: 1px solid rgba(255, 255, 255, .85); border-radius: 30px;
-  box-shadow: none;
+  background: rgba(255, 255, 255, .35);
+  backdrop-filter: blur(40px) saturate(1.8); -webkit-backdrop-filter: blur(40px) saturate(1.8);
+  border: 1px solid rgba(255, 255, 255, .5); border-radius: 30px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
   text-align: center;
 }
 .tab {
