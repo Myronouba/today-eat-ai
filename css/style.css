@@ -1996,3 +1996,31 @@ body[data-theme="glass"] .stage { padding-bottom: 96px; }
   right: 16px !important;
   z-index: 10;
 }
+
+
+/* ============ 全局强制：主菜单tab无任何背景色（最高优先级，不被任何主题覆盖） ============ */
+#tabs .tab,
+#tabs .tab:hover,
+#tabs .tab:active,
+#tabs .tab.active,
+#tabs .tab.swipe-hover {
+  background: transparent !important;
+  background-color: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  border: none !important;
+  outline: none !important;
+}
+#tabs .tab.active .tab-ico {
+  transform: scale(1.15) !important;
+}
+#tabs .tab.active {
+  color: var(--accent) !important;
+  font-weight: 600 !important;
+}
+/* 菜单栏容器：完全透明背景，只保留毛玻璃效果 */
+#tabs.tabs {
+  background: transparent !important;
+  background-color: transparent !important;
+}
