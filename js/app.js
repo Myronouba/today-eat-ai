@@ -350,6 +350,12 @@
     try { return JSON.parse(localStorage.getItem(LS_PREFS) || "null"); } catch (e) { return null; }
   }
   function savePrefs() { localStorage.setItem(LS_PREFS, JSON.stringify(prefs)); }
+  /* 大众口味默认值（仅作为渲染兜底，不代表"已做过问答"） */
+  function defaultPrefs() {
+    return { region: "other", people: 2, cooker: "newbie", spicy: 1, avoid: ["none"], health: "none" };
+  }
+  /* 是否已通过 30 秒问答定制口味：以本地持久化档案为准 */
+  function hasPrefs() { return !!loadPrefs(); }
 
   /* ---------- 工具 ---------- */
   function toast(msg) {
@@ -1135,7 +1141,7 @@
   $("#btnQPrev").addEventListener("click", goQPrev);
 
   $("#btnSkipOnboard").addEventListener("click", () => {
-    prefs = { region: "other", people: 2, cooker: "newbie", spicy: 1, avoid: ["none"], health: "none" };
+    prefs = defaultPrefs();
     savePrefs(); enterApp(); toast("已按大众口味为你推算");
   });
 
@@ -1778,7 +1784,7 @@
 
   /* 进入主流程：没做过口味问答 → 先走 30 秒问答；做过 → 直接进主页 */
   function enterWithOnboard() {
-    if (!prefs) {
+    if (!hasPrefs()) {
       obStep = 0;
       renderQStep();
       showView("onboard");
@@ -1788,10 +1794,10 @@
     }
   }
 
-  /* 启动页：品牌动画约 1.8s 后自动路由（老用户直接进主界面，新用户进登录页） */
+  /* 启动页：品牌动画约 1.8s 后自动路由（老用户且已有口味档案 → 直接进主界面；否则按需问答/登录） */
   setTimeout(() => {
     if (loadUser()) {
-      enterApp();
+      enterWithOnboard();
     } else {
       showView("welcome");
     }
@@ -1799,7 +1805,7 @@
 
   /* 欢迎页入口（保留） */
   $("#btnGuestStart").addEventListener("click", () => {
-    if (prefs) {
+    if (hasPrefs()) {
       enterApp();
       toast("已进入 · 按你的口味推算");
     } else {
@@ -2407,6 +2413,7 @@
     ⑦ 初始化
      ============================================================ */
   function enterApp() {
+    if (!prefs) prefs = defaultPrefs();   // 仅内存兜底，保证渲染安全；不写入存档，不视为"已问答"
     updateHmSummary();
     showView("home");
   }
@@ -2424,10 +2431,7 @@
       localStorage.setItem(LS_FIRST, "1");
       if (window.__freshReset) toast("已重置为全新用户状态 · 数据已清空");
     }
-    // 没有口味档案时用大众口味兜底
-    if (!prefs) {
-      prefs = { region: "other", people: 2, cooker: "newbie", spicy: 1, avoid: ["none"], health: "none" };
-    }
+    // 注意：此处不做口味档案兜底——新用户必须走 30 秒问答定制口味（enterWithOnboard 按 hasPrefs 判定）
     // 每次进入：先展示品牌启动页
     showView("splash");
   }
