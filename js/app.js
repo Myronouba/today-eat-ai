@@ -1428,6 +1428,9 @@
       // 显示AI纠结中动效（换一批时也显示加载状态，避免用户以为按钮坏掉）
       showView("home-result");
       setThinkingVisible("home", true);
+      // 推算开始时隐藏之前的食物相克提示，避免在加载过程中显示旧数据
+      const homeConflictEl = document.getElementById("homeConflictInfo");
+      if (homeConflictEl) homeConflictEl.style.display = "none";
       window.scrollTo({ top: 0 });
       updateThinking("home", 0, "正在从168道菜谱中过滤忌口...");
       await new Promise(r => setTimeout(r, 1400));
@@ -1874,14 +1877,15 @@
         spicy: Number(chipVal($("#cpSpicy")) || 0),
         people: 2
       };
-      // 显示AI纠结中动效
-      if (showToast) {
-        showView("couple-result");
-        setThinkingVisible("couple", true);
-        window.scrollTo({ top: 0 });
-        updateThinking("couple", 0, "正在从168道菜谱中过滤忌口...");
-        await new Promise(r => setTimeout(r, 1400));
-      }
+      // 显示AI纠结中动效（换一批时也显示加载状态）
+      showView("couple-result");
+      setThinkingVisible("couple", true);
+      // 推算开始时隐藏之前的食物相克提示，避免在加载过程中显示旧数据
+      const coupleConflictEl = document.getElementById("coupleConflictInfo");
+      if (coupleConflictEl) coupleConflictEl.style.display = "none";
+      window.scrollTo({ top: 0 });
+      updateThinking("couple", 0, "正在从168道菜谱中过滤忌口...");
+      await new Promise(r => setTimeout(r, 1400));
       updateThinking("couple", 1, "协作强度评分中，挑选适合两人配合的菜...");
       await new Promise(r => setTimeout(r, 1400));
       const res = Engine.genCoupleMenu(opts, prefs);
