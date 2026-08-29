@@ -1252,6 +1252,14 @@ body.view-moments .stage {
   padding-bottom: 20px !important;
 }
 
+/* 子页面隐藏底部菜单栏（聊天、通讯录、历史记录、成就、设置等） */
+body.hide-tabs .tabs {
+  display: none !important;
+}
+body.hide-tabs .stage {
+  padding-bottom: 20px !important;
+}
+
 /* 发布动态弹层 */
 .moments-post-modal {
   position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 100;

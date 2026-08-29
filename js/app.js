@@ -541,7 +541,7 @@
     if (ttt) ttt.textContent = vt.t;
     if (tte) tte.textContent = vt.e;
     /* 返回栈：进入子页面时记住上一个视图，顶部固定返回按钮由此弹出 */
-    const MAIN_VIEWS = ["home", "couple", "out", "discover"];
+    const MAIN_VIEWS = ["home", "couple", "out", "discover", "me"];
     const NO_BACK = ["splash", "welcome", "onboard", "login"];
     const prevEl = document.querySelector(".view.active");
     const prevId = prevEl ? prevEl.id.replace("view-", "") : null;
@@ -562,6 +562,10 @@
       v.classList.add("active");
       /* 根据页面id给body添加类，用于隐藏/显示菜单栏等 */
       document.body.className = document.body.className.replace(/view-\w+/g, "").trim();
+      document.body.className = document.body.className.replace(/hide-tabs/g, "").trim();
+      // 子页面隐藏底部菜单栏，主页面显示菜单栏
+      const SUB_HIDE_TABS = !MAIN_VIEWS.includes(id) && !NO_BACK.includes(id);
+      if (SUB_HIDE_TABS) document.body.classList.add("hide-tabs");
       if (id === "moments") document.body.classList.add("view-moments");
       /* 强制重播进入动画：子元素依次柔和浮现（返回菜单更细腻） */
       v.querySelectorAll(":scope > *").forEach((el, i) => {
