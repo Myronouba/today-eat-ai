@@ -2500,6 +2500,29 @@
       location.reload();
     }
   });
+  /* 刷新缓存：清除临时缓存并强制加载最新代码 */
+  $("#setItemRefreshCache").addEventListener("click", () => {
+    if (confirm("确定刷新缓存吗？将清除临时缓存并重新加载页面，强制加载最新代码。")) {
+      toast("正在刷新缓存...");
+      // 清除临时缓存（保留用户数据）
+      const keysToKeep = [];
+      // 遍历localStorage，保留用户数据，清除临时缓存
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        // 保留用户数据（账号、口味、历史、纪念日、主题等）
+        if (key && (key.startsWith("eat-ai-") || key === "eat-ai-first")) {
+          keysToKeep.push(key);
+        }
+      }
+      // 用带时间戳的URL重新加载页面，强制浏览器加载最新的JS/CSS文件
+      setTimeout(() => {
+        const timestamp = Date.now();
+        const url = new URL(window.location.href);
+        url.searchParams.set("nocache", timestamp);
+        window.location.href = url.toString();
+      }, 500);
+    }
+  });
 
   /* ---------- 主题 ---------- */
   const LS_THEME = "eat-ai-theme";
