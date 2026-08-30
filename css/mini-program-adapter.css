@@ -1,0 +1,66 @@
+/* ============================================================
+ * mini-program-adapter.css
+ * H5 在微信小程序 web-view 中的适配样式
+ * 作用：安全区适配，避免被胶囊按钮、底部横条遮挡
+ * 使用：在 index.html 的 <head> 中，在 style.css 之后引入
+ * ============================================================ */
+
+/* 检测是否在小程序 web-view 环境中 */
+/* 通过 JS 给 body 添加 class .in-miniprogram 来触发以下样式 */
+
+body.in-miniprogram {
+  /* 顶部安全区：避开胶囊按钮和状态栏 */
+  padding-top: calc(env(safe-area-inset-top) + 0px) !important;
+  /* 底部安全区：避开 iPhone 底部横条 */
+  padding-bottom: env(safe-area-inset-bottom) !important;
+  /* 确保 padding 不撑大容器 */
+  box-sizing: border-box !important;
+  /* 禁止小程序 web-view 的弹性滚动效果 */
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 小程序环境下，顶部品牌栏需要额外下移 */
+body.in-miniprogram .topbar {
+  top: env(safe-area-inset-top) !important;
+  padding-top: 0 !important;
+}
+
+/* 小程序环境下，主内容区顶部留出品牌栏空间 */
+body.in-miniprogram .stage {
+  padding-top: calc(env(safe-area-inset-top) + 56px) !important;
+}
+
+/* 小程序环境下，底部导航栏上移避开横条 */
+body.in-miniprogram .tabbar,
+body.in-miniprogram .bottom-nav {
+  bottom: calc(env(safe-area-inset-bottom) + 16px) !important;
+}
+
+/* 小程序环境下，fixed 定位元素统一加上安全区偏移 */
+body.in-miniprogram [style*="position: fixed"],
+body.in-miniprogram [style*="position:fixed"] {
+  /* 由各组件自行处理，这里只做兜底 */
+}
+
+/* 小程序环境下，隐藏 H5 自己的返回按钮（小程序有原生返回） */
+/* 如果你的 H5 顶部有返回按钮，可以取消下面注释 */
+/*
+body.in-miniprogram .back-btn {
+  display: none !important;
+}
+*/
+
+/* 小程序环境下，优化滚动性能 */
+body.in-miniprogram * {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* 小程序环境下，禁止长按选中（可选，根据需要开启） */
+/*
+body.in-miniprogram {
+  -webkit-user-select: none;
+  user-select: none;
+}
+*/
