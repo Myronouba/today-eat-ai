@@ -216,13 +216,39 @@ window.Engine = (function () {
   /* ---------- 在家吃菜单生成 ---------- */
   function genHomeMenu(opts, prefs) {
     const ctx = buildCtx(opts, prefs, "home");
-    const pool = window.RECIPES.filter(d =>
+    let pool = window.RECIPES.filter(d =>
       passesAvoid(d, ctx.avoid) && d.coop <= 1 && d.type !== "staple" && d.type !== "cold"
     );
 
+    // 品类筛选
+    const cat = opts.category || "all";
+    if (cat === "fitness") {
+      pool = pool.filter(d => d.health && d.health.includes("fitness"));
+    } else if (cat === "hard") {
+      pool = pool.filter(d => d.type === "hot");
+    } else if (cat === "veg") {
+      pool = pool.filter(d => d.type === "veg" || d.type === "soup");
+    } else if (cat === "soup") {
+      pool = pool.filter(d => d.type === "soup" || (d.scene && d.scene.includes("汤")) || d.name.includes("汤"));
+    } else if (cat === "quick") {
+      pool = pool.filter(d => d.time <= 20);
+    }
+
+    // 食材匹配：包含用户输入食材的菜加分
+    const userIngs = opts.ingredients || [];
+    if (userIngs.length > 0) {
+      pool.forEach(d => {
+        const dishIngs = (d.ing || []).map(x => x[0]);
+        const matchCount = userIngs.filter(ui => dishIngs.some(di => di.includes(ui) || ui.includes(di))).length;
+        if (matchCount > 0) d._ingredientBonus = matchCount * 15;
+      });
+    }
+
     const people = ctx.people;
-    // 按人数定菜品构成
-    const plan = people === 1 ? { hot: 1, veg: 1, soup: 0 }
+    // 按人数定菜品构成（塑型餐调整为高蛋白为主）
+    const plan = cat === "fitness"
+      ? { hot: 2, veg: 1, soup: people >= 2 ? 1 : 0 }
+      : people === 1 ? { hot: 1, veg: 1, soup: 0 }
       : people === 2 ? { hot: 1, veg: 1, soup: 1 }
       : people === 3 ? { hot: 2, veg: 1, soup: 1 }
       : { hot: 2, veg: 2, soup: 1 };
@@ -231,19 +257,19 @@ window.Engine = (function () {
     for (const type of ["hot", "veg", "soup"]) {
       const need = plan[type];
       if (!need) continue;
-      const candidates = pool.filter(d => d.type === type).map(d => ({ d, s: score(d, ctx) }))
+      const candidates = pool.filter(d => d.type === type).map(d => ({ d, s: score(d, ctx) + (d._ingredientBonus || 0) }))
         .filter(x => !chosen.some(c => overlap(c, x.d)))
         .sort((a, b) => b.s - a.s);
       for (let i = 0; i < need && i < candidates.length; i++) {
         chosen.push(candidates[i].d);
       }
     }
-    // 如果汤不够，补一道快手素菜
     if (chosen.filter(c => c.type === "soup").length < plan.soup) {
-      const alt = pool.filter(d => d.type === "veg").map(d => ({ d, s: score(d, ctx) }))
-        .filter(x => !chosen.some(c => overlap(c, x.d))).sort((a, b) => b.s - a.s)[0];
-      if (alt) chosen.push(alt.d);
+      const alt = pool.filter(d => d.type === "veg").map(d => ({ d, s: score(d, ctx) + (d._ingredientBonus || 0) }))
+        .filter(x => !chosen.some(c => overlap(c, x.d))).sort((a, b) => b.s - a.s);
+      if (alt && alt[0]) chosen.push(alt[0].d);
     }
+    pool.forEach(d => delete d._ingredientBonus);
     return { dishes: chosen, ctx, pool };
   }
 

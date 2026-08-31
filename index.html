@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/style.css?v=20260831n">
+<link rel="stylesheet" href="css/style.css?v=20260831o">
 <link rel="stylesheet" href="css/mini-program-adapter.css?v=20260830mp">
 </head>
 <body>
@@ -42,7 +42,7 @@
       </div>
       <div class="splash-brand"><span class="serif">今天吃啥</span><span class="splash-ai">AI</span></div>
       <div class="splash-brandline">
-        <span>今天吃啥 AI <i id="splashVersion">v4.0.0</i></span>
+        <span>今天吃啥 AI <i id="splashVersion">v4.1.0</i></span>
         <span>© 2026 Shanghai HW Information Technology Co., Ltd.</span>
       </div>
     </div>
@@ -146,7 +146,7 @@
       </div>
       <div class="set-group">
         <div class="set-title">关于</div>
-        <div class="set-item static">版本 <span id="appVersion">v4.0.0</span></div>
+        <div class="set-item static">版本 <span id="appVersion">v4.1.0</span></div>
         <div class="set-item static">数据保存在本机浏览器 · 无需联网</div>
         <div class="set-item static">© 2026 上海HW信息技术有限公司</div>
         <div class="set-item static">Shanghai HW Information Technology Co., Ltd.</div>
@@ -352,8 +352,19 @@
       <p class="hh-date" id="hhDate"></p>
     </div>
 
-    <!-- 条件面板 -->
-    <div class="panel" id="homePanel">
+    <!-- 双Tab切换：自己做 / 点外卖 -->
+    <div class="home-tabs">
+      <button class="home-tab active" data-tab="cook">
+        <span class="ht-icon">👨‍🍳</span>
+        <span class="ht-label">自己做</span>
+      </button>
+      <button class="home-tab" data-tab="takeout">
+        <span class="ht-icon">🛵</span>
+        <span class="ht-label">点外卖</span>
+      </button>
+    </div>
+    <!-- 条件面板：自己做 -->
+    <div class="panel" id="homePanel" class="home-tab-content" data-tab-content="cook">
       <div class="hm-setting">
         <div class="hm-summary" id="hmSummary"></div>
         <button class="link hm-adjust" id="btnHmAdjust">临时调整 <span class="hm-caret">▾</span></button>
@@ -379,6 +390,37 @@
         </div>
       </div>
       <div class="field">
+        <label>想吃什么？</label>
+        <div class="chips" id="hmCategory">
+          <button class="chip active" data-val="all">不挑，AI定</button>
+          <button class="chip" data-val="hard">家常硬菜</button>
+          <button class="chip" data-val="veg">清淡素菜</button>
+          <button class="chip" data-val="fitness">🔥 塑型餐</button>
+          <button class="chip" data-val="soup">汤汤水水</button>
+          <button class="chip" data-val="quick">15分钟快手</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>冰箱里有什么？<span class="field-hint">（选填，AI优先用这些食材）</span></label>
+        <div class="chips ingredient-chips" id="hmIngredients">
+          <button class="chip" data-val="鸡蛋">🥚 鸡蛋</button>
+          <button class="chip" data-val="番茄">🍅 番茄</button>
+          <button class="chip" data-val="土豆">🥔 土豆</button>
+          <button class="chip" data-val="鸡胸肉">🍗 鸡胸肉</button>
+          <button class="chip" data-val="西兰花">🥦 西兰花</button>
+          <button class="chip" data-val="豆腐">🧈 豆腐</button>
+          <button class="chip" data-val="虾">🦐 虾</button>
+          <button class="chip" data-val="牛肉">🥩 牛肉</button>
+          <button class="chip" data-val="青椒">🫑 青椒</button>
+          <button class="chip" data-val="菌菇">🍄 菌菇</button>
+        </div>
+        <div class="ingredient-input-wrap">
+          <input type="text" class="ingredient-input" id="hmIngredientInput" placeholder="输入其他食材，回车添加">
+          <button class="ingredient-add-btn" id="hmAddIngredient">+ 添加</button>
+        </div>
+        <div class="selected-ingredients" id="hmSelectedIngredients"></div>
+      </div>
+      <div class="field">
         <label>今天口味想偏哪边？</label>
         <div class="chips" id="hmMood">
           <button class="chip active" data-val="balance">均衡</button>
@@ -391,6 +433,72 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.8L18 9l-4.2 1.2L12 15l-1.8-4.8L6 9l4.2-1.2z"/><path d="M19 14l.9 2.4L22 17l-2.1.6L19 20l-.9-2.4L16 17l2.1-.6z"/></svg>
         AI 为你推算菜单
       </span></button>
+    </div>
+
+
+    <!-- 条件面板：点外卖 -->
+    <div class="panel" id="takeoutPanel" data-tab-content="takeout" style="display:none; padding-bottom: 120px;">
+      <div class="field">
+        <label>想吃什么？</label>
+        <div class="chips" id="takeoutCategory">
+          <button class="chip active" data-val="any">不挑，AI定</button>
+          <button class="chip" data-val="快餐">快餐简餐</button>
+          <button class="chip" data-val="川菜">川湘菜</button>
+          <button class="chip" data-val="粤菜">粤菜茶餐</button>
+          <button class="chip" data-val="日料">日料寿司</button>
+          <button class="chip" data-val="韩料">韩料炸鸡</button>
+          <button class="chip" data-val="西餐">西餐汉堡</button>
+          <button class="chip" data-val="奶茶">奶茶饮品</button>
+          <button class="chip" data-val="烧烤">烧烤炸串</button>
+          <button class="chip" data-val="火锅">火锅冒菜</button>
+          <button class="chip" data-val="轻食">轻食沙拉</button>
+          <button class="chip" data-val="烘焙">烘焙甜品</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>几个人吃？</label>
+        <div class="chips" id="takeoutPeople">
+          <button class="chip" data-val="1">1 人</button>
+          <button class="chip active" data-val="2">2 人</button>
+          <button class="chip" data-val="3">3 人</button>
+          <button class="chip" data-val="5">5 人</button>
+          <button class="chip" data-val="6">6 人+</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>人均预算</label>
+        <div class="chips" id="takeoutBudget">
+          <button class="chip" data-val="cheap">20 元以下</button>
+          <button class="chip active" data-val="normal">20 - 50 元</button>
+          <button class="chip" data-val="mid">50 - 80 元</button>
+          <button class="chip" data-val="high">80 - 120 元</button>
+          <button class="chip" data-val="luxury">120 元以上</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>配送时间</label>
+        <div class="chips" id="takeoutDelivery">
+          <button class="chip" data-val="30">30分钟内</button>
+          <button class="chip active" data-val="45">45分钟内</button>
+          <button class="chip" data-val="60">60分钟内</button>
+          <button class="chip" data-val="any">不限时间</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>今天口味想偏哪边？</label>
+        <div class="chips" id="takeoutMood">
+          <button class="chip active" data-val="balance">不挑，AI定</button>
+          <button class="chip" data-val="spicy">想吃辣</button>
+          <button class="chip" data-val="light">清淡健康</button>
+          <button class="chip" data-val="comfort">热闹暖胃</button>
+        </div>
+      </div>
+      <button class="btn-primary ai-gen-btn" id="btnGenTakeout">
+        <span class="ai-glow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.8L18 9l-4.2 1.2L12 15l-1.8-4.8L6 9l4.2-1.2z"/><path d="M19 14l.9 2.4L22 17l-2.1.6L19 20l-.9-2.4L16 17l2.1-.6z"/></svg>
+          AI 为你推荐外卖
+        </span>
+      </button>
     </div>
 
     <!-- 结果区 -->
@@ -429,6 +537,15 @@
           </div>
         </div>
       </div>
+      <!-- 卡路里记录栏 -->
+      <div class="kcal-record-bar" id="kcalRecordBar">
+        <div class="kcal-info">
+          <span class="kcal-today-label">今日已摄入</span>
+          <span class="kcal-today-val"><span id="kcalTodayTotal">0</span> <span>千卡</span></span>
+        </div>
+        <button class="kcal-record-btn" id="kcalRecordBtn">📝 记录今日摄入</button>
+      </div>
+
       <div class="result-head">
         <div class="reason-card reason-card-full">
           <button class="shuffle-inline shuffle-top-right" id="btnShuffleHome">
@@ -542,8 +659,14 @@
       <button class="ghost-btn btn-block" id="btnCancelName">取消</button>
     </div>
 
-    <!-- 模式选择 -->
-    <div class="panel" id="couplePanel">
+    <!-- 情侣模式切换 -->
+    <div class="home-tabs" style="margin-bottom: 16px;">
+      <button class="home-tab active" data-couple-tab="cook">👩‍❤️‍👨 一起做</button>
+      <button class="home-tab" data-couple-tab="takeout">🛵 一起点</button>
+    </div>
+
+    <!-- 一起做 · 条件面板 -->
+    <div class="panel" id="couplePanel" data-couple-content="cook">
       <div class="field">
         <label>今天是哪种日子？</label>
         <div class="chips" id="cpOccasion">
@@ -561,6 +684,69 @@
         </div>
       </div>
       <button class="btn-primary btn-block" id="btnGenCouple">AI 为你推算协作菜单</button>
+    </div>
+
+    <!-- 一起点 · 条件面板 -->
+    <div class="panel" id="coupleTakeoutPanel" data-couple-content="takeout" style="display:none; padding-bottom: 120px;">
+      <div class="field">
+        <label>今天是哪种日子？</label>
+        <div class="chips" id="cpTakeoutOccasion">
+          <button class="chip active" data-val="daily">日常约会</button>
+          <button class="chip" data-val="weekend">周末大餐</button>
+          <button class="chip" data-val="anniversary">纪念日 / 情人节</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>想吃什么？</label>
+        <div class="chips" id="cpTakeoutCategory">
+          <button class="chip active" data-val="all">不挑，AI定</button>
+          <button class="chip" data-val="romantic">🌹 浪漫约会</button>
+          <button class="chip" data-val="hot">🔥 热辣过瘾</button>
+          <button class="chip" data-val="light">🥗 清淡健康</button>
+          <button class="chip" data-val="dessert">🍰 甜品下午茶</button>
+          <button class="chip" data-val="fast">🍔 快餐简餐</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>几个人吃？<span class="field-hint">（情侣固定2人）</span></label>
+        <div class="chips">
+          <button class="chip active" disabled>2 人 👫</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>人均预算</label>
+        <div class="chips" id="cpTakeoutBudget">
+          <button class="chip" data-val="30">30元以下</button>
+          <button class="chip active" data-val="60">30-60元</button>
+          <button class="chip" data-val="100">60-100元</button>
+          <button class="chip" data-val="150">100-150元</button>
+          <button class="chip" data-val="200">150元以上</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>配送时间</label>
+        <div class="chips" id="cpTakeoutDelivery">
+          <button class="chip active" data-val="30">30分钟内</button>
+          <button class="chip" data-val="45">45分钟内</button>
+          <button class="chip" data-val="60">60分钟内</button>
+          <button class="chip" data-val="999">不限时间</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>今天口味想偏哪边？</label>
+        <div class="chips" id="cpTakeoutMood">
+          <button class="chip active" data-val="balance">均衡</button>
+          <button class="chip" data-val="spicy">想吃辣</button>
+          <button class="chip" data-val="light">清淡健康</button>
+          <button class="chip" data-val="sweet">甜蜜治愈</button>
+        </div>
+      </div>
+      <button class="btn-primary ai-gen-btn" id="btnGenCoupleTakeout">
+        <span class="ai-glow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.8L18 9l-4.2 1.2L12 15l-1.8-4.8L6 9l4.2-1.2z"/><path d="M19 14l.9 2.4L22 17l-2.1.6L19 20l-.9-2.4L16 17l2.1-.6z"/></svg>
+          AI 为你们推荐外卖
+        </span>
+      </button>
     </div>
 
   </section>
@@ -654,18 +840,300 @@
     </div>
   </section>
 
-  <!-- ======== 视图：出去吃（二期预告） ======== -->
-  <section class="view" id="view-out">
+  <!-- ======== 视图：情侣一起点 · AI 推荐结果 ======== -->
+  <section class="view" id="view-couple-takeout-result">
     <div class="view-head">
-      <h2 class="serif view-title">半径内，吃什么好</h2>
+      <p class="eyebrow">AI 推算结果</p>
+      <h2 class="serif view-title">👫 为你们挑了这些外卖</h2>
     </div>
-    <div class="panel soon-panel">
-      <div class="soon-icon">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+    <div class="result" id="coupleTakeoutResult">
+      <div class="ai-thinking" id="coupleTakeoutThinking">
+        <div class="at-icon">👩‍❤️‍👨</div>
+        <div class="at-text" id="coupleTakeoutThinkingText">AI 正在为你们挑选外卖...</div>
+        <div class="at-dots"><span></span><span></span><span></span></div>
+        <div class="at-progress">
+          <div class="at-bar" id="coupleTakeoutThinkingBar"></div>
+          <div class="at-tomato" id="coupleTakeoutThinkingTomato">🍅</div>
+          <div class="at-steps">
+            <span class="at-step" data-step="0">过滤品类</span>
+            <span class="at-step" data-step="1">多因子评分</span>
+            <span class="at-step" data-step="2">智能选店</span>
+            <span class="at-step" data-step="3">生成理由</span>
+          </div>
+        </div>
       </div>
-      <h3 class="serif">二期开发中</h3>
-      <p class="lead">地图选半径 → AI 按你的人群推算菜系餐厅 → 一键直达点评好评。即将上线。</p>
-      <p class="field-hint">届时支持：朋友→烧烤火锅 · 对象→氛围感中餐 · 家人→健康清淡 · 单身→一人食友好</p>
+      <div class="result-head">
+        <div class="reason-card reason-card-full">
+          <button class="shuffle-inline shuffle-top-right" id="btnShuffleCoupleTakeout">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+            <span>换一批</span>
+          </button>
+          <p class="reason-label">
+            <span class="reason-badge">💕 情侣推荐</span>
+            <span id="coupleTakeoutMeta">2人 · 60-100元 · 45分钟达 · 共6家</span>
+          </p>
+          <p class="reason-text" id="coupleTakeoutReason">正在为你们生成推荐理由...</p>
+        </div>
+      </div>
+      <div class="takeout-list" id="coupleTakeoutList"></div>
+    </div>
+  </section>
+
+  <!-- ======== 视图：情侣一起点 · 商家详情 ======== -->
+  <section class="view" id="view-couple-takeout-detail">
+    <div class="detail-hero takeout-detail-hero">
+      <div class="detail-hero-bg takeout-hero-bg"></div>
+      <div class="detail-hero-content">
+        <div class="detail-cuisine-badge" id="coupleTakeoutDetailBadge"></div>
+        <h2 class="serif detail-name" id="coupleTakeoutDetailName"></h2>
+        <div class="detail-meta-row" id="coupleTakeoutDetailMeta"></div>
+      </div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-section">
+        <h3 class="detail-section-title">💕 情侣推荐理由</h3>
+        <p class="detail-desc" id="coupleTakeoutDetailCoupleReason"></p>
+      </div>
+      <div class="detail-section">
+        <h3 class="detail-section-title">商家介绍</h3>
+        <p class="detail-desc" id="coupleTakeoutDetailDesc"></p>
+        <div class="detail-promo" id="coupleTakeoutDetailPromo"></div>
+      </div>
+      <div class="detail-section">
+        <h3 class="detail-section-title">招牌菜品</h3>
+        <div class="detail-signatures" id="coupleTakeoutDetailSignatures"></div>
+      </div>
+      <div class="detail-section">
+        <h3 class="detail-section-title">商家标签</h3>
+        <div class="detail-tags" id="coupleTakeoutDetailTags"></div>
+      </div>
+      <div class="detail-section">
+        <h3 class="detail-section-title">配送信息</h3>
+        <div class="detail-info-list" id="coupleTakeoutDetailInfo"></div>
+      </div>
+    </div>
+    <div class="detail-action-bar">
+      <button class="detail-action-btn secondary" id="btnFavCoupleTakeout"><span id="coupleTakeoutFavBtnText">❤️ 收藏</span></button>
+      <button class="detail-action-btn primary" id="btnOrderCoupleTakeout">🛵 去下单</button>
+    </div>
+  </section>
+
+  <!-- ======== 视图：出去吃 · 条件面板 ======== -->
+  <section class="view" id="view-out">
+    <div class="out-hero">
+      <h2 class="serif out-title">今天，出去吃</h2>
+      <p class="out-sub" id="outSub">AI 按你的人群和口味，在半径内推算最合适的餐厅</p>
+    </div>
+
+    <div class="panel" id="outPanel">
+      <div class="field">
+        <label>和谁一起吃？</label>
+        <div class="scene-grid" id="outScene">
+          <button class="scene-card active" data-val="朋友">
+            <span class="sc-emoji">👥</span>
+            <span class="sc-name">朋友聚会</span>
+            <span class="sc-desc">热闹好吃</span>
+          </button>
+          <button class="scene-card" data-val="情侣">
+            <span class="sc-emoji">💑</span>
+            <span class="sc-name">情侣约会</span>
+            <span class="sc-desc">氛围浪漫</span>
+          </button>
+          <button class="scene-card" data-val="家人">
+            <span class="sc-emoji">👨‍👩‍👧</span>
+            <span class="sc-name">家人聚餐</span>
+            <span class="sc-desc">老少皆宜</span>
+          </button>
+          <button class="scene-card" data-val="一人食">
+            <span class="sc-emoji">🍱</span>
+            <span class="sc-name">一人食</span>
+            <span class="sc-desc">快速美味</span>
+          </button>
+          <button class="scene-card" data-val="商务">
+            <span class="sc-emoji">💼</span>
+            <span class="sc-name">商务宴请</span>
+            <span class="sc-desc">雅致有面</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>几个人吃？</label>
+        <div class="chips" id="outPeople">
+          <button class="chip" data-val="1">1 人</button>
+          <button class="chip active" data-val="2">2 人</button>
+          <button class="chip" data-val="3">3 人</button>
+          <button class="chip" data-val="5">5 人</button>
+          <button class="chip" data-val="6">6 人+</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>搜索半径</label>
+        <div class="chips" id="outRadius">
+          <button class="chip" data-val="0.5">500m 内</button>
+          <button class="chip active" data-val="1">1km 内</button>
+          <button class="chip" data-val="2">2km 内</button>
+          <button class="chip" data-val="3">3km 内</button>
+          <button class="chip" data-val="5">5km 内</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>人均预算</label>
+        <div class="chips" id="outBudget">
+          <button class="chip" data-val="cheap">50 元以下</button>
+          <button class="chip active" data-val="normal">50 - 100 元</button>
+          <button class="chip" data-val="mid">100 - 200 元</button>
+          <button class="chip" data-val="high">200 - 400 元</button>
+          <button class="chip" data-val="luxury">400 元以上</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>今天口味想偏哪边？</label>
+        <div class="chips" id="outMood">
+          <button class="chip active" data-val="any">不挑，AI 定</button>
+          <button class="chip" data-val="spicy">想吃辣</button>
+          <button class="chip" data-val="light">清淡健康</button>
+          <button class="chip" data-val="comfort">热闹暖胃</button>
+          <button class="chip" data-val="exotic">来点异域</button>
+        </div>
+      </div>
+
+      <button class="btn-primary ai-gen-btn" id="btnGenOut">
+        <span class="ai-glow">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.8L18 9l-4.2 1.2L12 15l-1.8-4.8L6 9l4.2-1.2z"/><path d="M19 14l.9 2.4L22 17l-2.1.6L19 20l-.9-2.4L16 17l2.1-.6z"/></svg>
+          AI 为你推算餐厅
+        </span>
+      </button>
+    </div>
+
+    <div class="out-fav-entry" id="outFavEntry" hidden>
+      <button class="ghost-btn btn-block" id="btnViewFav">
+        <span>❤️ 我的收藏（<span id="favCount">0</span>家）</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ======== 视图：出去吃 · AI 推算结果 ======== -->
+  <section class="view" id="view-out-result">
+    <div class="view-head">
+      <p class="eyebrow">AI 推算结果</p>
+      <h2 class="serif view-title">为你挑了这些餐厅</h2>
+    </div>
+    <div class="result" id="outResult">
+      <div class="ai-thinking" id="outThinking">
+        <div class="at-icon">
+          <span class="ai-icon-bounce">
+            <svg class="ai-cube-loading" viewBox="0 0 48 48" fill="none">
+              <path d="M24 4L40 13V29L24 38L8 29V13L24 4Z" stroke="#E14D2A" stroke-width="2" stroke-linejoin="round"/>
+              <path d="M24 4V24M24 24L40 13M24 24L8 13M24 24V38" stroke="#E14D2A" stroke-width="1.5" stroke-linecap="round" opacity="0.5"/>
+              <circle cx="34" cy="14.5" r="1.5" fill="#FF8A5C"/>
+              <circle cx="14" cy="14.5" r="1.2" fill="#FF8A5C" opacity="0.7"/>
+            </svg>
+          </span>
+        </div>
+        <div class="at-text" id="outThinkingText">AI 正在半径内寻找好餐厅...</div>
+        <div class="at-dots"><span></span><span></span><span></span></div>
+        <div class="at-progress">
+          <div class="at-bar" id="outThinkingBar"></div>
+          <div class="at-tomato" id="outThinkingTomato">🍅</div>
+          <div class="at-steps">
+            <span class="at-step" data-step="0">过滤半径</span>
+            <span class="at-step" data-step="1">多因子评分</span>
+            <span class="at-step" data-step="2">智能选店</span>
+            <span class="at-step" data-step="3">生成理由</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="result-head">
+        <div class="reason-card reason-card-full">
+          <button class="shuffle-inline shuffle-top-right" id="btnShuffleOut">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+            <span>换一批</span>
+          </button>
+          <div class="reason-meta">
+            <span class="ai-badge">
+              <svg class="ai-cube-icon" viewBox="0 0 24 24" fill="none">
+                <path d="M12 2L20 6.5V17.5L12 22L4 17.5V6.5L12 2Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+                <path d="M12 2V12M12 12L20 6.5M12 12L4 6.5M12 12V22" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" opacity="0.6"/>
+              </svg>
+              AI 推算
+            </span>
+            <span class="reason-info" id="outReasonInfo"></span>
+          </div>
+          <p class="reason" id="outReason"></p>
+        </div>
+      </div>
+
+      <div class="restaurant-list" id="restaurantList"></div>
+
+      <button class="btn-sub btn-block" id="btnBackToOut">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        重新选择条件
+      </button>
+    </div>
+  </section>
+
+  <!-- ======== 视图：出去吃 · 餐厅详情 ======== -->
+  <section class="view" id="view-out-detail">
+    <div class="detail-hero" id="detailHero">
+      <div class="detail-hero-bg" id="detailHeroBg"></div>
+      <div class="detail-hero-content">
+        <div class="detail-cuisine-badge" id="detailCuisineBadge"></div>
+        <h2 class="serif detail-name" id="detailName"></h2>
+        <div class="detail-meta-row" id="detailMetaRow"></div>
+      </div>
+    </div>
+
+    <div class="detail-body">
+      <div class="panel detail-section">
+        <p class="detail-section-title">餐厅介绍</p>
+        <p class="detail-desc" id="detailDesc"></p>
+        <p class="detail-vibe" id="detailVibe"></p>
+      </div>
+
+      <div class="panel detail-section">
+        <p class="detail-section-title">招牌菜</p>
+        <div class="detail-signatures" id="detailSignatures"></div>
+      </div>
+
+      <div class="panel detail-section">
+        <p class="detail-section-title">餐厅标签</p>
+        <div class="detail-tags" id="detailTags"></div>
+      </div>
+
+      <div class="panel detail-section">
+        <p class="detail-section-title">实用信息</p>
+        <div class="detail-info-list" id="detailInfoList"></div>
+      </div>
+
+      <div class="detail-actions">
+        <button class="btn-primary btn-block" id="btnFavRestaurant">
+          <span id="favBtnText">❤️ 收藏这家餐厅</span>
+        </button>
+        <button class="ghost-btn btn-block" id="btnNavRestaurant">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+          地图导航去这家
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ======== 视图：收藏的餐厅列表 ======== -->
+  <section class="view" id="view-fav">
+    <div class="view-head">
+      <p class="eyebrow">我的收藏</p>
+      <h2 class="serif view-title">收藏的餐厅</h2>
+      <p class="reason" id="favMeta">收藏的好店，随时再去</p>
+    </div>
+    <div class="restaurant-list" id="favList"></div>
+    <div class="fav-empty" id="favEmpty" hidden>
+      <div class="empty-icon">❤️</div>
+      <p>还没有收藏的餐厅</p>
+      <p class="empty-sub">在餐厅详情页点击收藏，好店就会留在这里</p>
     </div>
   </section>
 
@@ -840,6 +1308,86 @@
     </div>
   </section>
 
+
+<!-- ======== 视图：点外卖 · AI 推荐结果 ======== -->
+  <section class="view" id="view-takeout-result">
+    <div class="view-head">
+      <p class="eyebrow">AI 推算结果</p>
+      <h2 class="serif view-title">🛵 为你挑了这些外卖</h2>
+    </div>
+
+    <div class="result" id="takeoutResult">
+    <!-- AI 推算动画 -->
+    <div class="ai-thinking" id="takeoutThinking">
+      <div class="at-icon">✨</div>
+      <div class="at-text" id="takeoutThinkingText">AI 正在为你挑选外卖...</div>
+      <div class="at-dots"><span></span><span></span><span></span></div>
+      <div class="at-progress">
+        <div class="at-bar" id="takeoutThinkingBar"></div>
+        <div class="at-tomato" id="takeoutThinkingTomato">🍅</div>
+        <div class="at-steps">
+          <span class="at-step" data-step="0">过滤品类</span>
+          <span class="at-step" data-step="1">多因子评分</span>
+          <span class="at-step" data-step="2">智能选店</span>
+          <span class="at-step" data-step="3">生成理由</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="result-head">
+      <div class="reason-card reason-card-full">
+        <button class="shuffle-inline shuffle-top-right" id="btnShuffleTakeout">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>
+          <span>换一批</span>
+        </button>
+        <div class="reason-label"><span class="ai-badge">AI 推荐</span><span id="takeoutReasonInfo"></span></div>
+        <p class="reason-text" id="takeoutReason"></p>
+      </div>
+    </div>
+
+    <div class="takeout-list" id="takeoutList"></div>
+    </div>
+  </section>
+
+  <!-- ======== 视图：点外卖 · 商家详情 ======== -->
+  <section class="view" id="view-takeout-detail">
+    <div class="detail-hero takeout-detail-hero" id="takeoutDetailHero">
+      <div class="detail-hero-bg takeout-hero-bg"></div>
+      <div class="detail-hero-content">
+        <div class="detail-cuisine-badge" id="takeoutDetailBadge"></div>
+        <h2 class="serif detail-name" id="takeoutDetailName"></h2>
+        <div class="detail-meta-row" id="takeoutDetailMeta"></div>
+      </div>
+    </div>
+
+    <div class="detail-body">
+      <div class="detail-section">
+        <h3 class="detail-section-title">商家介绍</h3>
+        <p class="detail-desc" id="takeoutDetailDesc"></p>
+        <div class="detail-promo" id="takeoutDetailPromo"></div>
+      </div>
+
+      <div class="detail-section">
+        <h3 class="detail-section-title">招牌菜品</h3>
+        <div class="detail-signatures" id="takeoutDetailSignatures"></div>
+      </div>
+
+      <div class="detail-section">
+        <h3 class="detail-section-title">商家标签</h3>
+        <div class="detail-tags" id="takeoutDetailTags"></div>
+      </div>
+
+      <div class="detail-section">
+        <h3 class="detail-section-title">配送信息</h3>
+        <div class="detail-info-list" id="takeoutDetailInfo"></div>
+      </div>
+    </div>
+
+    <div class="detail-action-bar">
+      <button class="detail-action-btn secondary" id="btnFavTakeout"><span id="takeoutFavBtnText">❤️ 收藏</span></button>
+      <button class="detail-action-btn primary" id="btnOrderTakeout">🛵 去下单</button>
+    </div>
+  </section>
 </main>
 
 <!-- ======== 底部导航栏 ======== -->
@@ -869,16 +1417,19 @@
 <!-- 全局提示 -->
 <div class="toast" id="toast"></div>
 
+  
 <script src="js/recipes.js?v=20260830i"></script>
 <script src="js/recipes2.js?v=20260830i"></script>
 <script src="js/recipes3.js?v=20260830i"></script>
 <script src="js/recipes4.js?v=20260830i"></script>
+<script src="js/restaurants.js?v=20260831o"></script>
+<script src="js/takeout.js?v=20260831p"></script>
 <script src="js/engine.js?v=20260830i"></script>
 <script src="js/llm.js?v=20260830i"></script>
 <script src="js/data/china.js?v=20260830i"></script>
 <script src="js/moments.js?v=20260830m"></script>
 <script src="js/social.js?v=20260830p"></script>
-<script src="js/app.js?v=20260831n"></script>
+<script src="js/app.js?v=20260831p"></script>
 <script src="js/mini-program-bridge.js?v=20260830mp"></script>
 </body>
 </html>

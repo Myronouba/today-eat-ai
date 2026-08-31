@@ -78,7 +78,7 @@
   const LS_USER = "eat-ai-user";
   const LS_FIRST = "eat-ai-first-seen";
   /* 版本号：每次功能更新后请同步递增（关于页会自动渲染） */
-  const APP_VERSION = "v4.0.1";
+  const APP_VERSION = "v4.1.0";
 
   /* 调试开关：URL 带 ?reset=1 或 ?fresh=1 → 清空本地数据，模拟全新用户首次进入 */
   (function debugReset() {
@@ -1514,7 +1514,8 @@
   // 显示/隐藏加载状态（用class控制，避免style.display出错）
   function setThinkingVisible(prefix, visible) {
     const thinking = $("#" + prefix + "Thinking");
-    const result = prefix === "home" ? $("#homeResult") : $("#coupleResult");
+    const resultMap = { home: "homeResult", couple: "coupleResult", out: "outResult", takeout: "takeoutResult", coupleTakeout: "coupleTakeoutResult" };
+    const result = $("#" + (resultMap[prefix] || "coupleResult"));
     if (!thinking || !result) return;
     if (visible) {
       thinking.classList.add("show");
@@ -1572,6 +1573,8 @@
         people: Number(chipVal($("#hmPeople")) || prefs.people || 2),
         cooker: chipVal($("#hmCooker")) || prefs.cooker || "newbie",
         mood: chipVal($("#hmMood")) || "balance",
+        category: chipVal($("#hmCategory")) || "all",
+        ingredients: window._selectedIngredients || [],
         spicyTarget: prefs.spicy
       };
       // 显示AI纠结中动效（换一批时也显示加载状态，避免用户以为按钮坏掉）
@@ -1619,6 +1622,8 @@
       showView("home-result");
       window.scrollTo({ top: 0 });
       if (showToast) toast("已为你推算今日菜单");
+      // 更新卡路里记录栏
+      try { updateKcalBar(); } catch(e) {}
     } catch (e) {
       // 如果是用户取消的，不显示错误提示
       if (e && e.message === "CALC_CANCELLED") {
@@ -3101,6 +3106,474 @@
   });
 
   /* ============================================================
+
+  /* ============================================================
+     ⑩ 出去吃 · 餐厅推荐
+     ============================================================ */
+  const LS_FAV = "eat-ai-fav-restaurants";
+  let outState = { scene: "朋友", people: 2, radius: 1, budget: "normal", mood: "any", restaurants: [], ctx: null };
+  let currentRestaurant = null;
+
+  /* ---------- 收藏功能 ---------- */
+  function loadFav() {
+    try { return JSON.parse(localStorage.getItem(LS_FAV) || "[]"); } catch (e) { return []; }
+  }
+  function saveFav(list) { localStorage.setItem(LS_FAV, JSON.stringify(list.slice(0, 100))); }
+  function isFav(id) { return loadFav().some(r => r.id === id); }
+  function toggleFav(restaurant) {
+    const list = loadFav();
+    const idx = list.findIndex(r => r.id === restaurant.id);
+    if (idx >= 0) {
+      list.splice(idx, 1);
+      saveFav(list);
+      return false;
+    } else {
+      list.unshift({ id: restaurant.id, name: restaurant.name, cuisine: restaurant.cuisine, price: restaurant.price, rating: restaurant.rating, distance: restaurant.distance, ts: Date.now() });
+      saveFav(list);
+      return true;
+    }
+  }
+  function updateFavEntry() {
+    const list = loadFav();
+    const entry = $("#outFavEntry");
+    const cnt = $("#favCount");
+    if (entry) {
+      if (list.length > 0) {
+        entry.hidden = false;
+        if (cnt) cnt.textContent = list.length;
+      } else {
+        entry.hidden = true;
+      }
+    }
+  }
+
+  /* ---------- 预算范围映射 ---------- */
+  const BUDGET_RANGE = {
+    cheap: { min: 0, max: 50, label: "50 元以下" },
+    normal: { min: 50, max: 100, label: "50-100 元" },
+    mid: { min: 100, max: 200, label: "100-200 元" },
+    high: { min: 200, max: 400, label: "200-400 元" },
+    luxury: { min: 400, max: 9999, label: "400 元以上" }
+  };
+
+  /* ---------- 餐厅多因子评分 ---------- */
+  function scoreRestaurant(r, ctx) {
+    let s = 50;
+    // 场景匹配（最重要）
+    if (r.scene && r.scene.includes(ctx.scene)) s += 20;
+    // 半径内（距离越近分越高）
+    if (r.distance <= ctx.radius) {
+      s += 15 - (r.distance / ctx.radius) * 8;
+    } else {
+      s -= 30; // 超出半径大幅降分
+    }
+    // 预算匹配
+    const br = BUDGET_RANGE[ctx.budget] || BUDGET_RANGE.normal;
+    if (r.price >= br.min && r.price <= br.max) s += 12;
+    else if (r.price < br.min) s += 4; // 比预算便宜也可以
+    else s -= 10;
+    // 评分
+    s += (r.rating - 4.0) * 10;
+    // 口味偏好
+    if (ctx.mood === "spicy" && r.spicy >= 2) s += 10;
+    if (ctx.mood === "light" && r.spicy === 0) s += 8;
+    if (ctx.mood === "comfort" && (r.type === "火锅" || r.type === "烧烤" || r.type === "夜宵")) s += 8;
+    if (ctx.mood === "exotic" && ["日料", "韩料", "西餐", "东南亚"].includes(r.cuisine)) s += 10;
+    // 场景-specific 加分
+    if (ctx.scene === "商务" && r.price >= 150) s += 6;
+    if (ctx.scene === "一人食" && r.price <= 80) s += 6;
+    if (ctx.scene === "情侣" && r.rating >= 4.5) s += 4;
+    // 随机扰动
+    s += (Math.random() - 0.5) * 8;
+    return s;
+  }
+
+  /* ---------- 生成餐厅推荐 ---------- */
+  function genRestaurants(opts) {
+    const ctx = {
+      scene: opts.scene || "朋友",
+      people: opts.people || 2,
+      radius: parseFloat(opts.radius) || 1,
+      budget: opts.budget || "normal",
+      mood: opts.mood || "any"
+    };
+    const all = window.RESTAURANTS || [];
+    // 先过滤：必须在半径内（允许少量超出但降分）
+    const pool = all.filter(r => r.distance <= ctx.radius * 1.5);
+    // 评分排序
+    const scored = pool.map(r => ({ r, s: scoreRestaurant(r, ctx) }))
+      .sort((a, b) => b.s - a.s);
+    // 取前 6-8 家，保证菜系多样性
+    const chosen = [];
+    const seenCuisines = new Set();
+    for (const item of scored) {
+      if (chosen.length >= 6) break;
+      // 同菜系最多 2 家
+      const cuisineCount = chosen.filter(c => c.cuisine === item.r.cuisine).length;
+      if (cuisineCount >= 2) continue;
+      chosen.push(item.r);
+      seenCuisines.add(item.r.cuisine);
+    }
+    // 如果不够 6 家，补充分数高的
+    if (chosen.length < 6) {
+      for (const item of scored) {
+        if (chosen.length >= 6) break;
+        if (!chosen.includes(item.r)) chosen.push(item.r);
+      }
+    }
+    return { restaurants: chosen, ctx, pool };
+  }
+
+  /* ---------- 生成推荐理由 ---------- */
+  function buildOutReason(restaurants, ctx) {
+    const sceneMeta = window.SCENE_META ? (window.SCENE_META[ctx.scene] || {}) : {};
+    const sceneLabel = sceneMeta.label || ctx.scene;
+    const br = BUDGET_RANGE[ctx.budget] || BUDGET_RANGE.normal;
+
+    const cuisineList = [...new Set(restaurants.map(r => r.cuisine))];
+    const topCuisines = cuisineList.slice(0, 3).join("、");
+
+    const avgRating = (restaurants.reduce((s, r) => s + r.rating, 0) / restaurants.length).toFixed(1);
+    const avgPrice = Math.round(restaurants.reduce((s, r) => s + r.price, 0) / restaurants.length);
+
+    const openings = [
+      `为你${sceneLabel}精心挑选了${restaurants.length}家餐厅`,
+      `${sceneLabel}的好去处，AI 帮你找到了`,
+      `结合${sceneLabel}的需求，这几家很合适`
+    ];
+    const head = openings[Math.floor(Math.random() * openings.length)];
+
+    let moodText = "";
+    if (ctx.mood === "spicy") moodText = "，无辣不欢的口味安排上了";
+    else if (ctx.mood === "light") moodText = "，清淡健康的选择";
+    else if (ctx.mood === "comfort") moodText = "，热闹暖胃的氛围感";
+    else if (ctx.mood === "exotic") moodText = "，来点异域风味换换口味";
+
+    return `${head}${moodText}。${ctx.people}人同行，在 ${ctx.radius}km 半径内、人均 ${br.label} 的预算下，精选了 ${topCuisines} 等菜系，平均评分 ${avgRating} 分、人均约 ${avgPrice} 元。${sceneMeta.desc || ""}，点击卡片查看餐厅详情和招牌菜。`;
+  }
+
+  /* ---------- 餐厅卡片 HTML ---------- */
+  function restaurantCardHTML(r, index) {
+    const cm = window.CUISINE_META ? (window.CUISINE_META[r.cuisine] || { emoji: "🍽️", label: r.cuisine }) : { emoji: "🍽️", label: r.cuisine };
+    const fav = isFav(r.id);
+    const sigs = (r.signature || []).slice(0, 3).map(s => `<span class="rc-sig-tag">${s}</span>`).join("");
+    const tags = (r.tags || []).slice(0, 3).map(t => `<span class="rc-tag">${t}</span>`).join("");
+    const distText = r.distance < 1 ? Math.round(r.distance * 1000) + "m" : r.distance.toFixed(1) + "km";
+    return `
+      <div class="restaurant-card" data-id="${r.id}" data-index="${index}">
+        ${fav ? '<div class="rc-fav-badge">❤️</div>' : ''}
+        <div class="rc-top">
+          <div class="rc-cuisine-icon">${cm.emoji}</div>
+          <div class="rc-info">
+            <h3 class="rc-name">${r.name}</h3>
+            <div class="rc-meta">
+              <span class="rc-rating"><span class="star">⭐</span>${r.rating.toFixed(1)}</span>
+              <span class="rc-price">¥${r.price}/人</span>
+              <span class="rc-distance">📍 ${distText}</span>
+              <span>${cm.label}</span>
+            </div>
+          </div>
+        </div>
+        <p class="rc-desc">${r.desc || ""}</p>
+        ${sigs ? `<div class="rc-signatures">${sigs}</div>` : ""}
+        ${tags ? `<div class="rc-tags">${tags}</div>` : ""}
+      </div>`;
+  }
+
+  /* ---------- 渲染餐厅列表 ---------- */
+  function renderRestaurantList(container, restaurants) {
+    const el = container || $("#restaurantList");
+    if (!el) return;
+    if (!restaurants || !restaurants.length) {
+      el.innerHTML = `<div class="fav-empty"><div class="empty-icon">🍽️</div><p>附近没有找到合适的餐厅</p><p class="empty-sub">试试扩大搜索半径或调整预算</p></div>`;
+      return;
+    }
+    el.innerHTML = restaurants.map((r, i) => restaurantCardHTML(r, i)).join("");
+    // 绑定点击事件
+    $$(".restaurant-card", el).forEach(card => {
+      card.addEventListener("click", () => {
+        const id = parseInt(card.dataset.id);
+        const r = (window.RESTAURANTS || []).find(x => x.id === id);
+        if (r) openRestaurantDetail(r);
+      });
+    });
+  }
+
+  /* ---------- 打开餐厅详情 ---------- */
+  function openRestaurantDetail(r) {
+    currentRestaurant = r;
+    renderRestaurantDetail(r);
+    showView("out-detail");
+    window.scrollTo({ top: 0 });
+  }
+
+  /* ---------- 渲染餐厅详情 ---------- */
+  function renderRestaurantDetail(r) {
+    const cm = window.CUISINE_META ? (window.CUISINE_META[r.cuisine] || { emoji: "🍽️", label: r.cuisine, color: "#E14D2A" }) : { emoji: "🍽️", label: r.cuisine, color: "#E14D2A" };
+    const fav = isFav(r.id);
+    const distText = r.distance < 1 ? Math.round(r.distance * 1000) + "m" : r.distance.toFixed(1) + "km";
+
+    // 顶部背景色按菜系
+    const heroBg = $("#detailHeroBg");
+    if (heroBg) {
+      heroBg.style.background = `linear-gradient(135deg, ${cm.color || "#E14D2A"} 0%, #E8731B 50%, #A97B2F 100%)`;
+    }
+
+    const badge = $("#detailCuisineBadge");
+    if (badge) badge.innerHTML = `${cm.emoji} ${cm.label} · ${r.type || ""}`;
+
+    const name = $("#detailName");
+    if (name) name.textContent = r.name;
+
+    const meta = $("#detailMetaRow");
+    if (meta) {
+      meta.innerHTML = `
+        <span class="dm-item">⭐ ${r.rating.toFixed(1)} 分</span>
+        <span class="dm-item">💰 ¥${r.price}/人</span>
+        <span class="dm-item">📍 ${distText}</span>
+        <span class="dm-item">🌶️ 辣度 ${r.spicy}/3</span>`;
+    }
+
+    const desc = $("#detailDesc");
+    if (desc) desc.textContent = r.desc || "";
+
+    const vibe = $("#detailVibe");
+    if (vibe) vibe.textContent = "💡 " + (r.vibe || "");
+
+    const sigs = $("#detailSignatures");
+    if (sigs) {
+      sigs.innerHTML = (r.signature || []).map(s => `<span class="detail-sig-item">${s}</span>`).join("");
+    }
+
+    const tags = $("#detailTags");
+    if (tags) {
+      tags.innerHTML = (r.tags || []).map(t => `<span class="detail-tag">${t}</span>`).join("");
+    }
+
+    const info = $("#detailInfoList");
+    if (info) {
+      info.innerHTML = `
+        <div class="detail-info-item">
+          <span class="detail-info-icon">📍</span>
+          <span class="detail-info-label">地址</span>
+          <span class="detail-info-value">${r.address || "详见地图导航"}</span>
+        </div>
+        <div class="detail-info-item">
+          <span class="detail-info-icon">🕐</span>
+          <span class="detail-info-label">营业时间</span>
+          <span class="detail-info-value">${r.hours || "10:00 - 22:00"}</span>
+        </div>
+        <div class="detail-info-item">
+          <span class="detail-info-icon">👥</span>
+          <span class="detail-info-label">适合</span>
+          <span class="detail-info-value">${(r.scene || []).join(" · ")}</span>
+        </div>`;
+    }
+
+    // 收藏按钮状态
+    const favBtn = $("#btnFavRestaurant");
+    const favText = $("#favBtnText");
+    if (favText) favText.textContent = fav ? "💔 取消收藏" : "❤️ 收藏这家餐厅";
+    if (favBtn) favBtn.classList.toggle("active", fav);
+  }
+
+  /* ---------- 渲染收藏列表 ---------- */
+  function renderFavList() {
+    const list = loadFav();
+    const el = $("#favList");
+    const empty = $("#favEmpty");
+    const meta = $("#favMeta");
+    if (meta) meta.textContent = `共收藏 ${list.length} 家好店`;
+    if (!list.length) {
+      if (el) el.innerHTML = "";
+      if (empty) empty.hidden = false;
+      return;
+    }
+    if (empty) empty.hidden = true;
+    // 从完整餐厅数据中获取详情
+    const fullList = list.map(fav => (window.RESTAURANTS || []).find(r => r.id === fav.id)).filter(Boolean);
+    renderRestaurantList(el, fullList);
+  }
+
+  /* ---------- 场景联动：情侣锁2人，一人食锁1人 ---------- */
+  function updatePeopleByScene() {
+    const peopleChips = $$("#outPeople .chip");
+    if (!peopleChips.length) return;
+    let lockedVal = null;
+    if (outState.scene === "情侣") lockedVal = "2";
+    else if (outState.scene === "一人食") lockedVal = "1";
+
+    peopleChips.forEach(chip => {
+      if (lockedVal) {
+        if (chip.dataset.val === lockedVal) {
+          chip.classList.add("active");
+          chip.classList.remove("disabled");
+          chip.disabled = false;
+        } else {
+          chip.classList.remove("active");
+          chip.classList.add("disabled");
+          chip.disabled = true;
+        }
+      } else {
+        chip.classList.remove("disabled");
+        chip.disabled = false;
+      }
+    });
+    if (lockedVal) outState.people = parseInt(lockedVal);
+  }
+
+  /* ---------- 执行出去吃推算（与在家吃/情侣一致的 async 动画模式） ---------- */
+  async function doGenOut(showToast) {
+    try {
+      startCalculation();
+      const opts = {
+        scene: outState.scene,
+        people: outState.people,
+        radius: outState.radius,
+        budget: outState.budget,
+        mood: outState.mood
+      };
+      showView("out-result");
+      setThinkingVisible("out", true);
+      window.scrollTo({ top: 0 });
+
+      const total = (window.RESTAURANTS || []).length;
+      updateThinking("out", 0, `正在从${total}家餐厅中过滤半径和人群...`);
+      await new Promise(r => setTimeout(r, 1400));
+      checkCalcCancelled();
+
+      updateThinking("out", 1, "多因子评分中（场景/距离/预算/评分/口味）...");
+      await new Promise(r => setTimeout(r, 1400));
+      checkCalcCancelled();
+
+      const result = genRestaurants(opts);
+      outState.restaurants = result.restaurants;
+      outState.ctx = result.ctx;
+
+      updateThinking("out", 2, "智能选店中，保证菜系多样性，匹配人群需求...");
+      await new Promise(r => setTimeout(r, 1200));
+      checkCalcCancelled();
+
+      updateThinking("out", 3, "生成AI推荐理由...");
+      const reason = buildOutReason(result.restaurants, result.ctx);
+      await new Promise(r => setTimeout(r, 600));
+      checkCalcCancelled();
+
+      $("#outReason").textContent = reason;
+      const infoEl = $("#outReasonInfo");
+      if (infoEl) {
+        const br = BUDGET_RANGE[result.ctx.budget] || BUDGET_RANGE.normal;
+        infoEl.textContent = `${result.ctx.scene} · ${result.ctx.people}人 · ${result.ctx.radius}km内 · 人均${br.label} · 共${result.restaurants.length}家`;
+      }
+      renderRestaurantList($("#restaurantList"), result.restaurants);
+
+      setThinkingVisible("out", false);
+      endCalculation();
+      showView("out-result");
+      window.scrollTo({ top: 0 });
+      if (showToast) toast("已为你推荐附近餐厅");
+    } catch (e) {
+      if (e && e.message === "CALC_CANCELLED") { console.log("推算已被用户取消"); return; }
+      console.error("doGenOut error:", e);
+      setThinkingVisible("out", false);
+      endCalculation();
+      toast("推算出错: " + (e.message || String(e)).slice(0, 50));
+    }
+  }
+
+  /* ---------- 出去吃事件绑定 ---------- */
+  // 场景选择（联动人数：情侣锁2人，一人食锁1人）
+  $("#outScene").addEventListener("click", (e) => {
+    const card = e.target.closest(".scene-card");
+    if (!card) return;
+    $$("#outScene .scene-card").forEach(c => c.classList.remove("active"));
+    card.classList.add("active");
+    outState.scene = card.dataset.val;
+    updatePeopleByScene();
+  });
+
+  // 人数选择
+  $("#outPeople").addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if (!chip || chip.classList.contains("disabled") || chip.disabled) return;
+    $$("#outPeople .chip").forEach(c => c.classList.remove("active"));
+    chip.classList.add("active");
+    outState.people = parseInt(chip.dataset.val);
+  });
+
+  // 半径选择
+  $("#outRadius").addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if (!chip) return;
+    $$("#outRadius .chip").forEach(c => c.classList.remove("active"));
+    chip.classList.add("active");
+    outState.radius = chip.dataset.val;
+  });
+
+  // 预算选择
+  $("#outBudget").addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if (!chip) return;
+    $$("#outBudget .chip").forEach(c => c.classList.remove("active"));
+    chip.classList.add("active");
+    outState.budget = chip.dataset.val;
+  });
+
+  // 口味选择
+  $("#outMood").addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if (!chip) return;
+    $$("#outMood .chip").forEach(c => c.classList.remove("active"));
+    chip.classList.add("active");
+    outState.mood = chip.dataset.val;
+  });
+
+  // 生成推荐
+  $("#btnGenOut").addEventListener("click", () => {
+    doGenOut(true);
+  });
+
+  // 换一批
+  $("#btnShuffleOut").addEventListener("click", () => {
+    doGenOut(false);
+  });
+
+  // 返回条件页
+  $("#btnBackToOut").addEventListener("click", () => {
+    showView("out");
+    window.scrollTo({ top: 0 });
+  });
+
+  // 收藏/取消收藏
+  $("#btnFavRestaurant").addEventListener("click", () => {
+    if (!currentRestaurant) return;
+    const nowFav = toggleFav(currentRestaurant);
+    const favText = $("#favBtnText");
+    if (favText) favText.textContent = nowFav ? "💔 取消收藏" : "❤️ 收藏这家餐厅";
+    toast(nowFav ? "已收藏，好店不迷路 ❤️" : "已取消收藏");
+    updateFavEntry();
+  });
+
+  // 地图导航
+  $("#btnNavRestaurant").addEventListener("click", () => {
+    if (!currentRestaurant) return;
+    const query = encodeURIComponent(currentRestaurant.name + " " + (currentRestaurant.address || ""));
+    const url = `https://ditu.amap.com/search?query=${query}`;
+    window.open(url, "_blank");
+    toast("正在打开地图导航...");
+  });
+
+  // 查看收藏列表
+  $("#btnViewFav").addEventListener("click", () => {
+    renderFavList();
+    showView("fav");
+    window.scrollTo({ top: 0 });
+  });
+
+  // 初始化时更新收藏入口
+  updateFavEntry();
+
+  /* ============================================================
     ⑦ 初始化
      ============================================================ */
   function enterApp() {
@@ -3129,4 +3602,670 @@
   init();
   // 暴露showView到全局，供social.js等外部脚本调用
   window.showView = showView;
+/* ============================================================
+   ⑪ 点外卖 · 外卖商家推荐
+   ============================================================ */
+const LS_FAV_TAKEOUT = "eat-ai-fav-takeout";
+let takeoutState = { category: "any", people: 2, budget: "normal", delivery: "45", mood: "balance", shops: [], ctx: null };
+let currentTakeout = null;
+
+/* 外卖预算档位 */
+const TAKEOUT_BUDGET_RANGE = {
+  cheap: { label: "20元以下", min: 0, max: 20 },
+  normal: { label: "20-50元", min: 20, max: 50 },
+  mid: { label: "50-80元", min: 50, max: 80 },
+  high: { label: "80-120元", min: 80, max: 120 },
+  luxury: { label: "120元以上", min: 120, max: 999 }
+};
+
+/* ---------- Tab切换：自己做 / 点外卖 ---------- */
+$$(".home-tab").forEach(tab => {
+  tab.addEventListener("click", () => {
+    $$(".home-tab").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    const target = tab.dataset.tab;
+    $$("[data-tab-content]").forEach(panel => {
+      panel.style.display = panel.dataset.tabContent === target ? "block" : "none";
+    });
+
+  });
+});
+
+/* ---------- 外卖收藏功能 ---------- */
+function loadFavTakeout() {
+  try { return JSON.parse(localStorage.getItem(LS_FAV_TAKEOUT) || "[]"); } catch (e) { return []; }
+}
+function saveFavTakeout(list) { localStorage.setItem(LS_FAV_TAKEOUT, JSON.stringify(list.slice(0, 100))); }
+function isFavTakeout(id) { return loadFavTakeout().some(s => s.id === id); }
+function toggleFavTakeout(shop) {
+  const list = loadFavTakeout();
+  const idx = list.findIndex(s => s.id === shop.id);
+  if (idx >= 0) { list.splice(idx, 1); saveFavTakeout(list); return false; }
+  else { list.unshift({ id: shop.id, name: shop.name, category: shop.category, price: shop.price, rating: shop.rating, deliveryTime: shop.deliveryTime, ts: Date.now() }); saveFavTakeout(list); return true; }
+}
+
+/* ---------- 外卖商家多因子评分 ---------- */
+function scoreTakeout(shop, ctx) {
+  let s = 50;
+  if (ctx.category !== "any" && shop.category === ctx.category) s += 20;
+  else if (ctx.category === "any") s += 5;
+  if (shop.deliveryTime <= ctx.deliveryMax) {
+    s += 15 - (shop.deliveryTime / ctx.deliveryMax) * 8;
+  } else { s -= 25; }
+  const br = TAKEOUT_BUDGET_RANGE[ctx.budget] || TAKEOUT_BUDGET_RANGE.normal;
+  if (shop.price >= br.min && shop.price <= br.max) s += 12;
+  else if (shop.price < br.min) s += 4;
+  else s -= 10;
+  s += (shop.rating - 4.0) * 10;
+  s += Math.min(shop.monthSales / 500, 8);
+  if (ctx.mood === "spicy" && shop.spicy >= 2) s += 10;
+  if (ctx.mood === "light" && shop.spicy === 0) s += 8;
+  if (ctx.mood === "comfort" && (shop.category === "火锅" || shop.category === "烧烤" || shop.category === "川菜")) s += 8;
+  if (shop.deliveryFee <= 2) s += 4;
+  s += (Math.random() - 0.5) * 8;
+  return s;
+}
+
+/* ---------- 生成外卖推荐 ---------- */
+function genTakeouts(opts) {
+  const deliveryOpt = (window.DELIVERY_TIME_OPTIONS || []).find(d => d.val === opts.delivery) || { min: 0, max: 60 };
+  const ctx = {
+    category: opts.category || "any",
+    people: opts.people || 2,
+    budget: opts.budget || "normal",
+    delivery: opts.delivery || "45",
+    deliveryMax: deliveryOpt.max,
+    mood: opts.mood || "balance"
+  };
+  const allShops = window.TAKEOUTS || [];
+  const scored = allShops.map(s => ({ shop: s, score: scoreTakeout(s, ctx) }));
+  scored.sort((a, b) => b.score - a.score);
+  const selected = [];
+  const usedCategories = new Set();
+  for (const item of scored) {
+    if (selected.length >= 6) break;
+    if (ctx.category === "any" && usedCategories.has(item.shop.category) && selected.length < 4) continue;
+    selected.push(item.shop);
+    usedCategories.add(item.shop.category);
+  }
+  return { shops: selected, ctx };
+}
+
+/* ---------- 生成外卖推荐理由 ---------- */
+function buildTakeoutReason(shops, ctx) {
+  const br = TAKEOUT_BUDGET_RANGE[ctx.budget] || TAKEOUT_BUDGET_RANGE.normal;
+  const catList = [...new Set(shops.map(s => s.category))];
+  const topCats = catList.slice(0, 3).join("、");
+  const avgRating = (shops.reduce((sum, s) => sum + s.rating, 0) / shops.length).toFixed(1);
+  const avgPrice = Math.round(shops.reduce((sum, s) => sum + s.price, 0) / shops.length);
+  const avgDelivery = Math.round(shops.reduce((sum, s) => sum + s.deliveryTime, 0) / shops.length);
+  const openings = [
+    `为你精选了${shops.length}家外卖好店`,
+    `外卖不知道吃什么？AI 帮你挑好了`,
+    `${ctx.people}人份外卖，这几家很合适`
+  ];
+  const head = openings[Math.floor(Math.random() * openings.length)];
+  let moodText = "";
+  if (ctx.mood === "spicy") moodText = "，无辣不欢的安排上了";
+  else if (ctx.mood === "light") moodText = "，清淡健康的选择";
+  else if (ctx.mood === "comfort") moodText = "，热闹暖胃的氛围感";
+  return `${head}${moodText}。${ctx.people}人同行，在 ${br.label} 预算、${ctx.deliveryMax}分钟内送达的要求下，精选了 ${topCats} 等品类，平均评分 ${avgRating} 分、人均约 ${avgPrice} 元、平均配送 ${avgDelivery} 分钟。点击卡片查看商家详情和招牌菜，一键跳转下单。`;
+}
+
+/* ---------- 外卖商家卡片 HTML ---------- */
+function takeoutCardHTML(shop, index) {
+  const catMeta = window.TAKEOUT_CATEGORIES ? (window.TAKEOUT_CATEGORIES[shop.category] || { emoji: "🍽️", label: shop.category }) : { emoji: "🍽️", label: shop.category };
+  const fav = isFavTakeout(shop.id);
+  const sigs = (shop.signature || []).slice(0, 3).map(s => `<span class="tc-sig-tag">⭐ ${s}</span>`).join("");
+  const tags = (shop.tags || []).slice(0, 3).map(t => `<span class="tc-tag">${t}</span>`).join("");
+  const salesText = shop.monthSales >= 1000 ? (shop.monthSales / 1000).toFixed(1) + "k" : shop.monthSales;
+  return `
+    <div class="takeout-card" data-id="${shop.id}" data-index="${index}">
+      ${fav ? '<div class="tc-fav-badge">❤️</div>' : ''}
+      <div class="tc-top">
+        <div class="tc-category-icon">${catMeta.emoji}</div>
+        <div class="tc-info">
+          <h3 class="tc-name">${shop.name}</h3>
+          <div class="tc-meta">
+            <span class="tc-rating">⭐ ${shop.rating.toFixed(1)}</span>
+            <span class="tc-sales">月售 ${salesText}</span>
+            <span class="tc-price">¥${shop.price}/人</span>
+            <span class="tc-delivery">🛵 ${shop.deliveryTime}分钟</span>
+            <span>${catMeta.label}</span>
+          </div>
+        </div>
+      </div>
+      <p class="tc-desc">${shop.desc || ""}</p>
+      ${shop.promo ? `<div class="tc-promo">🎁 ${shop.promo}</div>` : ""}
+      ${sigs ? `<div class="tc-signatures">${sigs}</div>` : ""}
+      ${tags ? `<div class="tc-tags">${tags}</div>` : ""}
+    </div>`;
+}
+
+/* ---------- 渲染外卖列表 ---------- */
+function renderTakeoutList(container, shops) {
+  const el = container || $("#takeoutList");
+  if (!el) return;
+  if (!shops || !shops.length) {
+    el.innerHTML = `<div class="fav-empty"><div class="empty-icon">🛵</div><p>没有找到合适的外卖商家</p><p class="empty-sub">试试扩大配送时间或调整预算</p></div>`;
+    return;
+  }
+  el.innerHTML = shops.map((s, i) => takeoutCardHTML(s, i)).join("");
+  $$(".takeout-card", el).forEach(card => {
+    card.addEventListener("click", () => {
+      const id = parseInt(card.dataset.id);
+      const shop = (window.TAKEOUTS || []).find(x => x.id === id);
+      if (shop) openTakeoutDetail(shop);
+    });
+  });
+}
+
+/* ---------- 打开外卖商家详情 ---------- */
+function openTakeoutDetail(shop) {
+  currentTakeout = shop;
+  renderTakeoutDetail(shop);
+  showView("takeout-detail");
+  window.scrollTo({ top: 0 });
+}
+
+/* ---------- 渲染外卖商家详情 ---------- */
+function renderTakeoutDetail(shop) {
+  const catMeta = window.TAKEOUT_CATEGORIES ? (window.TAKEOUT_CATEGORIES[shop.category] || { emoji: "🍽️", label: shop.category }) : { emoji: "🍽️", label: shop.category };
+  $("#takeoutDetailBadge").textContent = `${catMeta.emoji} ${catMeta.label}`;
+  $("#takeoutDetailName").textContent = shop.name;
+  const salesText = shop.monthSales >= 1000 ? (shop.monthSales / 1000).toFixed(1) + "k" : shop.monthSales;
+  $("#takeoutDetailMeta").innerHTML = `
+    <span>⭐ ${shop.rating.toFixed(1)} 分</span>
+    <span>📊 月售 ${salesText}</span>
+    <span>💰 ¥${shop.price}/人</span>
+    <span>🛵 ${shop.deliveryTime}分钟</span>
+    <span>🌶️ 辣度 ${shop.spicy}/3</span>`;
+  $("#takeoutDetailDesc").textContent = shop.desc || "";
+  const promoEl = $("#takeoutDetailPromo");
+  if (shop.promo) { promoEl.textContent = shop.promo; promoEl.style.display = "flex"; }
+  else { promoEl.style.display = "none"; }
+  const sigs = (shop.signature || []).map(s => `<div class="detail-sig-item">⭐ ${s}</div>`).join("");
+  $("#takeoutDetailSignatures").innerHTML = sigs || '<p class="empty-sub">暂无招牌菜信息</p>';
+  const tags = (shop.tags || []).map(t => `<span class="detail-tag">${t}</span>`).join("");
+  $("#takeoutDetailTags").innerHTML = tags || '<p class="empty-sub">暂无标签</p>';
+  const deliveryFeeText = shop.deliveryFee === 0 ? '<span class="info-val free">免配送费</span>' : `<span class="info-val">¥${shop.deliveryFee}</span>`;
+  const deliveryTimeClass = shop.deliveryTime <= 30 ? "fast" : "";
+  $("#takeoutDetailInfo").innerHTML = `
+    <div class="detail-info-item"><span class="info-label">🚚 起送价</span><span class="info-val">¥${shop.minOrder}</span></div>
+    <div class="detail-info-item"><span class="info-label">📦 配送费</span>${deliveryFeeText}</div>
+    <div class="detail-info-item"><span class="info-label">⏱️ 预计送达</span><span class="info-val ${deliveryTimeClass}">${shop.deliveryTime}分钟</span></div>
+    <div class="detail-info-item"><span class="info-label">📍 距离</span><span class="info-val">${shop.distance}km</span></div>
+    <div class="detail-info-item"><span class="info-label">🥡 餐盒费</span><span class="info-val">¥${shop.packageFee || 1}</span></div>`;
+  const fav = isFavTakeout(shop.id);
+  $("#takeoutFavBtnText").textContent = fav ? "💔 取消收藏" : "❤️ 收藏";
+}
+
+/* ---------- 执行外卖推算（与在家吃一致的 async 动画模式） ---------- */
+async function doGenTakeout(showToast) {
+  try {
+    startCalculation();
+    const opts = {
+      category: takeoutState.category,
+      people: takeoutState.people,
+      budget: takeoutState.budget,
+      delivery: takeoutState.delivery,
+      mood: takeoutState.mood
+    };
+    showView("takeout-result");
+    setThinkingVisible("takeout", true);
+    window.scrollTo({ top: 0 });
+    const total = (window.TAKEOUTS || []).length;
+    updateThinking("takeout", 0, `正在从${total}家外卖商家中过滤品类和配送时间...`);
+    await new Promise(r => setTimeout(r, 1400));
+    checkCalcCancelled();
+    updateThinking("takeout", 1, "多因子评分中（品类/配送/预算/评分/月售/口味）...");
+    await new Promise(r => setTimeout(r, 1400));
+    checkCalcCancelled();
+    const result = genTakeouts(opts);
+    takeoutState.shops = result.shops;
+    takeoutState.ctx = result.ctx;
+    updateThinking("takeout", 2, "智能选店中，保证品类多样性，匹配口味需求...");
+    await new Promise(r => setTimeout(r, 1200));
+    checkCalcCancelled();
+    updateThinking("takeout", 3, "生成AI推荐理由...");
+    const reason = buildTakeoutReason(result.shops, result.ctx);
+    await new Promise(r => setTimeout(r, 600));
+    checkCalcCancelled();
+    $("#takeoutReason").textContent = reason;
+    const infoEl = $("#takeoutReasonInfo");
+    if (infoEl) {
+      const br = TAKEOUT_BUDGET_RANGE[result.ctx.budget] || TAKEOUT_BUDGET_RANGE.normal;
+      infoEl.textContent = `${result.ctx.people}人 · ${br.label} · ${result.ctx.deliveryMax}分钟达 · 共${result.shops.length}家`;
+    }
+    renderTakeoutList($("#takeoutList"), result.shops);
+    setThinkingVisible("takeout", false);
+    endCalculation();
+    showView("takeout-result");
+    window.scrollTo({ top: 0 });
+    if (showToast) toast("已为你推荐外卖商家");
+  } catch (e) {
+    if (e && e.message === "CALC_CANCELLED") { console.log("推算已被用户取消"); return; }
+    console.error("doGenTakeout error:", e);
+    setThinkingVisible("takeout", false);
+    endCalculation();
+    toast("推算出错: " + (e.message || String(e)).slice(0, 50));
+  }
+}
+
+/* ---------- 点外卖事件绑定 ---------- */
+$("#takeoutCategory").addEventListener("click", (e) => {
+  const chip = e.target.closest(".chip");
+  if (!chip) return;
+  $$("#takeoutCategory .chip").forEach(c => c.classList.remove("active"));
+  chip.classList.add("active");
+  takeoutState.category = chip.dataset.val;
+});
+$("#takeoutPeople").addEventListener("click", (e) => {
+  const chip = e.target.closest(".chip");
+  if (!chip) return;
+  $$("#takeoutPeople .chip").forEach(c => c.classList.remove("active"));
+  chip.classList.add("active");
+  takeoutState.people = parseInt(chip.dataset.val);
+});
+$("#takeoutBudget").addEventListener("click", (e) => {
+  const chip = e.target.closest(".chip");
+  if (!chip) return;
+  $$("#takeoutBudget .chip").forEach(c => c.classList.remove("active"));
+  chip.classList.add("active");
+  takeoutState.budget = chip.dataset.val;
+});
+$("#takeoutDelivery").addEventListener("click", (e) => {
+  const chip = e.target.closest(".chip");
+  if (!chip) return;
+  $$("#takeoutDelivery .chip").forEach(c => c.classList.remove("active"));
+  chip.classList.add("active");
+  takeoutState.delivery = chip.dataset.val;
+});
+$("#takeoutMood").addEventListener("click", (e) => {
+  const chip = e.target.closest(".chip");
+  if (!chip) return;
+  $$("#takeoutMood .chip").forEach(c => c.classList.remove("active"));
+  chip.classList.add("active");
+  takeoutState.mood = chip.dataset.val;
+});
+$("#btnGenTakeout").addEventListener("click", () => { doGenTakeout(true); });
+$("#btnShuffleTakeout").addEventListener("click", () => { doGenTakeout(false); });
+$("#btnFavTakeout").addEventListener("click", () => {
+  if (!currentTakeout) return;
+  const nowFav = toggleFavTakeout(currentTakeout);
+  const favText = $("#takeoutFavBtnText");
+  if (favText) favText.textContent = nowFav ? "💔 取消收藏" : "❤️ 收藏";
+  toast(nowFav ? "已收藏这家外卖店" : "已取消收藏");
+});
+$("#btnOrderTakeout").addEventListener("click", () => {
+  if (!currentTakeout) return;
+  const url = "https://h5.ele.me/search/?keyword=" + encodeURIComponent(currentTakeout.name);
+  window.open(url, "_blank");
+  toast("正在跳转到饿了么搜索...");
+});
+
+/* ========== 在家做 · 食材选择交互 ========== */
+window._selectedIngredients = [];
+
+function initIngredientPicker() {
+  // 品类选择
+  const catEl = $("#hmCategory");
+  if (catEl) {
+    catEl.querySelectorAll(".chip").forEach(chip => {
+      chip.addEventListener("click", () => {
+        catEl.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+      });
+    });
+  }
+  const chipsEl = $("#hmIngredients");
+  const inputEl = $("#hmIngredientInput");
+  const addBtn = $("#hmAddIngredient");
+  const selectedEl = $("#hmSelectedIngredients");
+  if (!chipsEl) return;
+
+  function renderSelected() {
+    if (!selectedEl) return;
+    selectedEl.innerHTML = window._selectedIngredients.map(ing =>
+      `<span class="sel-ing-tag">${ing}<span class="remove" data-ing="${ing}">×</span></span>`
+    ).join("");
+    selectedEl.querySelectorAll(".remove").forEach(x => {
+      x.addEventListener("click", () => {
+        const ing = x.dataset.ing;
+        window._selectedIngredients = window._selectedIngredients.filter(i => i !== ing);
+        chipsEl.querySelectorAll(".chip").forEach(c => {
+          if (c.dataset.val === ing) c.classList.remove("active");
+        });
+        renderSelected();
+      });
+    });
+  }
+
+  chipsEl.querySelectorAll(".chip").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const ing = chip.dataset.val;
+      if (chip.classList.contains("active")) {
+        chip.classList.remove("active");
+        window._selectedIngredients = window._selectedIngredients.filter(i => i !== ing);
+      } else {
+        chip.classList.add("active");
+        if (!window._selectedIngredients.includes(ing)) window._selectedIngredients.push(ing);
+      }
+      renderSelected();
+    });
+  });
+
+  function addCustomIngredient() {
+    const val = (inputEl.value || "").trim();
+    if (!val) return;
+    if (!window._selectedIngredients.includes(val)) {
+      window._selectedIngredients.push(val);
+    }
+    inputEl.value = "";
+    renderSelected();
+  }
+
+  if (addBtn) addBtn.addEventListener("click", addCustomIngredient);
+  if (inputEl) {
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") { e.preventDefault(); addCustomIngredient(); }
+    });
+  }
+}
+
+/* ========== 卡路里记录功能 ========== */
+const KCAL_STORAGE_KEY = "jcs_kcal_records";
+
+function getTodayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`;
+}
+
+function loadKcalRecords() {
+  try {
+    return JSON.parse(localStorage.getItem(KCAL_STORAGE_KEY) || "{}");
+  } catch(e) { return {}; }
+}
+
+function saveKcalRecords(records) {
+  localStorage.setItem(KCAL_STORAGE_KEY, JSON.stringify(records));
+}
+
+function getTodayKcal() {
+  const records = loadKcalRecords();
+  const today = getTodayKey();
+  return records[today] || { total: 0, dishes: [] };
+}
+
+function recordMenuKcal(dishes) {
+  if (!dishes || !dishes.length) return 0;
+  const total = dishes.reduce((sum, d) => sum + (d.kcal || 0), 0);
+  const records = loadKcalRecords();
+  const today = getTodayKey();
+  if (!records[today]) records[today] = { total: 0, dishes: [] };
+  records[today].total += total;
+  dishes.forEach(d => {
+    records[today].dishes.push({ name: d.name, kcal: d.kcal || 0, time: Date.now() });
+  });
+  saveKcalRecords(records);
+  return total;
+}
+
+function isTodayMenuRecorded(dishes) {
+  if (!dishes || !dishes.length) return false;
+  const today = getTodayKcal();
+  return today.dishes.some(d => dishes.some(menuDish => menuDish.name === d.name));
+}
+
+function updateKcalBar() {
+  const barEl = $("#kcalRecordBar");
+  if (!barEl) return;
+  const today = getTodayKcal();
+  const totalEl = $("#kcalTodayTotal");
+  const btnEl = $("#kcalRecordBtn");
+  if (totalEl) totalEl.textContent = today.total;
+  if (btnEl && homeState && homeState.dishes) {
+    const recorded = isTodayMenuRecorded(homeState.dishes);
+    if (recorded) {
+      btnEl.textContent = "✓ 已记录";
+      btnEl.classList.add("recorded");
+    } else {
+      btnEl.textContent = "📝 记录今日摄入";
+      btnEl.classList.remove("recorded");
+    }
+  }
+}
+
+/* ========== 初始化：食材选择器 + 卡路里记录 ========== */
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    try { initIngredientPicker(); } catch(e) { console.warn("initIngredientPicker:", e); }
+    const kcalBtn = document.getElementById("kcalRecordBtn");
+    if (kcalBtn) {
+      kcalBtn.addEventListener("click", () => {
+        if (!homeState || !homeState.dishes) { toast("暂无菜单可记录"); return; }
+        if (isTodayMenuRecorded(homeState.dishes)) { toast("今日已记录过这桌菜"); return; }
+        const total = recordMenuKcal(homeState.dishes);
+        updateKcalBar();
+        toast(`已记录今日摄入 ${total} 千卡`);
+      });
+    }
+    try { updateKcalBar(); } catch(e) {}
+  }, 500);
+});
+
+/* ========== 情侣一起点 · 外卖推荐 ========== */
+const coupleTakeoutState = { occasion: "daily", category: "all", budget: 50, delivery: 45, mood: "balance" };
+let currentCoupleTakeout = null;
+
+// 情侣Tab切换
+$$("[data-couple-tab]").forEach(tab => {
+  tab.addEventListener("click", () => {
+    $$("[data-couple-tab]").forEach(t => t.classList.remove("active"));
+    tab.classList.add("active");
+    const target = tab.dataset.coupleTab;
+    $$("[data-couple-content]").forEach(panel => {
+      panel.style.display = panel.dataset.coupleContent === target ? "block" : "none";
+    });
+  });
+});
+
+// 条件选择交互
+function initCoupleTakeoutChips(containerId, stateKey) {
+  const container = $("#" + containerId);
+  if (!container) return;
+  container.addEventListener("click", (e) => {
+    const chip = e.target.closest(".chip");
+    if (!chip || chip.disabled) return;
+    container.querySelectorAll(".chip").forEach(c => c.classList.remove("active"));
+    chip.classList.add("active");
+    coupleTakeoutState[stateKey] = chip.dataset.val;
+  });
+}
+initCoupleTakeoutChips("cpTakeoutOccasion", "occasion");
+initCoupleTakeoutChips("cpTakeoutCategory", "category");
+initCoupleTakeoutChips("cpTakeoutBudget", "budget");
+initCoupleTakeoutChips("cpTakeoutDelivery", "delivery");
+initCoupleTakeoutChips("cpTakeoutMood", "mood");
+
+// 情侣外卖推荐逻辑
+function genCoupleTakeout() {
+  const shops = window.TAKEOUTS || [];
+  let pool = shops.slice();
+  const s = coupleTakeoutState;
+  
+  if (s.category === "romantic") pool = pool.filter(x => x.tags && x.tags.some(t => ["约会","氛围好","浪漫","仪式感"].includes(t)));
+  else if (s.category === "hot") pool = pool.filter(x => x.spicy >= 2 || x.cuisine === "川" || x.cuisine === "湘");
+  else if (s.category === "light") pool = pool.filter(x => x.health && x.health.includes("light") || x.spicy === 0 || x.cuisine === "粤");
+  else if (s.category === "dessert") pool = pool.filter(x => x.category === "甜品饮品" || x.category === "奶茶饮品" || x.category === "烘焙甜品");
+  else if (s.category === "fast") pool = pool.filter(x => x.deliveryTime <= 30 && x.category === "快餐简餐");
+  
+  const budget = Number(s.budget);
+  pool = pool.filter(x => x.price <= budget);
+  pool = pool.filter(x => x.deliveryTime <= Number(s.delivery));
+  
+  pool.forEach(x => {
+    x._coupleScore = (x.rating || 4) * 10 + (x.monthSales || 0) / 1000;
+    if (x.tags && x.tags.some(t => ["约会","氛围好","浪漫","仪式感","双人套餐"].includes(t))) x._coupleScore += 20;
+    if (s.occasion === "anniversary" && x.tags && x.tags.some(t => ["浪漫","仪式感","约会"].includes(t))) x._coupleScore += 15;
+    if (s.occasion === "weekend" && x.price >= 50) x._coupleScore += 10;
+    if (s.mood === "sweet" && x.category && x.category.includes("甜")) x._coupleScore += 15;
+    if (s.mood === "spicy" && x.spicy >= 2) x._coupleScore += 10;
+    if (s.mood === "light" && x.spicy === 0) x._coupleScore += 8;
+  });
+  
+  pool.sort((a, b) => b._coupleScore - a._coupleScore);
+  const selected = pool.slice(0, 6);
+  selected.forEach(x => delete x._coupleScore);
+  return selected;
+}
+
+// 渲染情侣外卖商家列表
+function renderCoupleTakeoutList(el, shops) {
+  el.innerHTML = shops.map((shop, i) => {
+    const catMeta = window.TAKEOUT_CATEGORIES ? (window.TAKEOUT_CATEGORIES[shop.category] || { emoji: "🍽️", label: shop.category }) : { emoji: "🍽️", label: shop.category };
+    const salesText = shop.monthSales >= 1000 ? (shop.monthSales / 1000).toFixed(1) + "k" : shop.monthSales;
+    const coupleTags = (shop.tags || []).filter(t => ["约会","氛围好","浪漫","仪式感","双人套餐"].includes(t));
+    const coupleBadge = coupleTags.length > 0 ? `<span class="tag green">💕 ${coupleTags[0]}</span>` : "";
+    return `
+      <div class="takeout-card" data-idx="${i}">
+        <div class="tc-top">
+          <div class="tc-icon">${catMeta.emoji}</div>
+          <div class="tc-info">
+            <div class="tc-name">${shop.name}</div>
+            <div class="tc-meta">
+              <span>⭐ ${shop.rating.toFixed(1)}</span>
+              <span>📊 月售${salesText}</span>
+              <span>💰 ¥${shop.price}/人</span>
+              <span>🛵 ${shop.deliveryTime}分钟</span>
+              <span>${catMeta.label}</span>
+            </div>
+          </div>
+        </div>
+        <p class="tc-desc">${shop.desc || ""}</p>
+        ${shop.promo ? `<div class="tc-promo">🎁 ${shop.promo}</div>` : ""}
+        <div class="tc-tags">
+          ${(shop.signature || []).slice(0,3).map(s => `<span class="tc-sig">⭐ ${s}</span>`).join("")}
+        </div>
+        <div class="tc-bottom">
+          ${(shop.tags || []).slice(0,2).map(t => `<span class="tag ghost">${t}</span>`).join("")}
+          ${coupleBadge}
+        </div>
+      </div>`;
+  }).join("");
+  el.querySelectorAll(".takeout-card").forEach(card => {
+    card.addEventListener("click", () => openCoupleTakeoutDetail(shops[Number(card.dataset.idx)]));
+  });
+}
+
+// 执行情侣外卖推算
+async function doGenCoupleTakeout(showToast) {
+  try {
+    startCalculation();
+    showView("couple-takeout-result");
+    setThinkingVisible("coupleTakeout", true);
+    window.scrollTo({ top: 0 });
+    updateThinking("coupleTakeout", 0, "正在从外卖商家中过滤品类和配送时间...");
+    await new Promise(r => setTimeout(r, 1200));
+    checkCalcCancelled();
+    updateThinking("coupleTakeout", 1, "多因子评分中（情侣氛围/评分/月售/预算/配送）...");
+    await new Promise(r => setTimeout(r, 1200));
+    checkCalcCancelled();
+    const shops = genCoupleTakeout();
+    updateThinking("coupleTakeout", 2, "智能选店中，挑选适合两人的浪漫好店...");
+    await new Promise(r => setTimeout(r, 1000));
+    checkCalcCancelled();
+    updateThinking("coupleTakeout", 3, "生成情侣推荐理由...");
+    await new Promise(r => setTimeout(r, 800));
+    checkCalcCancelled();
+    
+    const budget = Number(coupleTakeoutState.budget);
+    const avgRating = shops.length > 0 ? (shops.reduce((s, x) => s + x.rating, 0) / shops.length).toFixed(1) : "4.5";
+    const avgPrice = shops.length > 0 ? Math.round(shops.reduce((s, x) => s + x.price, 0) / shops.length) : 50;
+    const avgDelivery = shops.length > 0 ? Math.round(shops.reduce((s, x) => s + x.deliveryTime, 0) / shops.length) : 30;
+    const occasionText = coupleTakeoutState.occasion === "anniversary" ? "纪念日" : coupleTakeoutState.occasion === "weekend" ? "周末" : "日常";
+    const reason = `${occasionText}约会，这几家很合适。2人同行，在人均${budget}元、${coupleTakeoutState.delivery}分钟内送达的要求下，精选了${shops.length}家适合情侣的外卖好店，平均评分${avgRating}分、人均约${avgPrice}元、平均配送${avgDelivery}分钟。点击卡片查看商家详情和招牌菜，一键跳转下单。`;
+    
+    $("#coupleTakeoutMeta").textContent = `2人 · ${budget}元 · ${coupleTakeoutState.delivery}分钟达 · 共${shops.length}家`;
+    $("#coupleTakeoutReason").textContent = reason;
+    renderCoupleTakeoutList($("#coupleTakeoutList"), shops);
+    setThinkingVisible("coupleTakeout", false);
+    endCalculation();
+    showView("couple-takeout-result");
+    window.scrollTo({ top: 0 });
+    if (showToast) toast("已为你们推荐外卖");
+  } catch (e) {
+    if (e && e.message === "CALC_CANCELLED") return;
+    console.error("doGenCoupleTakeout error:", e);
+    setThinkingVisible("coupleTakeout", false);
+    endCalculation();
+    toast("推荐出错: " + (e.message || e).slice(0, 50));
+  }
+}
+
+// 情侣外卖详情
+function openCoupleTakeoutDetail(shop) {
+  currentCoupleTakeout = shop;
+  renderCoupleTakeoutDetail(shop);
+  showView("couple-takeout-detail");
+  window.scrollTo({ top: 0 });
+}
+
+function renderCoupleTakeoutDetail(shop) {
+  const catMeta = window.TAKEOUT_CATEGORIES ? (window.TAKEOUT_CATEGORIES[shop.category] || { emoji: "🍽️", label: shop.category }) : { emoji: "🍽️", label: shop.category };
+  const salesText = shop.monthSales >= 1000 ? (shop.monthSales / 1000).toFixed(1) + "k" : shop.monthSales;
+  $("#coupleTakeoutDetailBadge").textContent = `${catMeta.emoji} ${catMeta.label}`;
+  $("#coupleTakeoutDetailName").textContent = shop.name;
+  $("#coupleTakeoutDetailMeta").innerHTML = `
+    <span>⭐ ${shop.rating.toFixed(1)} 分</span>
+    <span>📊 月售 ${salesText}</span>
+    <span>💰 ¥${shop.price}/人</span>
+    <span>🛵 ${shop.deliveryTime}分钟</span>
+    <span>🌶️ 辣度 ${shop.spicy}/3</span>`;
+  
+  const coupleTags = (shop.tags || []).filter(t => ["约会","氛围好","浪漫","仪式感","双人套餐"].includes(t));
+  const coupleReason = coupleTags.length > 0
+    ? `这家店很适合情侣约会！主打"${coupleTags.join("、")}"，${shop.desc || ""}两个人点个双人套餐，边吃边聊，氛围感拉满。`
+    : `这家店虽然不是专门的约会店，但评分${shop.rating.toFixed(1)}分、月售${salesText}，品质有保障。${shop.desc || ""}两个人点几份招牌菜分享着吃，也是不错的选择。`;
+  $("#coupleTakeoutDetailCoupleReason").textContent = coupleReason;
+  $("#coupleTakeoutDetailDesc").textContent = shop.desc || "";
+  
+  const promoEl = $("#coupleTakeoutDetailPromo");
+  if (shop.promo) { promoEl.textContent = "🎁 " + shop.promo; promoEl.style.display = "flex"; }
+  else { promoEl.style.display = "none"; }
+  
+  const sigs = (shop.signature || []).map(s => `<div class="detail-sig-item">⭐ ${s}</div>`).join("");
+  $("#coupleTakeoutDetailSignatures").innerHTML = sigs || '<p class="empty-sub">暂无招牌菜信息</p>';
+  
+  const tags = (shop.tags || []).map(t => `<span class="detail-tag">${t}</span>`).join("");
+  $("#coupleTakeoutDetailTags").innerHTML = tags || '<p class="empty-sub">暂无标签</p>';
+  
+  const deliveryFeeText = shop.deliveryFee === 0 ? '<span class="info-val free">免配送费</span>' : `<span class="info-val">¥${shop.deliveryFee}</span>`;
+  $("#coupleTakeoutDetailInfo").innerHTML = `
+    <div class="detail-info-item"><span class="info-label">🚚 起送价</span><span class="info-val">¥${shop.minOrder}</span></div>
+    <div class="detail-info-item"><span class="info-label">📦 配送费</span>${deliveryFeeText}</div>
+    <div class="detail-info-item"><span class="info-label">⏱️ 预计送达</span><span class="info-val">${shop.deliveryTime}分钟</span></div>
+    <div class="detail-info-item"><span class="info-label">📍 距离</span><span class="info-val">${shop.distance}km</span></div>
+    <div class="detail-info-item"><span class="info-label">🥡 餐盒费</span><span class="info-val">¥${shop.packageFee || 1}</span></div>`;
+  
+  const fav = isFavTakeout(shop.id);
+  $("#coupleTakeoutFavBtnText").textContent = fav ? "💔 取消收藏" : "❤️ 收藏";
+}
+
+// 事件绑定
+$("#btnGenCoupleTakeout").addEventListener("click", () => doGenCoupleTakeout(true));
+$("#btnShuffleCoupleTakeout").addEventListener("click", () => doGenCoupleTakeout(false));
+$("#btnFavCoupleTakeout").addEventListener("click", () => {
+  if (!currentCoupleTakeout) return;
+  const nowFav = toggleFavTakeout(currentCoupleTakeout);
+  $("#coupleTakeoutFavBtnText").textContent = nowFav ? "💔 取消收藏" : "❤️ 收藏";
+  toast(nowFav ? "已收藏这家店" : "已取消收藏");
+});
+$("#btnOrderCoupleTakeout").addEventListener("click", () => {
+  if (!currentCoupleTakeout) return;
+  const url = "https://h5.ele.me/search/?keyword=" + encodeURIComponent(currentCoupleTakeout.name);
+  window.open(url, "_blank");
+  toast("正在跳转到饿了么搜索...");
+});
+
 })();
