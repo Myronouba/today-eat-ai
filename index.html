@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
@@ -25,6 +25,11 @@
     </div>
   </div>
 </header>
+
+<!-- 子页面返回按钮（独立组件，左上角） -->
+<button class="page-back-btn" id="pageBackBtn" aria-label="返回" hidden>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+</button>
 
 <main class="stage" id="stage">
 
@@ -395,7 +400,9 @@
           <button class="chip active" data-val="all">不挑，AI定</button>
           <button class="chip" data-val="hard">家常硬菜</button>
           <button class="chip" data-val="veg">清淡素菜</button>
-          <button class="chip" data-val="fitness">🔥 塑型餐</button>
+          <button class="chip" data-val="fitness-protein">💪 高蛋白增肌</button>
+          <button class="chip" data-val="fitness-lowcarb">🥑 低碳水减脂</button>
+          <button class="chip" data-val="fitness-lowfat">🥗 低脂饱腹</button>
           <button class="chip" data-val="soup">汤汤水水</button>
           <button class="chip" data-val="quick">15分钟快手</button>
         </div>
@@ -419,6 +426,22 @@
           <button class="ingredient-add-btn" id="hmAddIngredient">+ 添加</button>
         </div>
         <div class="selected-ingredients" id="hmSelectedIngredients"></div>
+      </div>
+
+      <!-- 可做菜品统计：根据冰箱食材匹配菜谱 -->
+      <div class="ingredient-match-panel" id="ingredientMatchPanel" style="display:none;">
+        <div class="imp-header">
+          <span class="imp-title">🧊 用这些食材能做什么？</span>
+          <span class="imp-count" id="impCount">可做 0 道菜</span>
+        </div>
+        <div class="imp-tabs">
+          <button class="imp-tab active" data-imp-tab="can">可做 <span id="impCanCount">0</span></button>
+          <button class="imp-tab" data-imp-tab="almost">差不多能做 <span id="impAlmostCount">0</span></button>
+        </div>
+        <div class="imp-list" id="impList">
+          <div class="imp-empty">选择食材后，这里会显示能做的菜</div>
+        </div>
+
       </div>
       <div class="field">
         <label>今天口味想偏哪边？</label>
@@ -1430,6 +1453,7 @@
 <script src="js/moments.js?v=20260830m"></script>
 <script src="js/social.js?v=20260830p"></script>
 <script src="js/app.js?v=20260831p"></script>
-<script src="js/mini-program-bridge.js?v=20260830mp"></script>
+<script src="utils/storage.js?v=20260901"></script>
+<script src="api/index.js?v=20260901"></script><script src="js/mini-program-bridge.js?v=20260830mp"></script>
 </body>
 </html>

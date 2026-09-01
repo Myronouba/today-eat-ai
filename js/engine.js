@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    今天吃啥 AI 版 · 本地 AI 推荐引擎
    基于「用户基本情况 + 当次输入」的多因子推算
    无 key 时本地兜底，有 key 时由 llm.js 升级渲染
@@ -222,10 +222,30 @@ window.Engine = (function () {
 
     // 品类筛选
     const cat = opts.category || "all";
-    if (cat === "fitness") {
+    const isFitness = cat === "fitness" || cat === "fitness-protein" || cat === "fitness-lowcarb" || cat === "fitness-lowfat";
+    if (isFitness) {
       pool = pool.filter(d => d.health && d.health.includes("fitness"));
-    } else if (cat === "hard") {
-      pool = pool.filter(d => d.type === "hot");
+      if (cat === "fitness-protein") {
+        // 高蛋白增肌：荤菜强制>=20g蛋白，素菜和汤不强制但高蛋白加分
+        pool = pool.filter(d => d.type !== "hot" || (d.protein || 0) >= 20);
+        pool.forEach(d => {
+          d._proteinBonus = (d.protein || 0) * 1.5;
+          if (d.type === "hot" && (d.protein || 0) >= 30) d._proteinBonus += 20;
+        });
+      } else if (cat === "fitness-lowcarb") {
+        const highCarbIngs = ["土豆","马铃薯","南瓜","红薯","地瓜","玉米","面条","面","米饭","米","燕麦","藜麦","面包","馒头","粉"];
+        pool = pool.filter(d => {
+          const dishIngs = (d.ing || []).map(x => x[0]);
+          return !dishIngs.some(di => highCarbIngs.some(hc => di.includes(hc)));
+        });
+      } else if (cat === "fitness-lowfat") {
+        const lowFatIngs = ["鸡胸肉","龙利鱼","虾","虾仁","豆腐","西兰花","菌菇","蘑菇","香菇","金针菇","魔芋","黄瓜","番茄","生菜","菠菜","白菜"];
+        pool.forEach(d => {
+          const dishIngs = (d.ing || []).map(x => x[0]);
+          const lowFatCount = dishIngs.filter(di => lowFatIngs.some(lf => di.includes(lf))).length;
+          d._lowFatBonus = lowFatCount * 10;
+        });
+      }
     } else if (cat === "veg") {
       pool = pool.filter(d => d.type === "veg" || d.type === "soup");
     } else if (cat === "soup") {
@@ -246,8 +266,13 @@ window.Engine = (function () {
 
     const people = ctx.people;
     // 按人数定菜品构成（塑型餐调整为高蛋白为主）
-    const plan = cat === "fitness"
-      ? { hot: 2, veg: 1, soup: people >= 2 ? 1 : 0 }
+    const plan = isFitness
+      ? (cat === "fitness-protein"
+          ? { hot: 3, veg: 1, soup: people >= 2 ? 1 : 0 }
+          : cat === "fitness-lowcarb"
+          ? { hot: 2, veg: 2, soup: people >= 2 ? 1 : 0 }
+          : { hot: 2, veg: 1, soup: people >= 2 ? 1 : 0 })
+      : people === 1 ? { hot: 1, veg: 1, soup: 0 }
       : people === 1 ? { hot: 1, veg: 1, soup: 0 }
       : people === 2 ? { hot: 1, veg: 1, soup: 1 }
       : people === 3 ? { hot: 2, veg: 1, soup: 1 }
@@ -257,7 +282,7 @@ window.Engine = (function () {
     for (const type of ["hot", "veg", "soup"]) {
       const need = plan[type];
       if (!need) continue;
-      const candidates = pool.filter(d => d.type === type).map(d => ({ d, s: score(d, ctx) + (d._ingredientBonus || 0) }))
+      const candidates = pool.filter(d => d.type === type).map(d => ({ d, s: score(d, ctx) + (d._ingredientBonus || 0) + (d._lowFatBonus || 0) + (d._proteinBonus || 0) }))
         .filter(x => !chosen.some(c => overlap(c, x.d)))
         .sort((a, b) => b.s - a.s);
       for (let i = 0; i < need && i < candidates.length; i++) {
@@ -269,7 +294,11 @@ window.Engine = (function () {
         .filter(x => !chosen.some(c => overlap(c, x.d))).sort((a, b) => b.s - a.s);
       if (alt && alt[0]) chosen.push(alt[0].d);
     }
-    pool.forEach(d => delete d._ingredientBonus);
+    pool.forEach(d => {
+      delete d._ingredientBonus;
+      delete d._lowFatBonus;
+      delete d._proteinBonus;
+    });
     return { dishes: chosen, ctx, pool };
   }
 

@@ -1,4 +1,4 @@
-/* ============================================================
+﻿/* ============================================================
    今天吃啥 AI 版 · 主应用逻辑 · build v4
    ============================================================ */
 (function () {
@@ -566,9 +566,14 @@
       /* 根据页面id给body添加类，用于隐藏/显示菜单栏等 */
       document.body.className = document.body.className.replace(/view-\w+/g, "").trim();
       document.body.className = document.body.className.replace(/hide-tabs/g, "").trim();
+      
       // 子页面隐藏底部菜单栏，主页面显示菜单栏
       const SUB_HIDE_TABS = !MAIN_VIEWS.includes(id) && !NO_BACK.includes(id);
       if (SUB_HIDE_TABS) document.body.classList.add("hide-tabs");
+      // 子页面显示返回按钮，主页面隐藏
+      const pageBackBtn = document.getElementById("pageBackBtn");
+      if (pageBackBtn) pageBackBtn.hidden = MAIN_VIEWS.includes(id) || NO_BACK.includes(id);
+
       if (id === "moments") document.body.classList.add("view-moments");
       /* 强制重播进入动画：子元素依次柔和浮现（返回菜单更细腻） */
       v.querySelectorAll(":scope > *").forEach((el, i) => {
@@ -1513,6 +1518,7 @@
   }
   // 显示/隐藏加载状态（用class控制，避免style.display出错）
   function setThinkingVisible(prefix, visible) {
+    if (visible) window._currentCalcPrefix = prefix;
     const thinking = $("#" + prefix + "Thinking");
     const resultMap = { home: "homeResult", couple: "coupleResult", out: "outResult", takeout: "takeoutResult", coupleTakeout: "coupleTakeoutResult" };
     const result = $("#" + (resultMap[prefix] || "coupleResult"));
@@ -1552,11 +1558,27 @@
     // 隐藏加载状态
     setThinkingVisible("home", false);
     setThinkingVisible("couple", false);
+    setThinkingVisible("out", false);
+    setThinkingVisible("takeout", false);
+    setThinkingVisible("coupleTakeout", false);
     // 恢复返回按钮
     endCalculation();
     // 返回到主菜单
     backStack = [];
-    showView("home");
+    var returnView = "home";
+    var calcPrefix = window._currentCalcPrefix || "home";
+    if (calcPrefix === "couple" || calcPrefix === "coupleTakeout") returnView = "couple";
+    else if (calcPrefix === "out") returnView = "out";
+    else if (calcPrefix === "takeout") returnView = "home";
+    showView(returnView);
+    // 如果是外卖推算取消，切换到点外卖tab
+    if (calcPrefix === "takeout") {
+      var ht = document.querySelector('[data-tab=takeout]');
+      if (ht) ht.click();
+    } else if (calcPrefix === "coupleTakeout") {
+      var ct = document.querySelector('[data-couple-tab=takeout]');
+      if (ct) ct.click();
+    }
     toast("已取消推算");
   }
   // 检查推算是否被取消，如果被取消则抛出异常终止推算
@@ -1678,6 +1700,10 @@
               <span class="mc-action-icon">📝</span>
               <span class="mc-action-text">自动录入</span>
             </button>
+            <button class="mc-action mc-list" data-idx="${i}" data-mode="${mode}" data-id="${d.id || 0}" title="加入购物清单">
+              <span class="mc-action-icon">🛒</span>
+              <span class="mc-action-text">加入清单</span>
+            </button>
           </div>` : "";
       return `
         <div class="menu-card" data-id="${d.id || 0}" data-mode="${mode}">
@@ -1721,6 +1747,30 @@
       });
     });
     // 不喜欢
+    // 加入购物清单
+    el.querySelectorAll(".mc-list").forEach(btn => {
+      btn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        const dishId = Number(btn.dataset.id);
+        const dish = window.RECIPES.find(r => r.id === dishId);
+        if (!dish) return;
+        let shoppingList = JSON.parse(localStorage.getItem("eat-ai-shopping-list") || "[]");
+        if (!shoppingList.some(item => item.id === dishId)) {
+          shoppingList.push({
+            id: dish.id,
+            name: dish.name,
+            ingredients: dish.ing,
+            addedAt: Date.now()
+          });
+          localStorage.setItem("eat-ai-shopping-list", JSON.stringify(shoppingList));
+          toast(`已加入购物清单：${dish.name}`);
+          try { updateShoppingSub(); } catch(e) {}
+          btn.classList.add("active");
+        } else {
+          toast("这道菜已经在购物清单里了");
+        }
+      });
+    });
     el.querySelectorAll(".mc-dislike").forEach(btn => {
       btn.addEventListener("click", (e) => {
         e.stopPropagation();
@@ -2426,6 +2476,26 @@
     const target = backStack.pop() || "home";
     showView(target, true);
   });
+  // 独立返回按钮（左上角圆形按钮，子页面显示）
+  const pageBackBtn = document.getElementById('pageBackBtn');
+  if (pageBackBtn) {
+    pageBackBtn.addEventListener('click', () => {
+      // 如果正在推算中，点击按钮则取消推算
+      if (calcCancelled === false && _origBackBtnText !== null) {
+        cancelCalculation();
+        return;
+      }
+      // 登录页面返回欢迎页，其他页面返回上一页
+      const currentView = document.querySelector('.view.active');
+      const currentId = currentView ? currentView.id.replace('view-', '') : '';
+      if (currentId === 'login') {
+        showView('welcome', true);
+        return;
+      }
+      const target = backStack.pop() || 'home';
+      showView(target, true);
+    });
+  }
   $$(".back-btn").forEach(btn => {
     if (btn.id === "btnTopBack") return;   // 顶部返回按钮单独处理
     btn.addEventListener("click", () => showView(btn.dataset.back, true));
@@ -3577,6 +3647,19 @@
     ⑦ 初始化
      ============================================================ */
   function enterApp() {
+    // 给所有推算页面添加底部"取消推算"按钮
+    document.querySelectorAll(".ai-thinking").forEach(function(thinkingEl) {
+      if (!thinkingEl.querySelector(".cancel-calc-btn")) {
+        var cancelBtn = document.createElement("button");
+        cancelBtn.className = "cancel-calc-btn";
+        cancelBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg><span>取消推算</span>';
+        cancelBtn.addEventListener("click", function(e) {
+          e.stopPropagation();
+          cancelCalculation();
+        });
+        thinkingEl.appendChild(cancelBtn);
+      }
+    });
     if (!prefs) prefs = defaultPrefs();   // 仅内存兜底，保证渲染安全；不写入存档，不视为"已问答"
     updateHmSummary();
     showView("home");
@@ -3619,9 +3702,9 @@ const TAKEOUT_BUDGET_RANGE = {
 };
 
 /* ---------- Tab切换：自己做 / 点外卖 ---------- */
-$$(".home-tab").forEach(tab => {
+$$("[data-tab]").forEach(tab => {
   tab.addEventListener("click", () => {
-    $$(".home-tab").forEach(t => t.classList.remove("active"));
+    $$("[data-tab]").forEach(t => t.classList.remove("active"));
     tab.classList.add("active");
     const target = tab.dataset.tab;
     $$("[data-tab-content]").forEach(panel => {
@@ -3937,6 +4020,7 @@ function initIngredientPicker() {
           if (c.dataset.val === ing) c.classList.remove("active");
         });
         renderSelected();
+        if (typeof renderIngredientMatch === 'function') renderIngredientMatch();
       });
     });
   }
@@ -3952,6 +4036,7 @@ function initIngredientPicker() {
         if (!window._selectedIngredients.includes(ing)) window._selectedIngredients.push(ing);
       }
       renderSelected();
+      if (typeof renderIngredientMatch === 'function') renderIngredientMatch();
     });
   });
 
@@ -3963,6 +4048,7 @@ function initIngredientPicker() {
     }
     inputEl.value = "";
     renderSelected();
+    if (typeof renderIngredientMatch === 'function') renderIngredientMatch();
   }
 
   if (addBtn) addBtn.addEventListener("click", addCustomIngredient);
@@ -4040,6 +4126,7 @@ function updateKcalBar() {
 document.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => {
     try { initIngredientPicker(); } catch(e) { console.warn("initIngredientPicker:", e); }
+    try { if (typeof initIngredientMatchTabs === "function") initIngredientMatchTabs(); } catch(e) { console.warn("initIngredientMatchTabs:", e); }
     const kcalBtn = document.getElementById("kcalRecordBtn");
     if (kcalBtn) {
       kcalBtn.addEventListener("click", () => {
@@ -4269,3 +4356,220 @@ $("#btnOrderCoupleTakeout").addEventListener("click", () => {
 });
 
 })();
+
+/* ============ 食材匹配统计功能 ============ */
+// 常用调料（匹配时忽略，因为家里一般都有）
+window._COMMON_SEASONINGS = [
+  "盐", "海盐", "糖", "冰糖", "生抽", "老抽", "酱油", "醋", "料酒", "蚝油",
+  "香油", "橄榄油", "食用油", "油", "黑胡椒", "白胡椒", "胡椒粉", "花椒",
+  "八角", "桂皮", "香叶", "孜然", "辣椒粉", "辣椒", "小米辣", "豆瓣酱",
+  "淀粉", "生粉", "面粉", "蒜", "蒜末", "蒜瓣", "姜", "姜丝", "姜片", "姜末",
+  "葱", "葱花", "葱丝", "香菜", "鸡精", "味精", "浓汤宝", "番茄沙司", "番茄酱",
+  "沙拉酱", "油醋汁", "蜂蜜", "柠檬汁", "迷迭香", "百里香", "罗勒", "薄荷",
+  "生抽王", "蒸鱼豉油", "味极鲜", "一品鲜", "海鲜酱", "排骨酱", "蒜蓉酱",
+  "芝麻酱", "花生酱", "腐乳", "豆豉", "榨菜", "酸菜", "泡椒", "酸豆角"
+];
+
+// 食材别名映射（模糊匹配用）
+window._INGREDIENT_ALIASES = {
+  "虾": ["鲜虾", "虾仁", "基围虾", "大虾", "对虾", "明虾"],
+  "鸡胸肉": ["鸡脯肉", "鸡胸", "鸡大胸"],
+  "鸡蛋": ["蛋", "土鸡蛋", "柴鸡蛋"],
+  "番茄": ["西红柿", "小番茄", "圣女果"],
+  "土豆": ["马铃薯", "洋芋"],
+  "西兰花": ["西蓝花", "绿菜花"],
+  "豆腐": ["嫩豆腐", "老豆腐", "北豆腐", "南豆腐", "内酯豆腐"],
+  "牛肉": ["牛里脊", "牛腩", "牛腱子", "肥牛", "牛肉片"],
+  "青椒": ["菜椒", "灯笼椒", "圆椒"],
+  "菌菇": ["蘑菇", "香菇", "金针菇", "杏鲍菇", "平菇", "口蘑", "蟹味菇"],
+  "龙利鱼": ["龙利鱼柳", "巴沙鱼", "巴沙鱼柳"],
+  "藜麦": ["三色藜麦", "白藜麦", "红藜麦", "黑藜麦"],
+  "燕麦": ["即食燕麦", "燕麦片", "生燕麦"],
+  "全麦面包": ["全麦吐司", "全麦片"],
+  "牛油果": ["鳄梨"],
+  "彩椒": ["甜椒", "红彩椒", "黄彩椒", "绿彩椒"],
+  "洋葱": ["圆葱", "紫皮洋葱", "黄皮洋葱"],
+  "西葫芦": ["角瓜", "茭瓜", "小南瓜"],
+  "黄瓜": ["青瓜"],
+  "胡萝卜": ["红萝卜", "甘笋"],
+  "生菜": ["叶生菜", "球生菜", "罗马生菜"],
+  "白菜": ["大白菜", "小白菜", "娃娃菜"],
+  "菠菜": ["波斯菜"],
+  "茄子": ["长茄子", "圆茄子", "紫茄子"],
+  "豆角": ["四季豆", "豇豆", "扁豆", "刀豆"],
+  "玉米": ["甜玉米", "糯玉米", "玉米粒", "玉米棒"],
+  "红薯": ["地瓜", "番薯", "甘薯", "山芋"],
+  "南瓜": ["倭瓜", "金瓜"],
+  "排骨": ["猪排骨", "肋排", "小排", "子排"],
+  "猪肉": ["五花肉", "瘦肉", "肥肉", "猪里脊", "后腿肉", "前腿肉"],
+  "鸡肉": ["鸡腿", "鸡翅", "整鸡", "土鸡", "三黄鸡"],
+  "鸭肉": ["鸭腿", "鸭胸", "整鸭"],
+  "鱼": ["草鱼", "鲤鱼", "鲫鱼", "鲈鱼", "鳜鱼", "黄花鱼", "带鱼"],
+  "蟹": ["螃蟹", "大闸蟹", "梭子蟹", "青蟹"],
+  "贝类": ["蛤蜊", "花甲", "扇贝", "生蚝", "牡蛎", "蛏子"],
+  "鱿鱼": ["章鱼", "八爪鱼", "墨鱼", "乌贼"]
+};
+
+// 判断食材是否匹配（支持别名）
+function _ingredientMatch(recipeIng, selectedIngs) {
+  // 精确匹配
+  if (selectedIngs.includes(recipeIng)) return true;
+  // 别名匹配
+  for (const [base, aliases] of Object.entries(window._INGREDIENT_ALIASES)) {
+    if (recipeIng === base || aliases.includes(recipeIng)) {
+      if (selectedIngs.includes(base) || selectedIngs.some(s => aliases.includes(s))) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+// 判断是否是调料
+function _isSeasoning(ing) {
+  return window._COMMON_SEASONINGS.includes(ing);
+}
+
+// 匹配菜谱：返回 { can: [], almost: [] }
+function matchRecipesByIngredients(selectedIngs) {
+  if (!selectedIngs || selectedIngs.length === 0) {
+    return { can: [], almost: [] };
+  }
+  
+  const recipes = window.RECIPES || [];
+  const can = [];
+  const almost = [];
+  
+  for (const recipe of recipes) {
+    if (!recipe.ing || recipe.ing.length === 0) continue;
+    
+    // 过滤掉调料，只看主要食材
+    const mainIngs = recipe.ing.filter(([name]) => !_isSeasoning(name));
+    if (mainIngs.length === 0) continue;
+    
+    // 计算匹配的主要食材数量
+    let matched = 0;
+    const missing = [];
+    for (const [name] of mainIngs) {
+      if (_ingredientMatch(name, selectedIngs)) {
+        matched++;
+      } else {
+        missing.push(name);
+      }
+    }
+    
+    const matchRatio = matched / mainIngs.length;
+    const matchInfo = {
+      ...recipe,
+      matchCount: matched,
+      totalCount: mainIngs.length,
+      matchRatio: matchRatio,
+      missing: missing
+    };
+    
+    // 可做：所有主要食材都有，或者匹配度>=90%且至少匹配2种
+    if (matched === mainIngs.length || (matchRatio >= 0.9 && matched >= 2)) {
+      can.push(matchInfo);
+    }
+    // 差不多能做：匹配度>=50%且至少匹配1种主要食材
+    else if (matchRatio >= 0.5 && matched >= 1) {
+      almost.push(matchInfo);
+    }
+  }
+  
+  // 按匹配度排序
+  can.sort((a, b) => b.matchRatio - a.matchRatio);
+  almost.sort((a, b) => b.matchRatio - a.matchRatio);
+  
+  return { can, almost };
+}
+
+// 渲染食材匹配统计面板
+function renderIngredientMatch() {
+  const panel = document.getElementById("ingredientMatchPanel");
+  if (!panel) return;
+  
+  const selectedIngs = window._selectedIngredients || [];
+  
+  // 没有选择食材时隐藏面板
+  if (selectedIngs.length === 0) {
+    panel.style.display = "none";
+    return;
+  }
+  
+  panel.style.display = "block";
+  
+  const { can, almost } = matchRecipesByIngredients(selectedIngs);
+  
+  // 更新计数
+  const countEl = document.getElementById("impCount");
+  const canCountEl = document.getElementById("impCanCount");
+  const almostCountEl = document.getElementById("impAlmostCount");
+  if (countEl) countEl.textContent = `可做 ${can.length} 道菜`;
+  if (canCountEl) canCountEl.textContent = can.length;
+  if (almostCountEl) almostCountEl.textContent = almost.length;
+  
+  // 渲染列表
+  const listEl = document.getElementById("impList");
+  if (!listEl) return;
+  
+  const activeTab = document.querySelector(".imp-tab.active");
+  const tabType = activeTab ? activeTab.dataset.impTab : "can";
+  const list = tabType === "can" ? can : almost;
+  
+  if (list.length === 0) {
+    listEl.innerHTML = `<div class="imp-empty">${tabType === "can" ? "暂时没有完全能做的菜，试试'差不多能做'" : "没有差不多能做的菜，再选点食材试试"}</div>`;
+    return;
+  }
+  
+  listEl.innerHTML = list.map(recipe => {
+    const percent = Math.round(recipe.matchRatio * 100);
+    const typeLabel = recipe.type === "hot" ? "热菜" : recipe.type === "veg" ? "素菜" : recipe.type === "soup" ? "汤" : recipe.type === "cold" ? "凉菜" : recipe.type === "staple" ? "主食" : "其他";
+    const missingText = recipe.missing.length > 0 
+      ? `<div class="imp-item-missing">还差：<span>${recipe.missing.slice(0, 3).join("、")}${recipe.missing.length > 3 ? "等" : ""}</span></div>` 
+      : "";
+    
+    return `
+      <div class="imp-item" data-recipe-id="${recipe.id}">
+        <div class="imp-item-info">
+          <div class="imp-item-name">${recipe.name}</div>
+          <div class="imp-item-meta">
+            <span>${typeLabel}</span>
+            <span>${recipe.time}分钟</span>
+            <span>${recipe.kcal}千卡</span>
+            <span>匹配${percent}%</span>
+          </div>
+          ${missingText}
+        </div>
+        <div class="imp-item-match ${tabType}">
+          ${tabType === "can" ? "✓ 可做" : "差一点"}
+        </div>
+      </div>
+    `;
+  }).join("");
+  
+  // 绑定点击事件
+  listEl.querySelectorAll(".imp-item").forEach(item => {
+    item.addEventListener("click", () => {
+      const recipeId = parseInt(item.dataset.recipeId);
+      // 点击菜品可以高亮或者查看详情，这里先做个简单的提示
+      const recipe = (window.RECIPES || []).find(r => r.id === recipeId);
+      if (recipe) {
+        // 可以在这里添加查看详情的逻辑
+        console.log("Clicked recipe:", recipe.name);
+      }
+    });
+  });
+}
+
+// 绑定Tab切换
+function initIngredientMatchTabs() {
+  const tabs = document.querySelectorAll(".imp-tab");
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      tabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      renderIngredientMatch();
+    });
+  });
+}
