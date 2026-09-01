@@ -547,7 +547,7 @@
     const MAIN_VIEWS = ["home", "couple", "out", "discover", "me"];
     const NO_BACK = ["splash", "welcome", "onboard", "login"];
     const prevEl = document.querySelector(".view.active");
-    const prevId = prevEl ? prevEl.id.replace("view-", "") : null;
+    const prevId = prevEl && prevEl.id ? prevEl.id.replace("view-", "") : null;
     const isSub = !MAIN_VIEWS.includes(id) && !NO_BACK.includes(id);
     if (isSub && !fromBack && prevId && prevId !== id) {
       backStack.push(prevId);
@@ -2487,7 +2487,7 @@
       }
       // 登录页面返回欢迎页，其他页面返回上一页
       const currentView = document.querySelector('.view.active');
-      const currentId = currentView ? currentView.id.replace('view-', '') : '';
+      const currentId = currentView && currentView.id ? currentView.id.replace('view-', '') : '';
       if (currentId === 'login') {
         showView('welcome', true);
         return;
