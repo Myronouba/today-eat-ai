@@ -4581,3 +4581,595 @@ body.in-miniprogram {
 }
 */
 
+
+/* ===== css\mobile-adapter.css ===== */
+
+/* ============================================================
+   移动端全面适配优化
+   断点系统：
+   - 超小屏：max-width: 360px（iPhone SE/小屏安卓）
+   - 小屏：max-width: 430px（iPhone 14 Pro/主流安卓）
+   - 中屏：max-width: 600px（大屏手机/小平板）
+   - 大屏：min-width: 768px（平板/桌面）
+   ============================================================ */
+
+/* ---------- 1. 基础响应式设置 ---------- */
+@media (max-width: 430px) {
+  html {
+    font-size: 15px; /* 基础字号缩小，1rem=15px */
+    -webkit-text-size-adjust: 100%;
+  }
+  
+  body {
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  
+  /* 页面容器padding优化 */
+  .stage {
+    padding: 0 14px 110px !important;
+  }
+  
+  /* 标题字号响应式 */
+  .view-title {
+    font-size: 22px !important;
+    margin-bottom: 14px !important;
+  }
+  
+  .home-title {
+    font-size: 26px !important;
+    margin: 10px 0 8px !important;
+  }
+  
+  .welcome-brand {
+    font-size: 34px !important;
+    margin-bottom: 16px !important;
+  }
+  
+  .welcome-slogan {
+    font-size: 16px !important;
+  }
+  
+  /* 卡片padding优化 */
+  .panel {
+    padding: 14px !important;
+  }
+  
+  .menu-card {
+    padding: 14px !important;
+  }
+  
+  /* 按钮高度和点击区域优化 */
+  .btn-primary,
+  .btn-secondary {
+    min-height: 44px;
+    padding: 10px 16px !important;
+    font-size: 15px !important;
+  }
+  
+  /* chip/标签点击区域优化 */
+  .chip {
+    min-height: 36px;
+    padding: 8px 14px !important;
+    font-size: 13px !important;
+  }
+  
+  /* 输入框高度优化 */
+  input, select, textarea {
+    min-height: 44px;
+    font-size: 15px !important; /* 防止iOS自动缩放 */
+  }
+  
+  /* 底部导航优化 */
+  .tabs {
+    padding: 6px 6px calc(8px + env(safe-area-inset-bottom)) !important;
+    bottom: 6px !important;
+    border-radius: 20px !important;
+  }
+  
+  .tab {
+    padding: 6px 2px !important;
+    gap: 3px !important;
+  }
+  
+  .tab-ico {
+    width: 24px !important;
+    height: 24px !important;
+  }
+  
+  .tab span {
+    font-size: 10px !important;
+  }
+  
+  /* 统计卡片优化 */
+  .fridge-stats {
+    gap: 8px !important;
+  }
+  
+  .fridge-stat {
+    padding: 12px 8px !important;
+  }
+  
+  .fridge-stat-num {
+    font-size: 20px !important;
+  }
+  
+  .fridge-stat-label {
+    font-size: 11px !important;
+  }
+  
+  /* 冰箱食材项优化 */
+  .fridge-item {
+    padding: 10px 12px !important;
+    gap: 10px !important;
+  }
+  
+  .fridge-item-ico {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 18px !important;
+  }
+  
+  .fridge-item-name {
+    font-size: 14px !important;
+  }
+  
+  .fridge-item-meta {
+    font-size: 11px !important;
+    gap: 6px !important;
+  }
+  
+  .fridge-item-del {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 16px !important;
+  }
+  
+  /* 分类标签优化 */
+  .fridge-cat {
+    min-height: 32px;
+    padding: 5px 10px !important;
+    font-size: 12px !important;
+  }
+  
+  /* 弹窗优化 */
+  .fridge-modal {
+    padding: 12px !important;
+    align-items: flex-end !important; /* 底部弹出 */
+  }
+  
+  .fridge-modal-content {
+    max-height: 85vh !important;
+    border-radius: 20px 20px 0 0 !important;
+  }
+  
+  .fridge-modal-header {
+    padding: 14px 16px !important;
+  }
+  
+  .fridge-modal-body {
+    padding: 14px 16px !important;
+  }
+  
+  .fridge-modal-footer {
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom)) !important;
+  }
+  
+  /* 表单优化 */
+  .fridge-form-item {
+    margin-bottom: 12px !important;
+  }
+  
+  .fridge-form-item label {
+    font-size: 12px !important;
+    margin-bottom: 5px !important;
+  }
+  
+  .fridge-form-row {
+    grid-template-columns: 1.2fr 0.8fr 0.8fr !important;
+    gap: 8px !important;
+  }
+  
+  /* 常用食材快捷选择优化 */
+  .fridge-quick-pick {
+    min-height: 30px;
+    padding: 4px 10px !important;
+    font-size: 12px !important;
+  }
+  
+  /* 买菜清单优化 */
+  .shop-group {
+    padding: 12px 14px !important;
+    margin-bottom: 12px !important;
+  }
+  
+  .shop-group h4 {
+    font-size: 13px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .shop-item {
+    padding: 10px 0 !important;
+    gap: 8px !important;
+  }
+  
+  .shop-item .name {
+    font-size: 14px !important;
+  }
+  
+  .shop-item .qty {
+    font-size: 12px !important;
+  }
+  
+  .list-summary {
+    padding: 12px 14px !important;
+    font-size: 13px !important;
+  }
+  
+  /* 价格总计优化 */
+  .price-total {
+    padding: 14px 16px !important;
+  }
+  
+  .price-total .pt-num {
+    font-size: 20px !important;
+  }
+  
+  /* 菜品卡片优化 */
+  .mc-name {
+    font-size: 16px !important;
+  }
+  
+  .mc-card {
+    padding: 14px !important;
+  }
+  
+  /* 历史记录优化 */
+  .his-item {
+    padding: 12px 14px !important;
+  }
+  
+  .hs-item b {
+    font-size: 18px !important;
+  }
+  
+  /* 我的页面优化 */
+  .me-card {
+    padding: 14px !important;
+  }
+  
+  .me-avatar {
+    width: 48px !important;
+    height: 48px !important;
+    font-size: 24px !important;
+  }
+  
+  .me-name {
+    font-size: 16px !important;
+  }
+  
+  .me-item {
+    min-height: 48px;
+    padding: 12px 14px !important;
+  }
+  
+  .me-ic {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 16px !important;
+  }
+  
+  /* 设置页面优化 */
+  .set-title {
+    padding: 12px 14px 6px !important;
+    font-size: 11px !important;
+  }
+  
+  .set-item {
+    min-height: 48px;
+    padding: 12px 14px !important;
+  }
+  
+  /* 图片自适应 */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  /* 表格自适应 */
+  table {
+    width: 100%;
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  /* 防止文字溢出 */
+  p, h1, h2, h3, h4, h5, h6, span, div {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+  
+  /* 顶部欢迎语优化 */
+  .hh-greet {
+    font-size: 14px !important;
+  }
+  
+  .hh-date {
+    font-size: 12px !important;
+  }
+  
+  /* 字段标签优化 */
+  .field label {
+    font-size: 14px !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .field-hint {
+    font-size: 11px !important;
+  }
+  
+  /* 冰箱联动按钮优化 */
+  .fridge-link-btn {
+    min-height: 28px;
+    padding: 3px 8px !important;
+    font-size: 11px !important;
+  }
+  
+  /* 空状态优化 */
+  .fridge-empty {
+    padding: 30px 16px !important;
+  }
+  
+  .fridge-empty-icon {
+    font-size: 40px !important;
+    margin-bottom: 10px !important;
+  }
+  
+  .fridge-empty-text {
+    font-size: 15px !important;
+  }
+  
+  .fridge-empty-hint {
+    font-size: 12px !important;
+  }
+  
+  /* 操作按钮优化 */
+  .fridge-actions {
+    gap: 8px !important;
+    margin-bottom: 14px !important;
+  }
+  
+  .fridge-add-btn {
+    padding: 10px 14px !important;
+    font-size: 14px !important;
+  }
+  
+  .fridge-import-btn {
+    padding: 10px 14px !important;
+    font-size: 14px !important;
+  }
+  
+  /* 进度条优化 */
+  .lp-bar {
+    height: 5px !important;
+  }
+  
+  /* 标签云优化 */
+  .mc-tags {
+    gap: 5px !important;
+  }
+  
+  .mc-tag {
+    font-size: 11px !important;
+    padding: 3px 8px !important;
+  }
+}
+
+/* ---------- 2. 超小屏适配（max-width: 360px） ---------- */
+@media (max-width: 360px) {
+  html {
+    font-size: 14px;
+  }
+  
+  .view-title {
+    font-size: 20px !important;
+  }
+  
+  .home-title {
+    font-size: 24px !important;
+  }
+  
+  .welcome-brand {
+    font-size: 30px !important;
+  }
+  
+  .stage {
+    padding: 0 12px 100px !important;
+  }
+  
+  .panel {
+    padding: 12px !important;
+  }
+  
+  .chip {
+    padding: 7px 12px !important;
+    font-size: 12px !important;
+  }
+  
+  .tab-ico {
+    width: 22px !important;
+    height: 22px !important;
+  }
+  
+  .tab span {
+    font-size: 9px !important;
+  }
+  
+  .fridge-stats {
+    gap: 6px !important;
+  }
+  
+  .fridge-stat-num {
+    font-size: 18px !important;
+  }
+  
+  .fridge-stat-label {
+    font-size: 10px !important;
+  }
+  
+  .fridge-form-row {
+    grid-template-columns: 1fr 1fr !important;
+  }
+  
+  .fridge-form-row .fridge-form-item:last-child {
+    grid-column: 1 / -1;
+  }
+  
+  .mc-name {
+    font-size: 15px !important;
+  }
+  
+  .me-avatar {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 22px !important;
+  }
+}
+
+/* ---------- 3. 矮屏幕适配（max-height: 720px） ---------- */
+@media (max-height: 720px) {
+  .welcome-foot {
+    bottom: 10% !important;
+  }
+  
+  .fridge-modal-content {
+    max-height: 80vh !important;
+  }
+  
+  .stage {
+    padding-bottom: 100px !important;
+  }
+}
+
+/* ---------- 4. 触屏设备优化（hover: none） ---------- */
+@media (hover: none) {
+  /* 移除hover效果，使用active效果 */
+  .chip:hover,
+  .btn-primary:hover,
+  .btn-secondary:hover,
+  .fridge-cat:hover,
+  .fridge-quick-pick:hover,
+  .fridge-link-btn:hover,
+  .me-item:hover,
+  .shop-item:hover,
+  .fridge-item:hover {
+    transform: none !important;
+    background: inherit !important;
+  }
+  
+  /* 添加active点击反馈 */
+  .chip:active,
+  .btn-primary:active,
+  .btn-secondary:active,
+  .fridge-cat:active,
+  .fridge-quick-pick:active,
+  .fridge-link-btn:active,
+  .me-item:active {
+    opacity: 0.7;
+    transform: scale(0.97);
+  }
+  
+  /* 防止长按选中 */
+  .chip,
+  .btn-primary,
+  .btn-secondary,
+  .tab,
+  .fridge-cat,
+  .me-item {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
+
+/* ---------- 5. 大屏/平板适配（min-width: 600px） ---------- */
+@media (min-width: 600px) {
+  .stage {
+    max-width: 560px;
+    margin: 0 auto;
+  }
+  
+  .tabs {
+    max-width: 520px !important;
+  }
+  
+  .fridge-modal-content {
+    max-width: 440px !important;
+  }
+}
+
+/* ---------- 6. 安全区域适配（iPhone X及以上） ---------- */
+@supports (padding: max(0px)) {
+  .stage {
+    padding-left: max(14px, env(safe-area-inset-left)) !important;
+    padding-right: max(14px, env(safe-area-inset-right)) !important;
+  }
+  
+  .tabs {
+    padding-bottom: max(8px, env(safe-area-inset-bottom)) !important;
+  }
+  
+  .fridge-modal-footer {
+    padding-bottom: max(12px, env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* ---------- 7. 减少动画偏好 ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- 8. 横屏适配 ---------- */
+@media (max-height: 500px) and (orientation: landscape) {
+  .welcome-hero {
+    margin-top: 10px !important;
+  }
+  
+  .welcome-logo {
+    width: 50px !important;
+    height: 50px !important;
+  }
+  
+  .welcome-brand {
+    font-size: 28px !important;
+    margin-bottom: 10px !important;
+  }
+  
+  .fridge-modal-content {
+    max-height: 90vh !important;
+  }
+}
+
+/* ---------- 9. 打印样式（可选） ---------- */
+@media print {
+  .tabs,
+  .fridge-actions,
+  .fridge-item-del,
+  .fridge-link-btns {
+    display: none !important;
+  }
+  
+  .stage {
+    padding: 0 !important;
+    max-width: 100% !important;
+  }
+}
+
