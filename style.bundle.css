@@ -29,7 +29,7 @@ body[data-theme="orange"] { --accent: #E8731B; --accent-deep: #C95F0F; --accent-
 body[data-theme="gold"] { --accent: #A97B2F; --accent-deep: #8F6426; --accent-soft: #F3EADA; --gold: #8A6A32; --gold-soft: #EFE7D4; }
 body[data-theme="green"] { --accent: #3E7A56; --accent-deep: #2F5F42; --accent-soft: #E4EFE8; --gold: #A98A3E; --gold-soft: #F0EAD6; }
 
-* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; word-break: break-word; overflow-wrap: break-word; }
 /* hidden 属性必须隐藏（防止被组件自身 display 覆盖） */
 [hidden] { display: none !important; }
 
@@ -298,6 +298,7 @@ body.hide-shell { padding-top: 0; }
   padding: 22px 20px; box-shadow: var(--shadow);
   border: 1px solid rgba(255, 255, 255, 0.6);
   margin-bottom: 20px;
+  overflow: hidden;
 }
 
 .field { margin-bottom: 20px; }
@@ -693,6 +694,7 @@ body.hide-shell { padding-top: 0; }
 .shop-group {
   background: linear-gradient(135deg, rgba(255, 242, 232, 0.85) 0%, rgba(255, 250, 245, 0.9) 100%); border-radius: var(--radius);
   box-shadow: var(--shadow); border: 1px solid rgba(237,230,219,.6); margin-bottom: 14px;
+  overflow: hidden;
 }
 .shop-group h4 {
   font-size: 13px; font-weight: 600; color: var(--accent);
@@ -714,7 +716,7 @@ body.hide-shell { padding-top: 0; }
 .shop-item .tick svg { width: 12px; height: 12px; stroke: #fff; opacity: 0; }
 .shop-item.checked .tick { background: var(--accent); border-color: var(--accent); }
 .shop-item.checked .tick svg { opacity: 1; }
-.shop-item .name { flex: 1; }
+.shop-item .name { flex: 1; min-width: 0; word-break: break-word; overflow-wrap: break-word; }
 .shop-item.checked .name, .shop-item.checked .qty { color: var(--muted); }
 .shop-item .qty { color: var(--muted); font-variant-numeric: tabular-nums; font-size: 13px; }
 .shop-item .est { font-style: normal; color: var(--accent); font-size: 12px; margin-left: 6px; font-weight: 500; }
@@ -725,6 +727,7 @@ body.hide-shell { padding-top: 0; }
   font-size: 13px; color: var(--ink-soft); padding: 14px 16px;
   background: var(--bg); border-radius: 12px; margin-bottom: 6px;
   border: 1px solid var(--line);
+  overflow: hidden;
 }
 .list-summary b { color: var(--ink); font-weight: 600; }
 .list-summary .sum-price { font-family: "Noto Serif SC", serif; font-size: 17px; color: var(--accent); font-weight: 600; }
