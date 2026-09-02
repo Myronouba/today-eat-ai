@@ -1612,20 +1612,69 @@
       updateThinking("home", 1, "多因子评分中（辣度/口味/难度/健康/季节/历史）...");
       await new Promise(r => setTimeout(r, 1400));
       checkCalcCancelled();  // 检查是否被取消
-      const res = Engine.genHomeMenu(opts, prefs);
-      homeState = res;
-      updateThinking("home", 2, "智能选菜中，避免食材重复，搭配营养均衡...");
-      await new Promise(r => setTimeout(r, 1200));
-      checkCalcCancelled();  // 检查是否被取消
-      updateThinking("home", 3, "生成AI推荐理由...");
-      let reason = Engine.buildReason(res.dishes, res.ctx, "home", opts, prefs);
-      try {
-        const aiReason = await Promise.race([
-          window.AI.enhanceReason(res.dishes, res.ctx, "home", opts, prefs),
-          new Promise(r => setTimeout(() => r(null), 2000))   // AI 挂起 2 秒超时兜底
-        ]);
-        if (aiReason) reason = aiReason;
-      } catch (e) { /* AI 异常 → 用本地文案 */ }
+
+      // 全AI模式：如果已配置AI，优先调用大模型生成菜单
+      let res = null;
+      let aiGenerated = false;
+      if (window.AI && window.AI.configured && window.AI.configured()) {
+        updateThinking("home", 2, "AI大模型正在为你生成专属菜单...");
+        try {
+          const aiResult = await Promise.race([
+            window.AI.generateMenu({
+              people: opts.people,
+              cooker: opts.cooker,
+              spicyTarget: opts.spicyTarget,
+              health: prefs.health || "normal",
+              ingredients: opts.ingredients,
+              cuisine: opts.category !== "all" ? opts.category : "",
+              mode: "home",
+              dishCount: 0
+            }),
+            new Promise(r => setTimeout(() => r(null), 15000))  // AI 15秒超时兜底
+          ]);
+          checkCalcCancelled();
+          if (aiResult && aiResult.dishes && aiResult.dishes.length > 0) {
+            // AI生成成功，构建兼容的结果结构
+            res = {
+              dishes: aiResult.dishes,
+              ctx: { people: opts.people, cooker: opts.cooker, spicyTarget: opts.spicyTarget },
+              aiGenerated: true,
+              aiReason: aiResult.reason
+            };
+            homeState = res;
+            aiGenerated = true;
+            updateThinking("home", 3, "AI菜单生成完成，正在整理推荐理由...");
+          } else {
+            updateThinking("home", 2, "AI生成超时，正在使用本地算法推算...");
+          }
+        } catch (e) {
+          console.warn("AI生成菜单失败，回退本地算法:", e);
+          updateThinking("home", 2, "AI生成失败，正在使用本地算法推算...");
+        }
+      }
+
+      // 如果AI未生成成功，使用本地算法
+      if (!res) {
+        checkCalcCancelled();
+        res = Engine.genHomeMenu(opts, prefs);
+        homeState = res;
+        updateThinking("home", 2, "智能选菜中，避免食材重复，搭配营养均衡...");
+        await new Promise(r => setTimeout(r, 1200));
+        checkCalcCancelled();
+      }
+
+      // 生成推荐理由
+      updateThinking("home", 3, aiGenerated ? "整理AI推荐理由..." : "生成推荐理由...");
+      let reason = aiGenerated && res.aiReason ? res.aiReason : Engine.buildReason(res.dishes, res.ctx, "home", opts, prefs);
+      if (!aiGenerated) {
+        try {
+          const aiReason = await Promise.race([
+            window.AI.enhanceReason(res.dishes, res.ctx, "home", opts, prefs),
+            new Promise(r => setTimeout(() => r(null), 2000))   // AI 挂起 2 秒超时兜底
+          ]);
+          if (aiReason) reason = aiReason;
+        } catch (e) { /* AI 异常 → 用本地文案 */ }
+      }
       checkCalcCancelled();  // 检查是否被取消
       await new Promise(r => setTimeout(r, 600));  // 让用户看到第3步完成
       checkCalcCancelled();  // 检查是否被取消

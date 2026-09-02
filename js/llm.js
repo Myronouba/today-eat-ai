@@ -118,5 +118,217 @@ window.AI = (function () {
   /* 获取预设Endpoint */
   function getEndpoints() { return ENDPOINTS; }
 
-  return { getConfig, saveConfig, clearConfig, configured, chat, enhanceReason, enhanceLoveTask, testConnection, getStatus, getEndpoints };
+
+  /* ========== 全AI模式：生成菜单 ========== */
+  async function generateMenu(params) {
+    if (!configured()) return null;
+
+    const {
+      people = 2,
+      cooker = "normal",
+      spicyTarget = "medium",
+      health = "normal",
+      ingredients = [],
+      cuisine = "",
+      scene = "home",
+      mode = "home", // home/couple/out/takeout
+      dishCount = 0,
+      occasion = "daily"
+    } = params || {};
+
+    // 根据人数确定菜品数量
+    const count = dishCount || (people <= 1 ? 3 : people <= 2 ? 4 : people <= 4 ? 5 : 6);
+
+    // 辣度描述
+    const spicyDesc = {
+      none: "完全不辣",
+      mild: "微辣",
+      medium: "中等辣度",
+      hot: "比较辣",
+      crazy: "重辣"
+    }[spicyTarget] || "中等辣度";
+
+    // 健康目标描述
+    const healthDesc = {
+      normal: "正常饮食",
+      light: "清淡健康",
+      fitness: "健身塑型",
+      lowcal: "低卡减脂",
+      highprotein: "高蛋白增肌"
+    }[health] || "正常饮食";
+
+    // 做饭水平描述
+    const cookerDesc = {
+      lazy: "懒人快手",
+      newbie: "新手入门",
+      normal: "普通水平",
+      expert: "厨艺高手"
+    }[cooker] || "普通水平";
+
+    // 场景描述
+    const sceneDesc = {
+      home: "在家做饭",
+      couple: "情侣一起做饭",
+      out: "出去下馆子",
+      takeout: "点外卖"
+    }[mode] || "在家做饭";
+
+    // 构建系统提示
+    const sysPrompt = `你是一个专业的中国美食推荐助手，精通八大菜系和家常菜。根据用户需求推荐真实存在的中国菜，返回严格的JSON格式。
+
+要求：
+1. 必须是真实存在的中国菜，不能编造菜名
+2. 食材要常见、容易买到
+3. 卡路里和蛋白质数据要合理（每份/每100g）
+4. 做法步骤要简洁实用，每步不超过20字
+5. 菜品搭配要合理，有荤有素，可加汤
+6. 根据人数确定菜品数量，不要太多也不要太少
+7. 严格返回JSON，不要有任何额外文字、解释或markdown标记
+
+返回JSON格式：
+{
+  "dishes": [
+    {
+      "name": "菜名",
+      "type": "hot|veg|cold|soup",
+      "cuisine": "菜系",
+      "spicy": 0-3,
+      "flavor": "口味",
+      "time": 分钟数,
+      "diff": "简单|中等|较难",
+      "kcal": 卡路里,
+      "protein": 蛋白质克数,
+      "ing": ["食材1", "食材2"],
+      "steps": ["步骤1", "步骤2"],
+      "desc": "一句话描述"
+    }
+  ],
+  "reason": "整体推荐理由，不超过80字"
+}`;
+
+    // 构建用户提示
+    let userPrompt = `用户需求：
+- 人数：${people}人
+- 场景：${sceneDesc}
+- 做饭水平：${cookerDesc}
+- 辣度：${spicyDesc}
+- 健康目标：${healthDesc}
+- 推荐菜品数量：${count}道`;
+
+    if (ingredients && ingredients.length > 0) {
+      userPrompt += `\n- 冰箱现有食材：${ingredients.join("、")}（优先使用这些食材）`;
+    }
+    if (cuisine) {
+      userPrompt += `\n- 偏好菜系：${cuisine}`;
+    }
+    if (mode === "couple") {
+      userPrompt += `\n- 情侣一起做饭，菜品要适合两人协作，有氛围感`;
+      if (occasion && occasion !== "daily") {
+        const occDesc = { anniversary: "纪念日", weekend: "周末", birthday: "生日" }[occasion] || occasion;
+        userPrompt += `\n- 今天是${occDesc}，可以推荐一些有仪式感的菜`;
+      }
+    }
+    if (mode === "takeout") {
+      userPrompt += `\n- 点外卖，推荐适合外卖的菜品，不要推荐需要现做现吃口感变化大的菜`;
+    }
+    if (mode === "out") {
+      userPrompt += `\n- 出去下馆子，推荐餐厅常见菜品`;
+    }
+    if (health === "fitness" || health === "highprotein") {
+      userPrompt += `\n- 重点：高蛋白、低脂、适合健身人群`;
+    }
+    if (health === "lowcal") {
+      userPrompt += `\n- 重点：低卡路里、低碳水、适合减脂`;
+    }
+
+    userPrompt += `\n\n请返回JSON格式的推荐菜单。`;
+
+    try {
+      const cfg = getConfig();
+      const res = await fetch(cfg.endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + cfg.apiKey
+        },
+        body: JSON.stringify({
+          model: cfg.model || "doubao-seed-1-6-250615",
+          messages: [
+            { role: "system", content: sysPrompt },
+            { role: "user", content: userPrompt }
+          ],
+          temperature: cfg.temperature !== undefined ? cfg.temperature : 0.7,
+          max_tokens: cfg.maxTokens || 2000,
+          response_format: { type: "json_object" }
+        })
+      });
+
+      if (!res.ok) {
+        console.warn("AI生成菜单失败:", res.status);
+        return null;
+      }
+
+      const data = await res.json();
+      const text = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+
+      if (!text) return null;
+
+      // 解析JSON
+      let result;
+      try {
+        result = JSON.parse(text);
+      } catch (e) {
+        // 尝试提取JSON部分
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          try {
+            result = JSON.parse(jsonMatch[0]);
+          } catch (e2) {
+            console.warn("AI返回JSON解析失败:", e2);
+            return null;
+          }
+        } else {
+          console.warn("AI返回无JSON:", text.substring(0, 200));
+          return null;
+        }
+      }
+
+      // 验证结果
+      if (!result || !result.dishes || !Array.isArray(result.dishes) || result.dishes.length === 0) {
+        console.warn("AI返回菜品为空");
+        return null;
+      }
+
+      // 规范化菜品数据
+      const dishes = result.dishes.map((d, i) => ({
+        id: "ai_" + Date.now() + "_" + i,
+        name: d.name || "未知菜品",
+        type: d.type || "hot",
+        cuisine: d.cuisine || "家常菜",
+        spicy: typeof d.spicy === "number" ? d.spicy : 0,
+        flavor: d.flavor || "咸鲜",
+        time: d.time || 20,
+        diff: d.diff || "中等",
+        kcal: d.kcal || 200,
+        protein: d.protein || 10,
+        ing: Array.isArray(d.ing) ? d.ing : [],
+        steps: Array.isArray(d.steps) ? d.steps : [],
+        desc: d.desc || "",
+        coop: mode === "couple" ? (i % 2 === 0 ? 2 : 1) : 1,
+        aiGenerated: true
+      }));
+
+      return {
+        dishes,
+        reason: result.reason || "",
+        aiGenerated: true
+      };
+
+    } catch (e) {
+      console.warn("AI生成菜单异常:", e);
+      return null;
+    }
+  }
+
+  return { getConfig, saveConfig, clearConfig, configured, chat, enhanceReason, enhanceLoveTask, testConnection, getStatus, getEndpoints, generateMenu };
 })();
