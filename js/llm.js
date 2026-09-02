@@ -59,5 +59,64 @@ window.AI = (function () {
     return chat([{ role: "system", content: sys }, { role: "user", content: user }]);
   }
 
-  return { getConfig, saveConfig, clearConfig, configured, chat, enhanceReason, enhanceLoveTask };
+  /* 预设的Endpoint配置 */
+  const ENDPOINTS = {
+    doubao: "https://ark.cn-beijing.volces.com/api/v3/chat/completions",
+    deepseek: "https://api.deepseek.com/chat/completions",
+    custom: ""
+  };
+
+  /* 测试连接 */
+  async function testConnection() {
+    const cfg = getConfig();
+    if (!cfg || !cfg.apiKey || !cfg.endpoint) {
+      return { success: false, error: "请先填写API Key和地址" };
+    }
+    try {
+      const startTime = Date.now();
+      const res = await fetch(cfg.endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + cfg.apiKey
+        },
+        body: JSON.stringify({
+          model: cfg.model || "doubao-seed-1-6-250615",
+          messages: [{ role: "user", content: "你好，请回复'连接成功'" }],
+          temperature: 0.1,
+          max_tokens: 50
+        })
+      });
+      const elapsed = Date.now() - startTime;
+      if (!res.ok) {
+        const errText = await res.text().catch(() => "");
+        return { success: false, error: `HTTP ${res.status}: ${errText.substring(0, 100)}`, elapsed };
+      }
+      const data = await res.json();
+      const text = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+      return { success: true, message: text || "连接成功", elapsed, model: data.model || cfg.model };
+    } catch (e) {
+      return { success: false, error: e.message || "网络错误" };
+    }
+  }
+
+  /* 获取当前配置状态 */
+  function getStatus() {
+    const cfg = getConfig();
+    if (!cfg || !cfg.apiKey || !cfg.endpoint) {
+      return { configured: false, model: null, endpoint: null };
+    }
+    return {
+      configured: true,
+      model: cfg.model || "doubao-seed-1-6-250615",
+      endpoint: cfg.endpoint,
+      temperature: cfg.temperature !== undefined ? cfg.temperature : 0.8,
+      maxTokens: cfg.maxTokens || 400
+    };
+  }
+
+  /* 获取预设Endpoint */
+  function getEndpoints() { return ENDPOINTS; }
+
+  return { getConfig, saveConfig, clearConfig, configured, chat, enhanceReason, enhanceLoveTask, testConnection, getStatus, getEndpoints };
 })();

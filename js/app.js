@@ -3680,7 +3680,176 @@
     }
     // 注意：此处不做口味档案兜底——新用户必须走 30 秒问答定制口味（enterWithOnboard 按 hasPrefs 判定）
     // 每次进入：先展示品牌启动页
-    showView("splash");
+        // 初始化AI配置
+    try {
+      bindAiConfigEvents();
+      initAiEndpointChips();
+      initAiTempSlider();
+    } catch(e) { console.warn("AI配置初始化失败:", e); }
+showView("splash");
+  }
+
+  /* ========== AI大模型配置 ========== */
+  function initAiConfig() {
+    // 加载已有配置
+    const cfg = window.AI.getConfig();
+    if (cfg) {
+      if (cfg.apiKey) $("#aiApiKey").value = cfg.apiKey;
+      if (cfg.endpoint) $("#aiEndpoint").value = cfg.endpoint;
+      if (cfg.model) $("#aiModel").value = cfg.model;
+      if (cfg.temperature !== undefined) {
+        $("#aiTemp").value = cfg.temperature;
+        $("#aiTempVal").textContent = cfg.temperature;
+      }
+      if (cfg.maxTokens) $("#aiMaxTokens").value = cfg.maxTokens;
+    }
+    updateAiStatusDisplay();
+  }
+
+  function updateAiStatusDisplay() {
+    const status = window.AI.getStatus();
+    const configuredEl = $("#aiConfigured");
+    const connectedEl = $("#aiConnected");
+    const modelEl = $("#aiCurrentModel");
+    const statusText = $("#aiConfigStatus");
+    const meSub = $("#meAiSub");
+
+    if (status.configured) {
+      configuredEl.textContent = "已配置";
+      configuredEl.className = "ai-status-val configured";
+      modelEl.textContent = status.model;
+      if (statusText) statusText.textContent = "已配置 · 推算时自动调用AI";
+      if (meSub) meSub.textContent = "已配置";
+    } else {
+      configuredEl.textContent = "未配置";
+      configuredEl.className = "ai-status-val";
+      modelEl.textContent = "-";
+      if (statusText) statusText.textContent = "未配置 · 使用本地算法推算";
+      if (meSub) meSub.textContent = "未配置";
+    }
+  }
+
+  // 保存配置
+  function saveAiConfig() {
+    const apiKey = $("#aiApiKey").value.trim();
+    const endpoint = $("#aiEndpoint").value.trim();
+    const model = $("#aiModel").value;
+    const temperature = parseFloat($("#aiTemp").value);
+    const maxTokens = parseInt($("#aiMaxTokens").value);
+
+    if (!apiKey) { toast("请输入API Key"); return; }
+    if (!endpoint) { toast("请输入API地址"); return; }
+
+    window.AI.saveConfig({ apiKey, endpoint, model, temperature, maxTokens });
+    updateAiStatusDisplay();
+    toast("配置已保存");
+  }
+
+  // 测试连接
+  async function testAiConnection() {
+    const btn = $("#btnAiTest");
+    const connectedEl = $("#aiConnected");
+    const originalText = btn.textContent;
+
+    // 先保存当前配置
+    const apiKey = $("#aiApiKey").value.trim();
+    const endpoint = $("#aiEndpoint").value.trim();
+    const model = $("#aiModel").value;
+    const temperature = parseFloat($("#aiTemp").value);
+    const maxTokens = parseInt($("#aiMaxTokens").value);
+
+    if (!apiKey || !endpoint) {
+      toast("请先填写API Key和地址");
+      return;
+    }
+
+    // 临时保存配置用于测试
+    window.AI.saveConfig({ apiKey, endpoint, model, temperature, maxTokens });
+
+    btn.textContent = "测试中...";
+    btn.disabled = true;
+    connectedEl.textContent = "测试中...";
+    connectedEl.className = "ai-status-val";
+
+    try {
+      const result = await window.AI.testConnection();
+      if (result.success) {
+        connectedEl.textContent = "连接成功 (" + result.elapsed + "ms)";
+        connectedEl.className = "ai-status-val connected";
+        toast("连接成功！模型: " + (result.model || model));
+      } else {
+        connectedEl.textContent = "连接失败";
+        connectedEl.className = "ai-status-val error";
+        toast("连接失败: " + result.error);
+      }
+    } catch (e) {
+      connectedEl.textContent = "连接异常";
+      connectedEl.className = "ai-status-val error";
+      toast("连接异常: " + e.message);
+    } finally {
+      btn.textContent = originalText;
+      btn.disabled = false;
+      updateAiStatusDisplay();
+    }
+  }
+
+  // 清除配置
+  function clearAiConfig() {
+    if (!confirm("确定要清除AI配置吗？清除后将使用本地算法推算。")) return;
+    window.AI.clearConfig();
+    $("#aiApiKey").value = "";
+    $("#aiEndpoint").value = "";
+    $("#aiModel").value = "doubao-seed-1-6-250615";
+    $("#aiTemp").value = 0.8;
+    $("#aiTempVal").textContent = "0.8";
+    $("#aiMaxTokens").value = 400;
+    $("#aiConnected").textContent = "未测试";
+    $("#aiConnected").className = "ai-status-val";
+    updateAiStatusDisplay();
+    toast("配置已清除");
+  }
+
+  // Endpoint快捷选择
+  function initAiEndpointChips() {
+    const chips = document.querySelectorAll("#view-ai-config .chip[data-endpoint]");
+    chips.forEach(chip => {
+      chip.addEventListener("click", () => {
+        chips.forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        const type = chip.dataset.endpoint;
+        const endpoints = window.AI.getEndpoints();
+        if (endpoints[type] !== undefined) {
+          $("#aiEndpoint").value = endpoints[type];
+        }
+      });
+    });
+  }
+
+  // 温度滑块实时显示
+  function initAiTempSlider() {
+    const slider = $("#aiTemp");
+    const val = $("#aiTempVal");
+    if (slider && val) {
+      slider.addEventListener("input", () => {
+        val.textContent = slider.value;
+      });
+    }
+  }
+
+  // 绑定AI配置页面事件
+  function bindAiConfigEvents() {
+    const btnSave = $("#btnAiSave");
+    const btnTest = $("#btnAiTest");
+    const btnClear = $("#btnAiClear");
+    const btnMeAi = $("#btnMeAiConfig");
+
+    if (btnSave) btnSave.addEventListener("click", saveAiConfig);
+    if (btnTest) btnTest.addEventListener("click", testAiConnection);
+    if (btnClear) btnClear.addEventListener("click", clearAiConfig);
+    if (btnMeAi) btnMeAi.addEventListener("click", () => {
+      initAiConfig();
+      showView("ai-config");
+    });
   }
   init();
   // 暴露showView到全局，供social.js等外部脚本调用

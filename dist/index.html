@@ -5,12 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#FAF6F0">
 <title>今天吃啥 AI 版</title>
-
-
-
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="style.bundle.css?v=20260901">
 
-<link rel="preload" href="app.bundle.js?v=20260901" as="script"><link rel="preload" href="style.bundle.css?v=20260901" as="style"><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif}.serif{font-family:"Songti SC","SimSun","Noto Serif SC",serif}</style></head>
+<link rel="preload" href="app.bundle.js?v=20260901" as="script"><link rel="preload" href="style.bundle.css?v=20260901" as="style"></head>
 <body>
 
 <!-- ======== 顶部品牌栏 ======== -->
@@ -159,91 +159,7 @@
     </div>
   </section>
 
-    <!-- ======== 视图：AI大模型配置 ======== -->
-  <section class="view" id="view-ai-config">
-    <div class="view-head">
-      <h2 class="serif view-title">🤖 AI大模型设置</h2>
-      <p class="reason" id="aiConfigStatus">未配置 · 使用本地算法推算</p>
-    </div>
-
-    <div class="panel">
-      <div class="field">
-        <label>API Key</label>
-        <input type="password" id="aiApiKey" placeholder="输入豆包/火山方舟API Key" autocomplete="off">
-        <p class="field-hint">在火山方舟控制台创建，密钥以你的账号为准</p>
-      </div>
-
-      <div class="field">
-        <label>API地址 (Endpoint)</label>
-        <input type="text" id="aiEndpoint" placeholder="https://ark.cn-beijing.volces.com/api/v3/chat/completions">
-        <div class="chip-row" style="margin-top:8px">
-          <button class="chip" data-endpoint="doubao">豆包默认</button>
-          <button class="chip" data-endpoint="deepseek">DeepSeek</button>
-          <button class="chip" data-endpoint="custom">自定义</button>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>模型</label>
-        <select id="aiModel">
-          <option value="doubao-seed-1-6-250615">豆包 Seed 1.6（推荐）</option>
-          <option value="doubao-pro-32k-241226">豆包 Pro 32K</option>
-          <option value="doubao-lite-32k-241226">豆包 Lite 32K</option>
-          <option value="deepseek-chat">DeepSeek Chat</option>
-          <option value="deepseek-reasoner">DeepSeek Reasoner</option>
-        </select>
-      </div>
-
-      <div class="field">
-        <label>创意度 (Temperature): <span id="aiTempVal">0.8</span></label>
-        <input type="range" id="aiTemp" min="0" max="2" step="0.1" value="0.8">
-        <div class="field-hint-row">
-          <span>严谨</span>
-          <span>平衡</span>
-          <span>创意</span>
-        </div>
-      </div>
-
-      <div class="field">
-        <label>最大输出长度</label>
-        <input type="number" id="aiMaxTokens" value="400" min="100" max="4000" step="100">
-      </div>
-    </div>
-
-    <div class="panel">
-      <div class="ai-status-box" id="aiStatusBox">
-        <div class="ai-status-item">
-          <span class="ai-status-label">配置状态</span>
-          <span class="ai-status-val" id="aiConfigured">未配置</span>
-        </div>
-        <div class="ai-status-item">
-          <span class="ai-status-label">连接状态</span>
-          <span class="ai-status-val" id="aiConnected">未测试</span>
-        </div>
-        <div class="ai-status-item">
-          <span class="ai-status-label">当前模型</span>
-          <span class="ai-status-val" id="aiCurrentModel">-</span>
-        </div>
-      </div>
-    </div>
-
-    <div class="ai-actions">
-      <button class="btn-primary" id="btnAiTest">🔌 测试连接</button>
-      <button class="btn-secondary" id="btnAiSave">💾 保存配置</button>
-      <button class="btn-ghost" id="btnAiClear">🗑️ 清除配置</button>
-    </div>
-
-    <div class="panel ai-tip-box">
-      <p class="ai-tip-title">💡 使用说明</p>
-      <ul class="ai-tip-list">
-        <li>配置API Key后，推算时会自动调用大模型生成更个性化的推荐理由</li>
-        <li>大模型调用失败或超时时，自动回退到本地算法，不影响使用</li>
-        <li>API Key仅保存在你的浏览器本地，不会上传到任何服务器</li>
-        <li>豆包大模型需在<a href="https://www.volcengine.com/product/ark" target="_blank">火山方舟</a>开通并创建API Key</li>
-      </ul>
-    </div>
-  </section>
-<!-- ======== 视图：发现（内容聚合 · 微信发现页式列表） ======== -->
+  <!-- ======== 视图：发现（内容聚合 · 微信发现页式列表） ======== -->
   <section class="view" id="view-discover">
     <div class="view-head">
             <h2 class="serif view-title">发现</h2>
@@ -349,12 +265,6 @@
       <button class="me-item" id="btnMeHistory">
         <span class="me-ic ic-green">📖</span>
         <span class="me-main">历史记录<span class="me-sub" id="meHistSub2">已存 0 顿</span></span>
-        <span class="me-arrow">›</span>
-      </button>
-      <div class="me-divider"></div>
-      <button class="me-item" id="btnMeAiConfig">
-        <span class="me-ic ic-orange">🤖</span>
-        <span class="me-main">AI大模型<span class="me-sub" id="meAiSub">未配置</span></span>
         <span class="me-arrow">›</span>
       </button>
     </div>
