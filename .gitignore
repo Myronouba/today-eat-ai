@@ -10,6 +10,9 @@ dist/
 *.log
 uploaded_file
 
+# Backup icons (keep local only)
+assets/icons/backup/
+
 # OS files
 .DS_Store
 Thumbs.db
