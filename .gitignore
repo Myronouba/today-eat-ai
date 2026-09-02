@@ -1,18 +1,19 @@
-﻿# 截图和临时文件
-*.png
-*.jpg
-*.jpeg
-*.gif
-user_screenshot*
-bug_screenshot*
-glass_screenshot*
-bg_reference*
+﻿# Dependencies
+node_modules/
 
-# 临时文件
+# Build output
+dist/
+
+# Temp files
+*.bak
 *.tmp
 *.log
+uploaded_file
+
+# OS files
 .DS_Store
 Thumbs.db
 
-# 上传的临时文件
-uploaded_file
+# IDE
+.vscode/
+.idea/
