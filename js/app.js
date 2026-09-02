@@ -1622,15 +1622,23 @@
           const aiResult = await Promise.race([
             window.AI.generateMenu({
               people: opts.people,
-              cooker: opts.cooker,
-              spicyTarget: opts.spicyTarget,
-              health: prefs.health || "normal",
+              cooker: ({"lazy":"lazy","newbie":"newbie","pro":"expert","none":"lazy"}[prefs.cooker] || "normal"),
+              spicyTarget: ({"0":"none","1":"mild","2":"medium","3":"hot"}[String(prefs.spicy)] || "medium"),
+              health: ({"none":"normal","fitness":"fitness","muscle":"highprotein","bone":"normal","sugar":"light","light":"light"}[prefs.health] || "normal"),
               ingredients: opts.ingredients,
               cuisine: opts.category !== "all" ? opts.category : "",
+              region: (function(){
+                const map = {"sichuan":"川菜","guangdong":"粤菜","central":"湘菜","jiangnan":"江浙菜","lu":"鲁菜","dongbei":"东北菜","xibei":"西北菜","yungui":"云贵菜","e":"鄂菜","hui":"徽菜","min":"闽菜","jing":"京菜","french":"法式西餐","italy":"意大利菜","japan":"日式料理","korea":"韩式料理","thai":"泰式料理","seasia":"东南亚菜","america":"美式料理"};
+                const arr = Array.isArray(prefs.region) ? prefs.region : (prefs.region ? [prefs.region] : []);
+                return arr.map(r => map[r] || r).filter(r => r);
+              })(),
               mode: "home",
               dishCount: 0,
-              tastePrefs: prefs.taste || [],
-              dislikes: prefs.avoid && prefs.avoid[0] !== "none" ? prefs.avoid : [],
+              dislikes: (function(){
+                const map = {"cilantro":"香菜","garlic":"葱蒜","pork":"猪肉","seafood":"海鲜","vegetarian":"素食（不吃肉）","beef":"牛羊肉","egg":"蛋类","lactose":"奶制品","organ":"内脏","mushroom":"菌菇","soy":"豆制品"};
+                const arr = Array.isArray(prefs.avoid) ? prefs.avoid : [];
+                return arr.filter(a => a && a !== "none").map(a => map[a] || a);
+              })(),
               history: (function(){ try { const h = JSON.parse(localStorage.getItem("eat-ai-history")||"[]"); return h.slice(-10).map(x=>x.name||x.dish||""); } catch(e){ return []; } })(),
               season: (function(){ const m=new Date().getMonth()+1; return m>=3&&m<=5?"春季":m>=6&&m<=8?"夏季":m>=9&&m<=11?"秋季":"冬季"; })()
             }),

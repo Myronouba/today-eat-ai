@@ -127,7 +127,7 @@ window.AI = (function () {
     const {
       people = 2, cooker = "normal", spicyTarget = "medium",
       health = "normal", ingredients = [], cuisine = "",
-      scene = "home", mode = "home", dishCount = 0, occasion = "daily",
+      region = [], scene = "home", mode = "home", dishCount = 0, occasion = "daily",
       tastePrefs = [], dislikes = [], history = [], season = "", mood = ""
     } = params || {};
 
@@ -145,6 +145,7 @@ window.AI = (function () {
 3. 搭配合理：整桌菜要有荤有素、有冷有热、可加汤，口味层次丰富。
 4. 食材常见：食材要能在普通菜市场或超市买到。
 5. 难度匹配：根据用户做饭水平推荐相应难度的菜。
+6. 菜系优先：如果用户提供了偏好菜系，至少一半菜品必须来自这些菜系，优先推荐这些菜系中不常见但有特色的菜。
 
 【每道菜必须包含】
 - name: 菜名（可以带地方前缀）
@@ -183,6 +184,7 @@ window.AI = (function () {
 - 推荐菜品数量：${count}道`;
 
     if (ingredients && ingredients.length > 0) userPrompt += `\n- 冰箱现有食材：${ingredients.join("、")}（至少2-3道菜用到）`;
+    if (region && region.length > 0) userPrompt += `\n- 口味偏好菜系：${region.join("、")}（用户30秒问答中选择的最爱菜系，优先推荐这些菜系的特色菜，至少一半菜品来自这些菜系）`;
     if (cuisine) userPrompt += `\n- 偏好菜系：${cuisine}`;
     if (tastePrefs && tastePrefs.length > 0) userPrompt += `\n- 口味偏好：${tastePrefs.join("、")}`;
     if (dislikes && dislikes.length > 0) userPrompt += `\n- 忌口：${dislikes.join("、")}（绝对不要推荐）`;

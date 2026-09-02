@@ -2998,7 +2998,7 @@ window.AI = (function () {
     const {
       people = 2, cooker = "normal", spicyTarget = "medium",
       health = "normal", ingredients = [], cuisine = "",
-      scene = "home", mode = "home", dishCount = 0, occasion = "daily",
+      region = [], scene = "home", mode = "home", dishCount = 0, occasion = "daily",
       tastePrefs = [], dislikes = [], history = [], season = "", mood = ""
     } = params || {};
 
@@ -3016,6 +3016,7 @@ window.AI = (function () {
 3. 搭配合理：整桌菜要有荤有素、有冷有热、可加汤，口味层次丰富。
 4. 食材常见：食材要能在普通菜市场或超市买到。
 5. 难度匹配：根据用户做饭水平推荐相应难度的菜。
+6. 菜系优先：如果用户提供了偏好菜系，至少一半菜品必须来自这些菜系，优先推荐这些菜系中不常见但有特色的菜。
 
 【每道菜必须包含】
 - name: 菜名（可以带地方前缀）
@@ -3054,6 +3055,7 @@ window.AI = (function () {
 - 推荐菜品数量：${count}道`;
 
     if (ingredients && ingredients.length > 0) userPrompt += `\n- 冰箱现有食材：${ingredients.join("、")}（至少2-3道菜用到）`;
+    if (region && region.length > 0) userPrompt += `\n- 口味偏好菜系：${region.join("、")}（用户30秒问答中选择的最爱菜系，优先推荐这些菜系的特色菜，至少一半菜品来自这些菜系）`;
     if (cuisine) userPrompt += `\n- 偏好菜系：${cuisine}`;
     if (tastePrefs && tastePrefs.length > 0) userPrompt += `\n- 口味偏好：${tastePrefs.join("、")}`;
     if (dislikes && dislikes.length > 0) userPrompt += `\n- 忌口：${dislikes.join("、")}（绝对不要推荐）`;
@@ -5803,15 +5805,23 @@ console.log("[API] 接口层已加载（当前使用前端假数据，后端接�
           const aiResult = await Promise.race([
             window.AI.generateMenu({
               people: opts.people,
-              cooker: opts.cooker,
-              spicyTarget: opts.spicyTarget,
-              health: prefs.health || "normal",
+              cooker: ({"lazy":"lazy","newbie":"newbie","pro":"expert","none":"lazy"}[prefs.cooker] || "normal"),
+              spicyTarget: ({"0":"none","1":"mild","2":"medium","3":"hot"}[String(prefs.spicy)] || "medium"),
+              health: ({"none":"normal","fitness":"fitness","muscle":"highprotein","bone":"normal","sugar":"light","light":"light"}[prefs.health] || "normal"),
               ingredients: opts.ingredients,
               cuisine: opts.category !== "all" ? opts.category : "",
+              region: (function(){
+                const map = {"sichuan":"川菜","guangdong":"粤菜","central":"湘菜","jiangnan":"江浙菜","lu":"鲁菜","dongbei":"东北菜","xibei":"西北菜","yungui":"云贵菜","e":"鄂菜","hui":"徽菜","min":"闽菜","jing":"京菜","french":"法式西餐","italy":"意大利菜","japan":"日式料理","korea":"韩式料理","thai":"泰式料理","seasia":"东南亚菜","america":"美式料理"};
+                const arr = Array.isArray(prefs.region) ? prefs.region : (prefs.region ? [prefs.region] : []);
+                return arr.map(r => map[r] || r).filter(r => r);
+              })(),
               mode: "home",
               dishCount: 0,
-              tastePrefs: prefs.taste || [],
-              dislikes: prefs.avoid && prefs.avoid[0] !== "none" ? prefs.avoid : [],
+              dislikes: (function(){
+                const map = {"cilantro":"香菜","garlic":"葱蒜","pork":"猪肉","seafood":"海鲜","vegetarian":"素食（不吃肉）","beef":"牛羊肉","egg":"蛋类","lactose":"奶制品","organ":"内脏","mushroom":"菌菇","soy":"豆制品"};
+                const arr = Array.isArray(prefs.avoid) ? prefs.avoid : [];
+                return arr.filter(a => a && a !== "none").map(a => map[a] || a);
+              })(),
               history: (function(){ try { const h = JSON.parse(localStorage.getItem("eat-ai-history")||"[]"); return h.slice(-10).map(x=>x.name||x.dish||""); } catch(e){ return []; } })(),
               season: (function(){ const m=new Date().getMonth()+1; return m>=3&&m<=5?"春季":m>=6&&m<=8?"夏季":m>=9&&m<=11?"秋季":"冬季"; })()
             }),
