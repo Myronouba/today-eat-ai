@@ -167,16 +167,19 @@ body.hide-shell { padding-top: 0; }
 .tab {
   min-width: 0;
   width: 100% !important;
+  height: 64px;
+  min-height: 64px;
+  max-height: 64px;
   display: flex !important;
   flex-direction: column;
   align-items: center !important;
   justify-content: center !important;
-  gap: 3px;
+  gap: 4px;
   border: none;
   background: transparent !important;
   box-shadow: none !important;
-  color: rgba(60, 55, 50, .5); font-size: 11px; font-weight: 500;
-  padding: 5px 2px; border-radius: 16px; cursor: pointer;
+  color: rgba(60, 55, 50, .5); font-size: 12px; font-weight: 500;
+  padding: 6px 4px; border-radius: 14px; cursor: pointer;
   transition: transform .3s cubic-bezier(.22, .61, .36, 1), color .3s ease;
   white-space: nowrap;
   font-family: inherit;
@@ -189,13 +192,14 @@ body.hide-shell { padding-top: 0; }
   outline: none;
   -webkit-appearance: none;
   appearance: none;
+  box-sizing: border-box;
 }
 .tab:focus, .tab:focus-visible {
   outline: none;
   box-shadow: none;
   border: none;
 }
-.tab svg { width: 21px; height: 21px; }
+.tab svg { width: 28px; height: 28px; }
 /* 图标容器：无底色无边框，贴纸图标透明呈现 */
 .tab-ico { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; transition: transform .2s var(--ease); }
 .tab-ico img {
@@ -4513,6 +4517,7 @@ html, body {
   transform: translateY(-1px);
 }
 
+
 /* ===== css\mini-program-adapter.css ===== */
 /* ============================================================
  * mini-program-adapter.css
@@ -4660,7 +4665,7 @@ body.in-miniprogram {
     font-size: 15px !important; /* 防止iOS自动缩放 */
   }
   
-  /* 底部导航优化 - 增大尺寸，选中正方形 */
+  /* 底部导航优化 - 固定高度正方形，确保移动端和桌面端一致 */
   .tabs {
     padding: 8px 8px calc(10px + env(safe-area-inset-bottom)) !important;
     bottom: 8px !important;
@@ -4668,26 +4673,32 @@ body.in-miniprogram {
   }
   
   .tab {
-    padding: 8px 6px !important;
+    padding: 6px 4px !important;
     gap: 4px !important;
     border-radius: 14px !important;
-    aspect-ratio: 1 / 1.1 !important;
+    height: 64px !important;
+    min-height: 64px !important;
+    max-height: 64px !important;
     display: flex !important;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: center !important;
+    box-sizing: border-box !important;
   }
   
   .tab-ico {
     width: 28px !important;
     height: 28px !important;
+    flex-shrink: 0 !important;
   }
   
   .tab span {
     font-size: 12px !important;
+    line-height: 1 !important;
+    flex-shrink: 0 !important;
   }
   
-  /* 选中状态正方形背景框 */
+  /* 选中状态正方形背景框 - 固定高度 */
   #tabs .tab.active {
     background: rgba(255, 255, 255, 0.25) !important;
     background-color: rgba(255, 255, 255, 0.25) !important;
@@ -4696,7 +4707,9 @@ body.in-miniprogram {
     box-shadow: 0 2px 10px rgba(32, 30, 26, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
     border: 1px solid rgba(255, 255, 255, 0.3) !important;
     border-radius: 14px !important;
-    aspect-ratio: 1 / 1.1 !important;
+    height: 64px !important;
+    min-height: 64px !important;
+    max-height: 64px !important;
   }
   
   /* 统计卡片优化 */
@@ -5015,11 +5028,14 @@ body.in-miniprogram {
     font-size: 12px !important;
   }
   
+  /* 超小屏底部导航 - 固定高度 */
   .tab {
-    padding: 6px 4px !important;
+    padding: 5px 3px !important;
     gap: 3px !important;
     border-radius: 12px !important;
-    aspect-ratio: 1 / 1.15 !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
   }
   
   .tab-ico {
@@ -5031,10 +5047,12 @@ body.in-miniprogram {
     font-size: 10px !important;
   }
   
-  /* 超小屏选中状态正方形 */
+  /* 超小屏选中状态固定高度 */
   #tabs .tab.active {
     border-radius: 12px !important;
-    aspect-ratio: 1 / 1.15 !important;
+    height: 56px !important;
+    min-height: 56px !important;
+    max-height: 56px !important;
   }
   
   .fridge-stats {
