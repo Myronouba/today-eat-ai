@@ -57,7 +57,7 @@ body {
 }
 body.hide-shell { padding-top: 0; }
 
-.serif { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", "Noto Sans SC", sans-serif; font-weight: 500; letter-spacing: .03em; }
+.serif { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", "Noto Sans SC", sans-serif; font-weight: 700; letter-spacing: .03em; }
 
 .hidden { display: none !important; }
 
@@ -272,7 +272,7 @@ body.hide-shell { padding-top: 0; }
   font-size: 12px; font-weight: 500; letter-spacing: .18em;
   text-transform: uppercase; color: var(--accent); margin-bottom: 6px;
 }
-.view-title { font-size: 26px; line-height: 1.3; margin-bottom: 18px; }
+.view-title { font-size: 26px; line-height: 1.3; margin-bottom: 18px; font-weight: 700; color: var(--ink); }
 .view-head { margin: 10px 0 22px; text-align: center; }
 
 /* 首页问候区（在家吃主视图顶部） */
@@ -288,7 +288,7 @@ body.hide-shell { padding-top: 0; }
 }
 .hh-ai-dot { width: 5px; height: 5px; border-radius: 50%; background: #fff; box-shadow: 0 0 6px rgba(255,255,255,.9); animation: hhPulse 2s infinite; }
 @keyframes hhPulse { 0%, 100% { opacity: 1; } 50% { opacity: .45; } }
-.home-title { font-size: 30px; line-height: 1.3; margin: 13px 0 10px; color: var(--ink); }
+.home-title { font-size: 30px; line-height: 1.3; margin: 13px 0 10px; color: var(--ink); font-weight: 700; }
 .hh-sub { font-size: 13px; color: var(--ink-soft); }
 .hh-date { font-size: 11px; color: var(--muted); margin-top: 6px; letter-spacing: .06em; }
 
@@ -2053,7 +2053,8 @@ body.hide-shell { overflow: hidden; }
   background: var(--card); border: 1px solid var(--line); border-radius: 18px;
   padding: 14px 16px; margin-bottom: 14px; animation: fadeUp .3s var(--ease);
 }
-.me-theme-title { font-size: 12px; color: var(--muted); letter-spacing: .1em; margin-bottom: 12px; }
+.me-theme-title { font-size: 12px; color: var(--muted); letter-spacing: .1em; margin-bottom: 12px;   font-weight: 700;
+}
 .theme-row { display: flex; gap: 14px; }
 .theme-dot {
   width: 36px; height: 36px; border-radius: 50%; background: var(--dot);
