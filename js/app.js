@@ -1628,7 +1628,11 @@
               ingredients: opts.ingredients,
               cuisine: opts.category !== "all" ? opts.category : "",
               mode: "home",
-              dishCount: 0
+              dishCount: 0,
+              tastePrefs: prefs.taste || [],
+              dislikes: prefs.avoid && prefs.avoid[0] !== "none" ? prefs.avoid : [],
+              history: (function(){ try { const h = JSON.parse(localStorage.getItem("eat-ai-history")||"[]"); return h.slice(-10).map(x=>x.name||x.dish||""); } catch(e){ return []; } })(),
+              season: (function(){ const m=new Date().getMonth()+1; return m>=3&&m<=5?"春季":m>=6&&m<=8?"夏季":m>=9&&m<=11?"秋季":"冬季"; })()
             }),
             new Promise(r => setTimeout(() => r(null), 15000))  // AI 15秒超时兜底
           ]);
@@ -1639,7 +1643,10 @@
               dishes: aiResult.dishes,
               ctx: { people: opts.people, cooker: opts.cooker, spicyTarget: opts.spicyTarget },
               aiGenerated: true,
-              aiReason: aiResult.reason
+              aiReason: aiResult.reason,
+              aiTheme: aiResult.theme,
+              aiAnalysis: aiResult.analysis,
+              aiNutrition: aiResult.nutrition
             };
             homeState = res;
             aiGenerated = true;
