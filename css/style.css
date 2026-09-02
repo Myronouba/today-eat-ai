@@ -154,7 +154,7 @@ body.hide-shell { padding-top: 0; }
   display: grid !important;
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr !important;
   gap: 0px;
-  padding: 8px 8px calc(10px + env(safe-area-inset-bottom));
+  padding: 6px 6px calc(8px + env(safe-area-inset-bottom));
   background: transparent;
   backdrop-filter: blur(40px) saturate(1.5); -webkit-backdrop-filter: blur(40px) saturate(1.5);
   border: 1px solid rgba(255, 255, 255, 0.4);
@@ -169,12 +169,12 @@ body.hide-shell { padding-top: 0; }
   flex-direction: column;
   align-items: center !important;
   justify-content: center !important;
-  gap: 4px;
+  gap: 3px;
   border: none;
   background: transparent !important;
   box-shadow: none !important;
   color: rgba(60, 55, 50, .5); font-size: 11px; font-weight: 500;
-  padding: 7px 2px; border-radius: 16px; cursor: pointer;
+  padding: 5px 2px; border-radius: 16px; cursor: pointer;
   transition: transform .3s cubic-bezier(.22, .61, .36, 1), color .3s ease;
   white-space: nowrap;
   font-family: inherit;
@@ -195,7 +195,7 @@ body.hide-shell { padding-top: 0; }
 }
 .tab svg { width: 21px; height: 21px; }
 /* 图标容器：无底色无边框，贴纸图标透明呈现 */
-.tab-ico { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; transition: transform .2s var(--ease); }
+.tab-ico { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; transition: transform .2s var(--ease); }
 .tab-ico img {
   width: 100%; height: 100%; object-fit: contain;
   display: block;
