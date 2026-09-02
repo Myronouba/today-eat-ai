@@ -8,9 +8,9 @@
 
 
 
-<link rel="stylesheet" href="style.bundle.css?v=20260903a">
+<link rel="stylesheet" href="style.bundle.css?v=20260903b">
 
-<link rel="preload" href="app.bundle.js?v=20260903a" as="script"><link rel="preload" href="style.bundle.css?v=20260903a" as="style"><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif}.serif{font-family:"Songti SC","SimSun","Noto Serif SC",serif}</style></head>
+<link rel="preload" href="app.bundle.js?v=20260903b" as="script"><link rel="preload" href="style.bundle.css?v=20260903b" as="style"><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif}.serif{font-family:"Songti SC","SimSun","Noto Serif SC",serif}</style></head>
 <body>
 
 <!-- ======== 顶部品牌栏 ======== -->
@@ -624,7 +624,13 @@
         </div>
       </div>
       <div class="field">
-        <label>冰箱里有什么？<span class="field-hint">（选填，AI优先用这些食材）</span></label>
+        <label class="fridge-field-label">
+          <span>冰箱里有什么？<span class="field-hint">（选填，AI优先用这些食材）</span></span>
+          <span class="fridge-link-btns">
+            <button type="button" class="fridge-link-btn" id="btnImportFridgeHere" title="从我的冰箱导入食材">📥 导入</button>
+            <button type="button" class="fridge-link-btn" id="btnGoFridge" title="打开我的冰箱">🧊 管理</button>
+          </span>
+        </label>
         <div class="chips ingredient-chips" id="hmIngredients">
           <button class="chip" data-val="鸡蛋">🥚 鸡蛋</button>
           <button class="chip" data-val="番茄">🍅 番茄</button>
@@ -1657,6 +1663,6 @@
 <div class="toast" id="toast"></div>
 
   
-<script src="app.bundle.js?v=20260903a"></script>
+<script src="app.bundle.js?v=20260903b"></script>
 </body>
 </html>

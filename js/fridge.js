@@ -1,4 +1,4 @@
-
+﻿
 /* ============ 我的冰箱功能 ============ */
 const FRIDGE_KEY = "eat-ai-fridge";
 let fridgeCurrentCat = "all";
@@ -262,4 +262,96 @@ if (document.readyState !== "loading") {
   initFridge();
 } else {
   document.addEventListener("DOMContentLoaded", initFridge);
+}
+
+// 在家吃页面冰箱联动：导入冰箱食材到当前选择区域
+function importFridgeToHomeIngredients() {
+  const items = getFridge();
+  if (items.length === 0) {
+    alert("冰箱是空的，先去我的冰箱添加一些食材吧！");
+    return;
+  }
+  
+  // 筛选未过期的食材
+  const freshItems = items.filter(item => {
+    const days = getDaysLeft(item.expireDate);
+    return days === null || days >= 0;
+  });
+  
+  if (freshItems.length === 0) {
+    alert("冰箱里的食材都过期了，先去我的冰箱添加一些新鲜食材吧！");
+    return;
+  }
+  
+  const names = freshItems.map(item => item.name);
+  
+  // 找到食材选择区域并点击对应的chip
+  const chipsContainer = document.getElementById("hmIngredients");
+  if (chipsContainer) {
+    let imported = 0;
+    names.forEach(name => {
+      // 尝试找到匹配的chip
+      const chip = Array.from(chipsContainer.querySelectorAll(".chip")).find(c => {
+        const val = c.getAttribute("data-val") || c.textContent;
+        return val.includes(name) || name.includes(val);
+      });
+      if (chip && !chip.classList.contains("active")) {
+        chip.click();
+        imported++;
+      }
+    });
+    
+    // 如果没有匹配到预设的chip，就用输入框添加
+    if (imported === 0) {
+      const input = document.getElementById("hmIngredientInput");
+      const addBtn = document.getElementById("hmAddIngredient");
+      if (input && addBtn) {
+        names.forEach((name, index) => {
+          setTimeout(() => {
+            input.value = name;
+            addBtn.click();
+          }, index * 100);
+        });
+        imported = names.length;
+      }
+    }
+    
+    alert("已从冰箱导入 " + imported + " 样食材：\n" + names.join("、"));
+  } else {
+    alert("已从冰箱导入 " + names.length + " 样食材：\n" + names.join("、") + "\n\n请在食材选择区域确认。");
+  }
+}
+
+// 跳转到我的冰箱页面
+function goToFridgePage() {
+  showView("fridge");
+  renderFridge();
+}
+
+// 绑定在家吃页面的冰箱联动按钮
+function initFridgeLinkButtons() {
+  const btnImport = document.getElementById("btnImportFridgeHere");
+  if (btnImport) {
+    btnImport.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      importFridgeToHomeIngredients();
+    });
+  }
+  
+  const btnGo = document.getElementById("btnGoFridge");
+  if (btnGo) {
+    btnGo.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      goToFridgePage();
+    });
+  }
+}
+
+// 页面加载后绑定
+if (document.readyState !== "loading") {
+  initFridgeLinkButtons();
+} else {
+  document.addEventListener("DOMContentLoaded", initFridgeLinkButtons);
 }
