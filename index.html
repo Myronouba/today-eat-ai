@@ -8,9 +8,9 @@
 
 
 
-<link rel="stylesheet" href="style.bundle.css?v=20260902g">
+<link rel="stylesheet" href="style.bundle.css?v=20260903a">
 
-<link rel="preload" href="app.bundle.js?v=20260902c" as="script"><link rel="preload" href="style.bundle.css?v=20260902g" as="style"><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif}.serif{font-family:"Songti SC","SimSun","Noto Serif SC",serif}</style></head>
+<link rel="preload" href="app.bundle.js?v=20260903a" as="script"><link rel="preload" href="style.bundle.css?v=20260903a" as="style"><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei","Helvetica Neue",Helvetica,Arial,sans-serif}.serif{font-family:"Songti SC","SimSun","Noto Serif SC",serif}</style></head>
 <body>
 
 <!-- ======== 顶部品牌栏 ======== -->
@@ -52,6 +52,125 @@
       </div>
     </div>
   </section>
+
+  <!-- ======== 视图：我的冰箱 ======== -->
+  <section class="view" id="view-fridge">
+    <div class="view-head">
+      <h2 class="serif view-title">我的冰箱</h2>
+    </div>
+
+    <!-- 统计卡片 -->
+    <div class="fridge-stats">
+      <div class="fridge-stat">
+        <div class="fridge-stat-num" id="fridgeTotal">0</div>
+        <div class="fridge-stat-label">食材总数</div>
+      </div>
+      <div class="fridge-stat">
+        <div class="fridge-stat-num fridge-stat-warn" id="fridgeExpiring">0</div>
+        <div class="fridge-stat-label">快过期</div>
+      </div>
+      <div class="fridge-stat">
+        <div class="fridge-stat-num fridge-stat-expired" id="fridgeExpired">0</div>
+        <div class="fridge-stat-label">已过期</div>
+      </div>
+    </div>
+
+    <!-- 操作按钮 -->
+    <div class="fridge-actions">
+      <button class="btn-primary fridge-add-btn" id="btnFridgeAdd">
+        <span class="fridge-add-ico">+</span> 添加食材
+      </button>
+      <button class="fridge-import-btn" id="btnFridgeImport">
+        <span>📥</span> 导入到推算
+      </button>
+    </div>
+
+    <!-- 分类标签 -->
+    <div class="fridge-categories" id="fridgeCategories">
+      <button class="fridge-cat active" data-cat="all">全部</button>
+      <button class="fridge-cat" data-cat="蔬菜菌菇">🥬 蔬菜</button>
+      <button class="fridge-cat" data-cat="肉蛋类">🥩 肉蛋</button>
+      <button class="fridge-cat" data-cat="水产">🐟 水产</button>
+      <button class="fridge-cat" data-cat="豆制品">🧈 豆制</button>
+      <button class="fridge-cat" data-cat="主食/烘焙">🍞 主食</button>
+      <button class="fridge-cat" data-cat="调料">🧂 调料</button>
+      <button class="fridge-cat" data-cat="水果">🍎 水果</button>
+      <button class="fridge-cat" data-cat="乳制品">🥛 乳品</button>
+    </div>
+
+    <!-- 食材列表 -->
+    <div class="fridge-list" id="fridgeList"></div>
+
+    <!-- 空状态 -->
+    <div class="fridge-empty hidden" id="fridgeEmpty">
+      <div class="fridge-empty-icon">🧊</div>
+      <div class="fridge-empty-text">冰箱还是空的</div>
+      <div class="fridge-empty-hint">点击上方"添加食材"开始管理你的冰箱</div>
+    </div>
+  </section>
+
+  <!-- 添加食材弹窗 -->
+  <div class="fridge-modal hidden" id="fridgeModal">
+    <div class="fridge-modal-content">
+      <div class="fridge-modal-header">
+        <h3>添加食材</h3>
+        <button class="fridge-modal-close" id="btnFridgeModalClose">×</button>
+      </div>
+      <div class="fridge-modal-body">
+        <div class="fridge-form-item">
+          <label>食材名称</label>
+          <input type="text" id="fridgeInputName" placeholder="例如：西红柿、鸡蛋、牛肉" />
+        </div>
+        <div class="fridge-form-item">
+          <label>常用食材快捷选择</label>
+          <div class="fridge-quick-picks" id="fridgeQuickPicks"></div>
+        </div>
+        <div class="fridge-form-row">
+          <div class="fridge-form-item">
+            <label>分类</label>
+            <select id="fridgeInputCategory">
+              <option value="蔬菜菌菇">🥬 蔬菜菌菇</option>
+              <option value="肉蛋类">🥩 肉蛋类</option>
+              <option value="水产">🐟 水产</option>
+              <option value="豆制品">🧈 豆制品</option>
+              <option value="主食/烘焙">🍞 主食/烘焙</option>
+              <option value="调料">🧂 调料</option>
+              <option value="水果">🍎 水果</option>
+              <option value="乳制品">🥛 乳制品</option>
+              <option value="其他">📦 其他</option>
+            </select>
+          </div>
+          <div class="fridge-form-item">
+            <label>数量</label>
+            <input type="number" id="fridgeInputQty" value="1" min="0.1" step="0.1" />
+          </div>
+          <div class="fridge-form-item">
+            <label>单位</label>
+            <select id="fridgeInputUnit">
+              <option value="个">个</option>
+              <option value="斤">斤</option>
+              <option value="克">克</option>
+              <option value="盒">盒</option>
+              <option value="袋">袋</option>
+              <option value="瓶">瓶</option>
+              <option value="把">把</option>
+              <option value="根">根</option>
+              <option value="块">块</option>
+              <option value="条">条</option>
+            </select>
+          </div>
+        </div>
+        <div class="fridge-form-item">
+          <label>保质期（过期日期）</label>
+          <input type="date" id="fridgeInputExpire" />
+        </div>
+      </div>
+      <div class="fridge-modal-footer">
+        <button class="fridge-btn-cancel" id="btnFridgeCancel">取消</button>
+        <button class="fridge-btn-confirm" id="btnFridgeConfirm">确认添加</button>
+      </div>
+    </div>
+  </div>
 
   <!-- ======== 视图：登录页（原欢迎页 · 个性化） ======== -->
   <section class="view" id="view-welcome">
@@ -356,6 +475,12 @@
       <button class="me-item" id="btnMeAiConfig">
         <span class="me-ic ic-orange">🤖</span>
         <span class="me-main">AI大模型<span class="me-sub" id="meAiSub">未配置</span></span>
+        <span class="me-arrow">›</span>
+      </button>
+      <div class="me-divider"></div>
+      <button class="me-item" id="btnMeFridge">
+        <span class="me-ic ic-blue">🧊</span>
+        <span class="me-main">我的冰箱<span class="me-sub" id="meFridgeSub">0 样食材</span></span>
         <span class="me-arrow">›</span>
       </button>
     </div>
@@ -1532,6 +1657,6 @@
 <div class="toast" id="toast"></div>
 
   
-<script src="app.bundle.js?v=20260902c"></script>
+<script src="app.bundle.js?v=20260903a"></script>
 </body>
 </html>

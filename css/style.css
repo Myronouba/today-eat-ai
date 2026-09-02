@@ -4094,3 +4094,389 @@ html, body {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.3; }
 }
+
+/* ============ 我的冰箱页面 ============ */
+.fridge-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.fridge-stat {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius);
+  padding: 14px 10px;
+  text-align: center;
+  box-shadow: var(--shadow);
+}
+.fridge-stat-num {
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--ink);
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+.fridge-stat-num.fridge-stat-warn { color: #E8A317; }
+.fridge-stat-num.fridge-stat-expired { color: #999; }
+.fridge-stat-label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.fridge-actions {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.fridge-add-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.fridge-add-ico {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1;
+}
+.fridge-import-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  cursor: pointer;
+  transition: all .2s;
+  font-family: inherit;
+}
+.fridge-import-btn:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateY(-1px);
+}
+
+.fridge-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.fridge-cat {
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.6);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all .2s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.fridge-cat:hover {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--ink);
+}
+.fridge-cat.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 600;
+}
+
+.fridge-list {
+  margin-bottom: 20px;
+}
+.fridge-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  box-shadow: var(--shadow);
+  transition: all .2s;
+}
+.fridge-item:hover {
+  background: rgba(255, 255, 255, 0.9);
+  transform: translateX(2px);
+}
+.fridge-item.expiring {
+  border-left: 3px solid #E8A317;
+}
+.fridge-item.expired {
+  border-left: 3px solid #999;
+  opacity: 0.7;
+}
+.fridge-item-ico {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  background: var(--accent-soft);
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.fridge-item-body {
+  flex: 1;
+  min-width: 0;
+}
+.fridge-item-name {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+.fridge-item-meta {
+  font-size: 12px;
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fridge-item-qty {
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+.fridge-item-expire {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 500;
+}
+.fridge-item-expire.fresh {
+  background: rgba(62, 122, 86, 0.1);
+  color: #3E7A56;
+}
+.fridge-item-expire.warning {
+  background: rgba(232, 163, 23, 0.12);
+  color: #E8A317;
+}
+.fridge-item-expire.danger {
+  background: rgba(225, 77, 42, 0.1);
+  color: var(--accent);
+}
+.fridge-item-expire.expired {
+  background: rgba(153, 153, 153, 0.15);
+  color: #999;
+}
+.fridge-item-del {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 18px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all .2s;
+  flex-shrink: 0;
+  font-family: inherit;
+}
+.fridge-item-del:hover {
+  background: rgba(225, 77, 42, 0.1);
+  color: var(--accent);
+}
+
+.fridge-empty {
+  text-align: center;
+  padding: 40px 20px;
+}
+.fridge-empty-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+.fridge-empty-text {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 6px;
+}
+.fridge-empty-hint {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* 添加食材弹窗 */
+.fridge-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.fridge-modal-content {
+  background: var(--bg);
+  border-radius: var(--radius);
+  width: 100%;
+  max-width: 400px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: var(--shadow-lg);
+}
+.fridge-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--line);
+}
+.fridge-modal-header h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.fridge-modal-close {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 22px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all .2s;
+  font-family: inherit;
+  line-height: 1;
+}
+.fridge-modal-close:hover {
+  background: var(--line);
+  color: var(--ink);
+}
+.fridge-modal-body {
+  padding: 18px;
+}
+.fridge-form-item {
+  margin-bottom: 14px;
+}
+.fridge-form-item label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--ink-soft);
+  margin-bottom: 6px;
+}
+.fridge-form-item input,
+.fridge-form-item select {
+  width: 100%;
+  padding: 10px 12px;
+  font-size: 14px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--ink);
+  font-family: inherit;
+  transition: border-color .2s;
+  box-sizing: border-box;
+}
+.fridge-form-item input:focus,
+.fridge-form-item select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.fridge-form-row {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr 0.8fr;
+  gap: 10px;
+}
+.fridge-quick-picks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.fridge-quick-pick {
+  padding: 5px 10px;
+  font-size: 12px;
+  background: var(--accent-soft);
+  border: 1px solid transparent;
+  border-radius: 999px;
+  color: var(--accent);
+  cursor: pointer;
+  transition: all .2s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.fridge-quick-pick:hover {
+  background: var(--accent);
+  color: #fff;
+}
+.fridge-modal-footer {
+  display: flex;
+  gap: 10px;
+  padding: 14px 18px;
+  border-top: 1px solid var(--line);
+}
+.fridge-btn-cancel {
+  flex: 1;
+  padding: 11px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: all .2s;
+  font-family: inherit;
+}
+.fridge-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.9);
+}
+.fridge-btn-confirm {
+  flex: 1;
+  padding: 11px 16px;
+  font-size: 15px;
+  font-weight: 600;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  cursor: pointer;
+  transition: all .2s;
+  font-family: inherit;
+}
+.fridge-btn-confirm:hover {
+  background: var(--accent-deep);
+}
+
+/* 我的页面冰箱入口图标颜色 */
+.ic-blue { background: rgba(66, 133, 244, 0.12); color: #4285F4; }
