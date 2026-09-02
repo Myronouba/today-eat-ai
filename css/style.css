@@ -45,7 +45,7 @@ html, body {
 }
 
 body {
-  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", "Noto Sans SC", sans-serif;
   background: var(--bg);
   color: var(--ink);
   line-height: 1.6;
@@ -55,7 +55,7 @@ body {
 }
 body.hide-shell { padding-top: 0; }
 
-.serif { font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif; font-weight: 500; letter-spacing: .03em; }
+.serif { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", "Noto Sans SC", sans-serif; font-weight: 500; letter-spacing: .03em; }
 
 .hidden { display: none !important; }
 
@@ -81,7 +81,7 @@ body.hide-shell { padding-top: 0; }
 }
 .tt-emoji { font-size: 17px; line-height: 1; animation: ttFloat 3s ease-in-out infinite; }
 .tt-text {
-  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", "Noto Sans SC", sans-serif;
   font-size: 17px; font-weight: 700; letter-spacing: .1em;
   color: var(--accent);                   /* 主题单色，不用渐变 */
 }
@@ -118,7 +118,7 @@ body.hide-shell { padding-top: 0; }
 .brand-mark { color: var(--accent); display: inline-flex; }
 .brand-mark svg { width: 24px; height: 24px; }
 .brand-name {
-  font-family: "Noto Sans SC", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", "Noto Sans SC", sans-serif;
   font-size: 20px; font-weight: 600; letter-spacing: .14em; color: var(--ink);
 }
 .brand-ai {
@@ -584,7 +584,7 @@ body.hide-shell { padding-top: 0; }
 }
 .menu-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
 .menu-card .mc-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-.mc-name { font-family: "Noto Serif SC", serif; font-size: 18px; font-weight: 600; }
+.mc-name { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif; font-size: 18px; font-weight: 600; }
 .mc-sub { font-size: 12px; color: var(--muted); margin-top: 2px; letter-spacing: .03em; }
 .mc-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
 .tag {
@@ -638,7 +638,7 @@ body.hide-shell { padding-top: 0; }
 .stat {
   background: var(--bg); border-radius: 12px; padding: 12px 8px; text-align: center;
 }
-.stat b { display: block; font-size: 17px; font-family: "Noto Serif SC", serif; color: var(--ink); }
+.stat b { display: block; font-size: 17px; font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif; color: var(--ink); }
 .stat span { font-size: 11px; color: var(--muted); }
 .section-block { background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); border: 1px solid rgba(255, 255, 255, 0.6); margin-bottom: 14px; }
 .section-block h3 { font-size: 15px; font-weight: 600; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
@@ -729,7 +729,7 @@ body.hide-shell { padding-top: 0; }
   overflow: hidden;
 }
 .list-summary b { color: var(--ink); font-weight: 600; }
-.list-summary .sum-price { font-family: "Noto Serif SC", serif; font-size: 17px; color: var(--accent); font-weight: 600; }
+.list-summary .sum-price { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif; font-size: 17px; color: var(--accent); font-weight: 600; }
 .list-tip { font-size: 12px; color: var(--muted); margin: 12px 0 4px; text-align: center; }
 .list-tip i { font-style: normal; width: 12px; height: 12px; border-radius: 50%; border: 1px solid var(--line); display: inline-block; vertical-align: -1px; }
 
@@ -753,7 +753,7 @@ body.hide-shell { padding-top: 0; }
 }
 .price-total .pt-label { font-size: 13px; opacity: .82; line-height: 1.5; }
 .price-total .pt-label em { font-style: normal; font-size: 11px; opacity: .6; display: block; }
-.price-total .pt-num { font-family: "Noto Serif SC", serif; font-size: 22px; font-weight: 600; white-space: nowrap; }
+.price-total .pt-num { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif; font-size: 22px; font-weight: 600; white-space: nowrap; }
 .price-total .pt-num span { font-size: 12px; font-weight: 400; opacity: .7; margin-left: 2px; }
 
 .channels { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -1547,7 +1547,7 @@ body.hide-tabs .stage {
   animation: fadeUp .5s var(--ease);
 }
 .role-card .rc-label { font-size: 11px; letter-spacing: .16em; color: var(--muted); font-weight: 500; }
-.role-card .rc-name { font-family: "Noto Sans SC", "PingFang SC", sans-serif; font-size: 20px; font-weight: 700; margin: 8px 0 4px; }
+.role-card .rc-name { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif; font-size: 20px; font-weight: 700; margin: 8px 0 4px; }
 .role-card .rc-duty { font-size: 12px; color: var(--ink-soft); line-height: 1.6; }
 .role-card.person-a { border-top: 3px solid var(--accent); }
 .role-card.person-b { border-top: 3px solid var(--gold); }
@@ -1570,7 +1570,7 @@ body.hide-tabs .stage {
   font-size: 11px; font-weight: 600; letter-spacing: .16em; color: var(--accent);
   margin-bottom: 10px; display: flex; align-items: center; gap: 6px;
 }
-.task-card .tk-text { font-family: "Noto Sans SC", "PingFang SC", sans-serif; font-size: 17px; line-height: 1.7; }
+.task-card .tk-text { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif; font-size: 17px; line-height: 1.7; }
 
 /* 纪念卡 */
 .memorial {
@@ -1584,7 +1584,7 @@ body.hide-tabs .stage {
   border-radius: 16px; pointer-events: none;
 }
 .memorial .m-date { font-size: 12px; letter-spacing: .2em; color: var(--gold); }
-.memorial .m-title { font-family: "Noto Sans SC", "PingFang SC", sans-serif; font-size: 24px; margin: 12px 0 6px; }
+.memorial .m-title { font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif; font-size: 24px; margin: 12px 0 6px; }
 .memorial .m-dishes { font-size: 14px; color: var(--ink-soft); margin: 10px 0 4px; line-height: 1.8; }
 .memorial .m-roles { font-size: 14px; color: var(--gold); font-weight: 600; margin-bottom: 8px; letter-spacing: .04em; }
 .grad-name {
