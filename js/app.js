@@ -3734,6 +3734,7 @@
       bindAiConfigEvents();
       initAiEndpointChips();
       initAiTempSlider();
+      initAiModelChips();
     } catch(e) { console.warn("AI配置初始化失败:", e); }
 showView("splash");
   }
@@ -3874,6 +3875,21 @@ showView("splash");
     });
   }
 
+
+  // 模型快捷选择
+  function initAiModelChips() {
+    const chips = document.querySelectorAll("#view-ai-config .chip[data-model]");
+    chips.forEach(chip => {
+      chip.addEventListener("click", () => {
+        chips.forEach(c => c.classList.remove("active"));
+        chip.classList.add("active");
+        const model = chip.dataset.model;
+        if (model) {
+          $("#aiModel").value = model;
+        }
+      });
+    });
+  }
   // 温度滑块实时显示
   function initAiTempSlider() {
     const slider = $("#aiTemp");
