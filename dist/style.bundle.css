@@ -43,11 +43,11 @@ body[data-theme="sunny"] {
   --muted: #9A8C6E;
   /* 边框线：淡黄色 */
   --line: #F0E6C8;
-  /* 主色调：深金黄色（按钮、强调色，确保文字可读） */
-  --accent: #E8B820;
-  /* 主色调深色：更深的金黄色（按钮hover/按下） */
-  --accent-deep: #C99A10;
-  /* 主色调浅色：明亮金黄色（浅色背景、标签底、搭配色） */
+  /* 主色调：浅黄色（按钮、强调色，与搭配色互换） */
+  --accent: #FFEC8E;
+  /* 主色调深色：稍深的浅黄色（按钮hover/按下） */
+  --accent-deep: #F5D85C;
+  /* 主色调浅色/搭配色：金黄色（浅色背景、标签底，与主色互换） */
   --accent-soft: #FECC3A;
   /* 健康点缀：暖绿色 */
   --green: #5C7A5C;
@@ -64,21 +64,21 @@ body[data-theme="sunny"] {
 body[data-theme="sunny"] .btn-primary {
   color: #2A2415; /* 很深的棕色，对比度>5:1 */
   border-color: rgba(42, 36, 21, 0.15);
-  box-shadow: 0 8px 24px rgba(232, 184, 32, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 24px rgba(255, 236, 142, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 body[data-theme="sunny"] .btn-primary:hover {
-  box-shadow: 0 12px 28px rgba(232, 184, 32, 0.45);
+  box-shadow: 0 12px 28px rgba(255, 236, 142, 0.45);
 }
 body[data-theme="sunny"] .btn-primary:active {
-  box-shadow: 0 3px 12px rgba(232, 184, 32, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 3px 12px rgba(255, 236, 142, 0.3), inset 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
 /* 阳光金主题 · AI生成按钮渐变色覆盖（替换硬编码的番茄红） */
 body[data-theme="sunny"] .ai-gen-btn {
-  background: linear-gradient(135deg, #E8B820 0%, #D4A820 55%, #B8941A 100%);
+  background: linear-gradient(135deg, #FFEC8E 0%, #F5D85C 55%, #E8B820 100%);
 }
 body[data-theme="sunny"] .ai-gen-btn:hover {
-  background: linear-gradient(135deg, #C99A10 0%, #B8890E 55%, #9A7508 100%);
+  background: linear-gradient(135deg, #F5D85C 0%, #B8890E 55%, #9A7508 100%);
 }
 
 /* 阳光金主题 · 选中标签/芯片文字颜色 */
@@ -96,89 +96,89 @@ body[data-theme="sunny"] .tab.active {
 /* 阳光金主题 · 进度条/加载动画颜色 */
 body[data-theme="sunny"] .lp-bar-fill,
 body[data-theme="sunny"] .progress-fill {
-  background: linear-gradient(90deg, #E8B820, #FECC3A);
+  background: linear-gradient(90deg, #FFEC8E, #FECC3A);
 }
 
 /* 阳光金主题 · 开关/复选框选中颜色 */
 body[data-theme="sunny"] .switch.active,
 body[data-theme="sunny"] input[type="checkbox"]:checked {
-  background: #E8B820;
-  border-color: #E8B820;
+  background: #FFEC8E;
+  border-color: #FFEC8E;
 }
 
 /* 阳光金主题 · 选中标签/芯片文字颜色和阴影 */
 body[data-theme="sunny"] .chip.active {
   color: #2A2415;
-  box-shadow: 0 6px 16px rgba(232, 184, 32, 0.3);
+  box-shadow: 0 6px 16px rgba(255, 236, 142, 0.3);
 }
 
 /* 阳光金主题 · 推荐理由卡片（替换硬编码的番茄红背景） */
 body[data-theme="sunny"] .reason-card {
   background: linear-gradient(135deg, #FFFEF5 0%, #FFF9E0 100%);
-  border-color: rgba(232, 184, 32, 0.15);
-  box-shadow: 0 2px 12px rgba(232, 184, 32, 0.08);
+  border-color: rgba(255, 236, 142, 0.15);
+  box-shadow: 0 2px 12px rgba(255, 236, 142, 0.08);
 }
 
 /* 阳光金主题 · 取消推算按钮边框色 */
 body[data-theme="sunny"] .cancel-calc-btn:hover {
-  border-color: rgba(232, 184, 32, 0.6);
+  border-color: rgba(255, 236, 142, 0.6);
 }
 
 /* 阳光金主题 · 顶部栏背景色（替换硬编码的米白色） */
 body[data-theme="sunny"] .topbar {
   background: rgba(252, 245, 210, 0.95);
-  border-bottom-color: rgba(232, 184, 32, 0.2);
+  border-bottom-color: rgba(255, 236, 142, 0.2);
 }
 
 /* 阳光金主题 · 返回按钮边框色 */
 body[data-theme="sunny"] .topbar-inner .topbar-back {
-  border-color: rgba(232, 184, 32, 0.25);
+  border-color: rgba(255, 236, 142, 0.25);
 }
 
 /* 阳光金主题 · 字段/输入框聚焦边框色 */
 body[data-theme="sunny"] input:focus,
 body[data-theme="sunny"] select:focus,
 body[data-theme="sunny"] textarea:focus {
-  border-color: #E8B820;
-  box-shadow: 0 0 0 3px rgba(232, 184, 32, 0.15);
+  border-color: #FFEC8E;
+  box-shadow: 0 0 0 3px rgba(255, 236, 142, 0.15);
 }
 
 /* 阳光金主题 · 链接文字颜色 */
 body[data-theme="sunny"] a {
-  color: #B8941A;
+  color: #E8B820;
 }
 
 /* 阳光金主题 · 统计数字/强调数字颜色 */
 body[data-theme="sunny"] .stat-num,
 body[data-theme="sunny"] .hs-item b,
 body[data-theme="sunny"] .fridge-stat-num {
-  color: #B8941A;
+  color: #E8B820;
 }
 
 /* 阳光金主题 · 价格/金额颜色 */
 body[data-theme="sunny"] .price,
 body[data-theme="sunny"] .pt-num,
 body[data-theme="sunny"] .sum-price {
-  color: #B8941A;
+  color: #E8B820;
 }
 
 /* 阳光金主题 · 徽章/角标背景色 */
 body[data-theme="sunny"] .badge,
 body[data-theme="sunny"] .tag-accent {
-  background: #E8B820;
+  background: #FFEC8E;
   color: #2A2415;
 }
 
 /* 阳光金主题 · 分割线/边框颜色 */
 body[data-theme="sunny"] .divider,
 body[data-theme="sunny"] hr {
-  background: rgba(232, 184, 32, 0.15);
+  background: rgba(255, 236, 142, 0.15);
 }
 
 /* 阳光金主题 · 空状态/占位图标颜色 */
 body[data-theme="sunny"] .empty-icon,
 body[data-theme="sunny"] .fridge-empty-icon {
-  color: rgba(232, 184, 32, 0.4);
+  color: rgba(255, 236, 142, 0.4);
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; word-break: break-word; overflow-wrap: break-word; }
