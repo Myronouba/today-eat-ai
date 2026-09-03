@@ -29,6 +29,37 @@ body[data-theme="orange"] { --accent: #E8731B; --accent-deep: #C95F0F; --accent-
 body[data-theme="gold"] { --accent: #A97B2F; --accent-deep: #8F6426; --accent-soft: #F3EADA; --gold: #8A6A32; --gold-soft: #EFE7D4; }
 body[data-theme="green"] { --accent: #3E7A56; --accent-deep: #2F5F42; --accent-soft: #E4EFE8; --gold: #A98A3E; --gold-soft: #F0EAD6; }
 
+/* 主题：阳光金 · 脱胎换骨全色系切换 */
+body[data-theme="sunny"] {
+  /* 页面背景：很淡的黄色 */
+  --bg: #FCF5D2;
+  /* 卡片背景：暖白色（带一点黄调） */
+  --card: #FFFEF7;
+  /* 主文字：深棕色（和金黄色搭配更和谐） */
+  --ink: #3D3420;
+  /* 次要文字：中棕色 */
+  --ink-soft: #6B5E45;
+  /* 辅助文字：浅棕色 */
+  --muted: #9A8C6E;
+  /* 边框线：淡黄色 */
+  --line: #F0E6C8;
+  /* 主色调：金黄色 */
+  --accent: #FECC3A;
+  /* 主色调深色：深金黄色（按钮hover/按下） */
+  --accent-deep: #D4A820;
+  /* 主色调浅色：浅黄色（背景/标签底） */
+  --accent-soft: #FFEC8E;
+  /* 健康点缀：暖绿色 */
+  --green: #5C7A5C;
+  --green-soft: #EAF1E8;
+  /* 纪念日点缀：金棕色 */
+  --gold: #B9964F;
+  --gold-soft: #F6EFDF;
+  /* 阴影：带暖色调 */
+  --shadow: 0 10px 30px rgba(61, 52, 32, 0.08);
+  --shadow-lg: 0 18px 50px rgba(61, 52, 32, 0.12);
+}
+
 * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; word-break: break-word; overflow-wrap: break-word; }
 /* hidden 属性必须隐藏（防止被组件自身 display 覆盖） */
 [hidden] { display: none !important; }

@@ -2761,7 +2761,7 @@
     document.body.setAttribute("data-theme", th);
     localStorage.setItem(LS_THEME, th);
     $$("#themeRow .theme-dot").forEach(d => d.classList.toggle("active", d.dataset.theme === th));
-    const TNAMES = { tomato: "番茄红", orange: "暖橙", gold: "茶金", green: "青绿", glass: "玻璃质感" };
+    const TNAMES = { tomato: "番茄红", orange: "暖橙", gold: "茶金", green: "青绿", sunny: "阳光金", glass: "玻璃质感" };
     const ms = $("#meThemeSub");
     if (ms) ms.textContent = TNAMES[th] || th;
   }
